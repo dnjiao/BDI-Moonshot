@@ -3,4 +3,12 @@
   <groupId>org.mda.ris</groupId>
   <artifactId>Bdi_Dao</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+   <dependencies>
+  
+  <dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc6</artifactId>
+			<version>11.2.0</version>
+		</dependency>
+		 </dependencies>
 </project>
