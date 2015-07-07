@@ -10,9 +10,7 @@ public class OracleDB
         try 
         {
     		Connection con = getConnection();
-        	
-   
-            con.close();
+        	con.close();
         }
         
         catch (SQLException e) {

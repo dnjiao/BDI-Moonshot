@@ -5,10 +5,15 @@
   <version>0.0.1-SNAPSHOT</version>
   <dependencies>
   	<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc6</artifactId>
-			<version>11.2.0</version>
+		<groupId>com.oracle</groupId>
+		<artifactId>ojdbc6</artifactId>
+		<version>11.2.0</version>
   	</dependency>
+  	<dependency>
+		<groupId>commons-httpclient</groupId>
+		<artifactId>commons-httpclient</artifactId>
+		<version>3.1</version>
+	</dependency>
   </dependencies>
   <build>
   	<plugins>
