@@ -15,7 +15,7 @@ public class PushFile {
 		PostMethod filePost = null;
 		try {
 			//From Directory or File we need to pick files
-			File f = new File("args[0]");
+			File f = new File(args[0]);
 			//Need to validate the file name from the file name
 			filePost = new PostMethod("http://10.111.100.207:8098/bdi/serviceingestion?domain=vcf");
 			RequestEntity re = new FileRequestEntity(f,	"application/octet-stream");
