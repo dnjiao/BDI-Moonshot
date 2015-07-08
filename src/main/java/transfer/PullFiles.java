@@ -1,16 +1,28 @@
 package transfer;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class PullFiles {
 	
 	final static String DEST_ROOT = "/rsrch1/rists/moonshot";
 	
 	public static void main(String[] args) {
-		type = os.getenv('TYPE')
-	    mode = os.getenv('MODE')
-	    dest = DEST_ROOT + type.lower()
-	    if not os.path.exists(dest):
-	        sys.exit('ERROR: ' + dest + ' does not exist.')
-	    log_path = os.path.join(dest, 'logs')
+		final String type = System.getenv("TYPE");
+	    final String mode = System.getenv("MODE");
+	    final String destPath = DEST_ROOT + "/" + type;
+	    final String logPath = destPath + "/logs";
+	    File destDir = new File(destPath);
+	    if (!destDir.exists()){
+	        System.err.println("ERROR: Destination path " + destPath + " does not exist.");
+	        System.exit(1);
+	    }
+	    File logDir = new File(logPath);
+	    if (!logDir.exists()) {
+	    	Files.createDirectory(Paths.get(logPath));
+	    }
 	    if not os.path.exists(log_path):
 	        os.system('mkdir log_path')
 	    #open log file to write
