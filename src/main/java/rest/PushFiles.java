@@ -2,10 +2,9 @@ package rest;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,23 +22,23 @@ import org.joda.time.format.DateTimeFormatter;
 
 public class PushFiles {
 	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
-	final static String LOCAL_PATH = "/rsrch1/rists/moonshot";
+	final static String LOCAL_PATH = "/Users/djiao/Work/moonshot";
+	//final static String LOCAL_PATH = "/rsrch1/rists/moonshot";
 	
 	public static void main(String[] args) {
 		if (args.length != 1) {
 			System.out.println("Usage: PushFile [File_Domain]");
 			System.exit(1);
 		}
-		FileOutputStream outstream = null;
-		PrintStream ps = null;
+		String url = URL_STRING  + args[0];
+		String path = LOCAL_PATH + "/" + args[0];
+		
+		
 		try {
-			String url = URL_STRING  + args[0];
-			String path = LOCAL_PATH + "/" + args[0];
 			
 			List<String> files = getFiles(path);
-			File notSentFile = new File(path + "/logs/not_sent.log");
-			outstream = new FileOutputStream(notSentFile, false);
-			ps = new PrintStream(outstream);
+			File notSentLog = new File(path + "/logs/not_sent.log");
+			PrintWriter writer=new PrintWriter(notSentLog);
 			int sentCount = 0;
 			int notsentCount = 0;
 			
@@ -47,15 +46,12 @@ public class PushFiles {
 				String filepath = path + "/" + filename;
 				if (pushSingle(url, filepath) == 0) { // not sent successfully
 					notsentCount ++;
-					ps.print(filename);
-					ps.println();
+					writer.println(filename);
 				} 
 				else {
 					sentCount ++;
 				}
 			}
-			ps.close();
-			outstream.close();
 			// if all files sent, delete "not_sent.log"
 			if (notsentCount == 0) {
 				Path p = Paths.get(path);
@@ -113,12 +109,12 @@ public class PushFiles {
 	public static File lastPullLog(String path) {
 		File dir = new File(path);
 		File[] logs = dir.listFiles();
-		DateTimeFormatter format = DateTimeFormat.forPattern("ddMMyyyyHHmmss");
+		DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 		DateTime last = format.parseDateTime("01012000000000");
 		for (File file : logs) {
 			String filename = file.getName();
 			if (filename.startsWith("pull") && filename.endsWith(".log")) {
-				String timeStr = filename.split(".log")[0];
+				String timeStr = filename.substring(0, filename.lastIndexOf(".")).split("_")[1];
 				DateTime time = format.parseDateTime(timeStr);
 				if (time.isAfter(last)) {
 					last = time;
@@ -126,7 +122,7 @@ public class PushFiles {
 			}
 		}
 		String timeStr = last.toString(format);
-		File file = new File(path, "pull" + timeStr + ".log");
+		File file = new File(path, "pull_" + timeStr + ".log");
 		return file;
 	}
 	
@@ -141,8 +137,9 @@ public class PushFiles {
 		try {
 			//From Directory or File we need to pick files
 			File f = new File(filepath);
+			String fileName = f.getName();
 			//Need to validate the file name from the file name
-			filePost = new PostMethod(url);
+			filePost = new PostMethod(url + fileName.substring(0,fileName.lastIndexOf(".")));
 			RequestEntity re = new FileRequestEntity(f,	"application/octet-stream");
 			filePost.setRequestEntity(re);
 			HttpClient client = new HttpClient();
