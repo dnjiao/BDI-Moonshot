@@ -19,7 +19,7 @@ import rest.PushFiles;
 
 public class PullFiles {
 	
-	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
+	final static String DEST_ROOT = "/rsrch1/rists/moonshot";
 	static int fileCounter = 0;
 	
 	public static void main(String[] args) {
