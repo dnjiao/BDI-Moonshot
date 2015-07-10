@@ -81,59 +81,77 @@ public class PullFiles {
 	
 	public static void cpFiles(String source, String dest, String type, String update, PrintWriter writer) {
 		
-	    if (type.equalsIgnoreCase("vcf")) {
-	    	Path top = Paths.get(source);
-	    	final String TYPE = type;
-	    	final String UPDATE = update;
-	    	final String DEST = dest;
-	    	final PrintWriter LOG = writer;
-	    	
-	    	try {
+    	Path top = Paths.get(source);
+    	final String TYPE = type;
+    	final String UPDATE = update;
+    	final String DEST = dest;
+    	final PrintWriter LOG = writer;
+    	
+    	try {
 //					final Connection CONN = OracleDB.getConnection();
-	    		 
-				Files.walkFileTree(top, new SimpleFileVisitor<Path>()
-				{  
-				   @Override
-				   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
-				   {
-					   String fileName = filePath.getFileName().toString();
-					   if (fileName.endsWith(TYPE)) {
-						   String srcPath = filePath.getParent().toString();
-						   
-						   Path fromPath = filePath;
-						   Path toPath = Paths.get(DEST, fileName);
-						   if (UPDATE.equalsIgnoreCase("update all")) {  // add all files
+    		 
+			Files.walkFileTree(top, new SimpleFileVisitor<Path>()
+			{  
+			   @Override
+			   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
+			   {
+				   String fileName = filePath.getFileName().toString();
+				   if (isType(fileName, TYPE)) {
+					   String srcPath = filePath.getParent().toString();
+					   
+					   Path fromPath = filePath;
+					   Path toPath = Paths.get(DEST, fileName);
+					   if (UPDATE.equalsIgnoreCase("update all")) {  // add all files
+						   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
+						   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+						   counterMethod();
+					   }
+					   else {  // add only new files
+						   File lastLog = PushFiles.lastPullLog(DEST + "/logs");
+						   if (lastLog == null) {
 							   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 							   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
 							   counterMethod();
 						   }
-						   else {  // add only new files
-							   File lastLog = PushFiles.lastPullLog(DEST + "/logs");
-							   if (lastLog == null) {
+						   else {
+							   String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
+							   DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
+							   DateTime logTime = format.parseDateTime(timeStr);
+							   // compare last log time and file lastmodified time
+							   if (logTime.isBefore(fromPath.toFile().lastModified())) {
 								   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 								   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
 								   counterMethod();
 							   }
-							   else {
-								   String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
-								   DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
-								   DateTime logTime = format.parseDateTime(timeStr);
-								   // compare last log time and file lastmodified time
-								   if (logTime.isBefore(fromPath.toFile().lastModified())) {
-									   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
-									   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
-									   counterMethod();
-								   }
-							   }
 						   }
 					   }
-				      return FileVisitResult.CONTINUE;
 				   }
-				});
-	    	} catch (IOException e) {
-	    		e.printStackTrace();
-	    	} 
-	    }
+			      return FileVisitResult.CONTINUE;
+			   }
+			});
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	} 
+	}
+	
+	/**
+	 * determine if a file is the type
+	 * @param filename 
+	 * @param type - file type, e.g. "vcf"
+	 * @return true if a file is the type, false otherwise
+	 */
+	public static boolean isType(String filename, String type) {
+		if (type.equalsIgnoreCase("vcf")) {
+			if(filename.endsWith(".vcf")) {
+				return true;
+			}
+		}
+		if (type.equalsIgnoreCase("mapping")) {
+			if (filename.startsWith("crossreference")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
