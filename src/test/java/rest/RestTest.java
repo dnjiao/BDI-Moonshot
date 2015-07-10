@@ -7,8 +7,8 @@ import org.junit.Test;
 public class RestTest {
 	@Test
 	public void testSinglePush() {
-		String url = "http://10.111.100.207:8098/bdi/serviceingestion?domain=vcf";
-		String path = "/Users/djiao/Work/moonshot/vcf";
+		String url = "http://10.111.100.207:8098/bdi/serviceingestion?domain=vcf&fileName=";
+		String path = "/Users/djiao/Work/moonshot/dest/vcf";
 		File dir = new File(path);
 		File[] files = dir.listFiles();
 		for (File file : files) {

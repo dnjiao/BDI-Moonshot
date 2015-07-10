@@ -22,7 +22,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 public class PushFiles {
 	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
-	final static String LOCAL_PATH = "/Users/djiao/Work/moonshot";
+	final static String LOCAL_PATH = "/Users/djiao/Work/moonshot/dest";
 	//final static String LOCAL_PATH = "/rsrch1/rists/moonshot";
 	
 	public static void main(String[] args) {
@@ -30,21 +30,21 @@ public class PushFiles {
 			System.out.println("Usage: PushFile [File_Domain]");
 			System.exit(1);
 		}
-		String url = URL_STRING  + args[0];
+		String prefix = URL_STRING  + args[0] + "&fileName=";
 		String path = LOCAL_PATH + "/" + args[0];
-		
+		PrintWriter writer = null;
 		
 		try {
 			
 			List<String> files = getFiles(path);
 			File notSentLog = new File(path + "/logs/not_sent.log");
-			PrintWriter writer=new PrintWriter(notSentLog);
+			writer = new PrintWriter(notSentLog);
 			int sentCount = 0;
 			int notsentCount = 0;
 			
 			for (String filename : files) {
 				String filepath = path + "/" + filename;
-				if (pushSingle(url, filepath) == 0) { // not sent successfully
+				if (pushSingle(prefix, filepath) == 0) { // not sent successfully
 					notsentCount ++;
 					writer.println(filename);
 				} 
@@ -54,18 +54,19 @@ public class PushFiles {
 			}
 			// if all files sent, delete "not_sent.log"
 			if (notsentCount == 0) {
-				Path p = Paths.get(path);
+				Path p = notSentLog.toPath();
 			    try {
 					Files.delete(p);
 				} catch (IOException e) {
 					e.printStackTrace();
 				} 
 			}
-			
 			System.out.println(Integer.toString(sentCount) + " files have been uploaded.");
 		} catch(IOException e) {
 			e.printStackTrace();
-		} 
+		} finally {
+			writer.close();
+		}
 	}
 	
 	/**
@@ -109,6 +110,9 @@ public class PushFiles {
 	public static File lastPullLog(String path) {
 		File dir = new File(path);
 		File[] logs = dir.listFiles();
+		if (logs.length == 0) {  // no logs found
+			return null;
+		}
 		DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 		DateTime last = format.parseDateTime("01012000000000");
 		for (File file : logs) {
@@ -131,7 +135,7 @@ public class PushFiles {
 	 * @param url - RestFul URL (destination)
 	 * @param filepath - Path of local file to be uploaded
 	 */
-	public static int pushSingle(String url, String filepath) {
+	public static int pushSingle(String prefix, String filepath) {
 		int status = 500;
 		PostMethod filePost = null;
 		try {
@@ -139,13 +143,14 @@ public class PushFiles {
 			File f = new File(filepath);
 			String fileName = f.getName();
 			//Need to validate the file name from the file name
-			filePost = new PostMethod(url + fileName.substring(0,fileName.lastIndexOf(".")));
+			String url = prefix + fileName.substring(0,fileName.lastIndexOf("."));
+			filePost = new PostMethod(url);
 			RequestEntity re = new FileRequestEntity(f,	"application/octet-stream");
 			filePost.setRequestEntity(re);
 			HttpClient client = new HttpClient();
-			long start = System.currentTimeMillis();
 			status = client.executeMethod(filePost);
-			System.out.println("Time taken for execution " + (System.currentTimeMillis() - start) + "ms");
+			System.out.println(filepath + " uploaded to " + url);
+//			System.out.println("Time taken for execution " + (System.currentTimeMillis() - start) + "ms");
 			return 1;
 		} catch (HttpException e) {
 			e.printStackTrace();

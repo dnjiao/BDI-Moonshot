@@ -8,9 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -46,9 +46,10 @@ public class PullFiles {
 		    
 		    // open log file to write
 		    File logfile = new File(LOGPATH, "tmp.log");
+		    PrintWriter writer=new PrintWriter(logfile);
 		    String source = "/Users/djiao/Work/moonshot/vcf";
 		    if (source.length() != 1) {
-	    		cpFiles(source, DEST, TYPE, UPDATE, logfile);
+	    		cpFiles(source, DEST, TYPE, UPDATE, writer);
 	    	}
 		    
 //		    for (int i = 1; i < 4; i++) {
@@ -57,7 +58,7 @@ public class PullFiles {
 //		    		cpFiles(source, DEST, TYPE, UPDATE, logfile);
 //		    	}
 //		    }
-		    
+		    writer.close();
 		    // rename log if not empty, otherwise delete it
 		    if (Files.size(logfile.toPath()) > 0) {
 		    	File newlog = new File(LOGPATH, "pull_" + dtStr + ".log");
@@ -71,45 +72,59 @@ public class PullFiles {
 		}
 	}
 	
-	public static void cpFiles(String source, String dest, String type, String update, File logfile) {
+	public static void cpFiles(String source, String dest, String type, String update, PrintWriter writer) {
 	    if (type.equalsIgnoreCase("vcf")) {
 	    	Path top = Paths.get(source);
+	    	final String TYPE = type;
 	    	final String UPDATE = update;
 	    	final String DEST = dest;
-	    	final File LOG = logfile;
+	    	final PrintWriter LOG = writer;
+	    	
 	    	try {
+//					final Connection CONN = OracleDB.getConnection();
+				
+	    	
 				Files.walkFileTree(top, new SimpleFileVisitor<Path>()
 				{
+					
+				   
 				   @Override
 				   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
 				   {
-					   String srcPath = filePath.getParent().toString();
 					   String fileName = filePath.getFileName().toString();
-					   File srcFile = filePath.toFile();
-					   File destFile = new File(DEST, fileName);
-					   PrintWriter writer=new PrintWriter(LOG);
-					   if (UPDATE.equalsIgnoreCase("update all")) {  // add all files
-						   FileUtils.copyFile(srcFile, destFile);
-						   writer.println(fileName + "\t" + srcPath + "\t" + DEST);
-					   }
-					   else {  // add only new files
-						   File lastLog = PushFiles.lastPullLog(LOG.getParent());
-						   String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
-						   DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
-						   DateTime logTime = format.parseDateTime(timeStr);
-						   // compare last log time and file lastmodified time
-						   if (logTime.isBefore(srcFile.lastModified())) {   
-							   FileUtils.copyFile(srcFile, destFile);
-							   writer.println(fileName + "\t" + srcPath + "\t" + DEST);
+					   if (fileName.endsWith(TYPE)) {
+						   String srcPath = filePath.getParent().toString();
+						   
+						   Path fromPath = filePath;
+						   Path toPath = Paths.get(DEST, fileName);
+						   if (UPDATE.equalsIgnoreCase("update all")) {  // add all files
+							   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
+							   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+						   }
+						   else {  // add only new files
+							   File lastLog = PushFiles.lastPullLog(DEST + "/logs");
+							   if (lastLog == null) {
+								   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
+								   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+							   }
+							   else {
+								   String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
+								   DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
+								   DateTime logTime = format.parseDateTime(timeStr);
+								   // compare last log time and file lastmodified time
+								   if (logTime.isBefore(fromPath.toFile().lastModified())) {
+									   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
+									   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+								   }
+							   }
 						   }
 					   }
-				      writer.close();
 				      return FileVisitResult.CONTINUE;
 				   }
 				});
 	    	} catch (IOException e) {
 	    		e.printStackTrace();
-	    	}
+	    	} 
 	    }
 	}
 

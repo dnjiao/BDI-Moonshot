@@ -2,6 +2,7 @@ package transfer;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.junit.Test;
 
@@ -15,8 +16,8 @@ public class TransferTest {
 		File file = new File("/Users/djiao/Work/moonshot/vcf/logs/tmp.log");
 		if (!file.exists())
 			file.createNewFile();
-		
-		PullFiles.cpFiles(source, dest, type, mode, file);
+		PrintWriter writer=new PrintWriter(file);
+		PullFiles.cpFiles(source, dest, type, mode, writer);
 	}
 	
 	
