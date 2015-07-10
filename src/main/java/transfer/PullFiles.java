@@ -23,12 +23,13 @@ public class PullFiles {
 	static int fileCounter = 0;
 	
 	public static void main(String[] args) {
-		final String TYPE = System.getenv("TYPE");
+		final String TYPE = System.getenv("TYPE").toLowerCase();
 	    final String UPDATE = System.getenv("MODE");
 //		final String TYPE = "vcf";
 //		final String UPDATE = "Update new";
 	    final String DEST = DEST_ROOT + "/" + TYPE;
 	    final String LOGPATH = DEST + "/logs";
+	    String source;
 	    File destDir = new File(DEST);
 	    if (!destDir.exists()){
 	        System.err.println("ERROR: Destination path " + DEST + " does not exist.");
@@ -48,7 +49,7 @@ public class PullFiles {
 		    // open log file to write
 		    File logfile = new File(LOGPATH, "tmp.log");
 		    PrintWriter writer=new PrintWriter(logfile);
-		    String source = "/Users/djiao/Work/moonshot/vcf";
+//		    String source = "/Users/djiao/Work/moonshot/vcf";
 //		    if (source.length() != 1) {
 //	    		cpFiles(source, DEST, TYPE, UPDATE, writer);
 //	    	}
