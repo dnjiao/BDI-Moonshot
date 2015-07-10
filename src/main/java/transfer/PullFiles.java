@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -54,10 +55,17 @@ public class PullFiles {
 //	    		cpFiles(source, DEST, TYPE, UPDATE, writer);
 //	    	}
 		    
-		    for (int i = 1; i < 4; i++) {
-		    	source = System.getenv("SOURCE_DIR" + Integer.toString(i));
-		    	if (source.length() != 1) {
-		    		cpFiles(source, DEST, TYPE, UPDATE, writer);
+		    Map<String, String> env = System.getenv();
+		    for (String envName : env.keySet()) {
+		    	if (envName.contains("SOURCE_DIR")) {
+		    		source = env.get(envName);
+		    		if (source != null) {
+			    		if (new File(source).isDirectory())
+			    			cpFiles(source, DEST, TYPE, UPDATE, writer);
+			    		else
+			    			System.err.println("Source Dir " + source + " is not a directory.");
+		    		}
+		    			
 		    	}
 		    }
 		    writer.close();
@@ -105,6 +113,7 @@ public class PullFiles {
 					   if (UPDATE.equalsIgnoreCase("update all")) {  // add all files
 						   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 						   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+						   System.out.println(fileName);
 						   counterMethod();
 					   }
 					   else {  // add only new files
@@ -112,6 +121,7 @@ public class PullFiles {
 						   if (lastLog == null) {
 							   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 							   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+							   System.out.println(fileName);
 							   counterMethod();
 						   }
 						   else {
@@ -122,6 +132,7 @@ public class PullFiles {
 							   if (logTime.isBefore(fromPath.toFile().lastModified())) {
 								   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 								   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+								   System.out.println(fileName);
 								   counterMethod();
 							   }
 						   }
