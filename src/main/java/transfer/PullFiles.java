@@ -20,12 +20,13 @@ import rest.PushFiles;
 public class PullFiles {
 	
 	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
+	static int fileCounter = 0;
 	
 	public static void main(String[] args) {
-//		final String TYPE = System.getenv("TYPE");
-//	    final String UPDATE = System.getenv("MODE");
-		final String TYPE = "vcf";
-		final String UPDATE = "Update new";
+		final String TYPE = System.getenv("TYPE");
+	    final String UPDATE = System.getenv("MODE");
+//		final String TYPE = "vcf";
+//		final String UPDATE = "Update new";
 	    final String DEST = DEST_ROOT + "/" + TYPE;
 	    final String LOGPATH = DEST + "/logs";
 	    File destDir = new File(DEST);
@@ -48,16 +49,16 @@ public class PullFiles {
 		    File logfile = new File(LOGPATH, "tmp.log");
 		    PrintWriter writer=new PrintWriter(logfile);
 		    String source = "/Users/djiao/Work/moonshot/vcf";
-		    if (source.length() != 1) {
-	    		cpFiles(source, DEST, TYPE, UPDATE, writer);
-	    	}
+//		    if (source.length() != 1) {
+//	    		cpFiles(source, DEST, TYPE, UPDATE, writer);
+//	    	}
 		    
-//		    for (int i = 1; i < 4; i++) {
-//		    	source = System.getenv("SOURCE_DIR" + Integer.toString(i));
-//		    	if (source.length() != 1) {
-//		    		cpFiles(source, DEST, TYPE, UPDATE, logfile);
-//		    	}
-//		    }
+		    for (int i = 1; i < 4; i++) {
+		    	source = System.getenv("SOURCE_DIR" + Integer.toString(i));
+		    	if (source.length() != 1) {
+		    		cpFiles(source, DEST, TYPE, UPDATE, writer);
+		    	}
+		    }
 		    writer.close();
 		    // rename log if not empty, otherwise delete it
 		    if (Files.size(logfile.toPath()) > 0) {
@@ -67,12 +68,19 @@ public class PullFiles {
 		    else {
 		    	logfile.delete();
 		    }
+		    System.out.println("Total " + Integer.toString(fileCounter) + " " + TYPE + " files transferred successfully.");
 	    } catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
+	
+	public static void counterMethod(){
+		fileCounter++;
+	}
+	
 	public static void cpFiles(String source, String dest, String type, String update, PrintWriter writer) {
+		
 	    if (type.equalsIgnoreCase("vcf")) {
 	    	Path top = Paths.get(source);
 	    	final String TYPE = type;
@@ -82,12 +90,9 @@ public class PullFiles {
 	    	
 	    	try {
 //					final Connection CONN = OracleDB.getConnection();
-				
-	    	
+	    		 
 				Files.walkFileTree(top, new SimpleFileVisitor<Path>()
-				{
-					
-				   
+				{  
 				   @Override
 				   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
 				   {
@@ -100,12 +105,14 @@ public class PullFiles {
 						   if (UPDATE.equalsIgnoreCase("update all")) {  // add all files
 							   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 							   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+							   counterMethod();
 						   }
 						   else {  // add only new files
 							   File lastLog = PushFiles.lastPullLog(DEST + "/logs");
 							   if (lastLog == null) {
 								   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 								   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+								   counterMethod();
 							   }
 							   else {
 								   String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
@@ -115,6 +122,7 @@ public class PullFiles {
 								   if (logTime.isBefore(fromPath.toFile().lastModified())) {
 									   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 									   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
+									   counterMethod();
 								   }
 							   }
 						   }
