@@ -22,16 +22,13 @@ import org.joda.time.format.DateTimeFormatter;
 
 public class PushFiles {
 	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
-	final static String LOCAL_PATH = "/Users/djiao/Work/moonshot/dest";
+	final static String LOCAL_PATH = "/rsrch1/rists/moonshot";
 	//final static String LOCAL_PATH = "/rsrch1/rists/moonshot";
 	
 	public static void main(String[] args) {
-		if (args.length != 1) {
-			System.out.println("Usage: PushFile [File_Domain]");
-			System.exit(1);
-		}
-		String prefix = URL_STRING  + args[0] + "&fileName=";
-		String path = LOCAL_PATH + "/" + args[0];
+		final String TYPE = System.getenv("TYPE").toLowerCase();
+		String prefix = URL_STRING  + TYPE + "&fileName=";
+		String path = LOCAL_PATH + "/" + TYPE;
 		PrintWriter writer = null;
 		
 		try {
