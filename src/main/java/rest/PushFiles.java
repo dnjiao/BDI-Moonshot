@@ -30,7 +30,6 @@ public class PushFiles {
 		String prefix = URL_STRING  + TYPE + "&fileName=";
 		String path = LOCAL_PATH + "/" + TYPE;
 		PrintWriter writer = null;
-		
 		try {
 			
 			List<String> files = getFiles(path);

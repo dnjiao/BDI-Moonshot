@@ -25,7 +25,11 @@ public class PullFiles {
 	
 	public static void main(String[] args) {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
-	    final String UPDATE = System.getenv("MODE");
+	    final String UPDATE = System.getenv("MODE").toLowerCase();
+	    if (TYPE == null || UPDATE == null) {
+	    	System.out.println("ERROR: Environment variable not set correctly.");
+	    	System.exit(1);
+	    }
 //		final String TYPE = "vcf";
 //		final String UPDATE = "Update new";
 	    final String DEST = DEST_ROOT + "/" + TYPE;
@@ -110,7 +114,7 @@ public class PullFiles {
 					   
 					   Path fromPath = filePath;
 					   Path toPath = Paths.get(DEST, fileName);
-					   if (UPDATE.equalsIgnoreCase("update all")) {  // add all files
+					   if (UPDATE.equalsIgnoreCase("all")) {  // add all files
 						   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 						   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
 						   System.out.println(fileName);
@@ -159,7 +163,7 @@ public class PullFiles {
 			}
 		}
 		if (type.equalsIgnoreCase("mapping")) {
-			if (filename.startsWith("crossreference")) {
+			if (filename.toLowerCase().startsWith("crossreference")) {
 				return true;
 			}
 		}
