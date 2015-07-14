@@ -63,11 +63,11 @@ public class PullFiles {
 		    for (String envName : env.keySet()) {
 		    	if (envName.contains("SOURCE_DIR")) {
 		    		source = env.get(envName);
-		    		if (source != null) {
+		    		if (source.length() > 3) {
 			    		if (new File(source).isDirectory())
 			    			cpFiles(source, DEST, TYPE, UPDATE, writer);
 			    		else
-			    			System.err.println("Source Dir " + source + " is not a directory.");
+			    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
 		    		}
 		    			
 		    	}
