@@ -28,7 +28,5 @@ public class DaoTest {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
-
 	}
 }

@@ -21,6 +21,7 @@ import rest.PushFiles;
 public class PullFiles {
 	
 	final static String DEST_ROOT = "/rsrch1/rists/moonshot";
+	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	
 	public static void main(String[] args) {
@@ -47,9 +48,9 @@ public class PullFiles {
 		    }
 		    
 		    // get the string for current time
-		    DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
+		    //DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 		    DateTime current = new DateTime();
-		    String dtStr = format.print(current);
+		    String dtStr = FORMAT.print(current);
 		    
 		    // open log file to write
 		    File logfile = new File(LOGPATH, "tmp.log");
@@ -109,34 +110,36 @@ public class PullFiles {
 			   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
 			   {
 				   String fileName = filePath.getFileName().toString();
+				   DateTime now = new DateTime();
+				   String newName = fileName.split(".")[0] + "_" + FORMAT.print(now) + "." + fileName.split(".")[1];
 				   if (isType(fileName, TYPE)) {
 					   String srcPath = filePath.getParent().toString();
 					   
 					   Path fromPath = filePath;
-					   Path toPath = Paths.get(DEST, fileName);
+					   Path toPath = Paths.get(DEST, newName);
 					   if (UPDATE.equalsIgnoreCase("all")) {  // add all files
 						   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
-						   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
-						   System.out.println(fileName);
+						   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
+						   System.out.println(newName);
 						   counterMethod();
 					   }
 					   else {  // add only new files
 						   File lastLog = PushFiles.lastPullLog(DEST + "/logs");
 						   if (lastLog == null) {
 							   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
-							   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
-							   System.out.println(fileName);
+							   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
+							   System.out.println(newName);
 							   counterMethod();
 						   }
 						   else {
 							   String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
-							   DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
-							   DateTime logTime = format.parseDateTime(timeStr);
+//							   DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
+							   DateTime logTime = FORMAT.parseDateTime(timeStr);
 							   // compare last log time and file lastmodified time
 							   if (logTime.isBefore(fromPath.toFile().lastModified())) {
 								   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
-								   LOG.println(fileName + "\t" + srcPath + "\t" + DEST);
-								   System.out.println(fileName);
+								   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
+								   System.out.println(newName);
 								   counterMethod();
 							   }
 						   }
