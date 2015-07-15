@@ -17,7 +17,7 @@ public class DaoTest {
 			pstmt.setString(2, "export/data/flowcyto/1.csv");
 			pstmt.setString(3, "/rsrch1/rists/moonshot/flowcyto/1.csv");
 			pstmt.setString(4, "Protocol_Test");
-			pstmt.setBoolean(5, true);
+			pstmt.setString(5, "Y");
 			pstmt.executeUpdate();
 			int ret = pstmt.getInt(1);
 			System.out.println("Return code: " + Integer.toString(ret));
