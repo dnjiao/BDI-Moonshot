@@ -12,7 +12,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
-import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -24,14 +23,16 @@ import rest.PushFiles;
 
 public class PullFiles {
 	
-	final static String DEST_ROOT = "/rsrch1/rists/moonshot";
+	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	final static Connection CONN = OracleDB.getConnection();
 	
 	public static void main(String[] args) {
-		final String TYPE = System.getenv("TYPE").toLowerCase();
-	    final String UPDATE = System.getenv("MODE").toLowerCase();
+//		final String TYPE = System.getenv("TYPE").toLowerCase();
+//	    final String UPDATE = System.getenv("MODE").toLowerCase();
+		final String TYPE = "vcf";
+		final String UPDATE = "all";
 	    if (TYPE == null || UPDATE == null) {
 	    	System.out.println("ERROR: Environment variable not set correctly.");
 	    	System.exit(1);
@@ -59,8 +60,10 @@ public class PullFiles {
 		    }
 		    else {
 		    	tmpInsert = new File(LOGPATH, "tmp_insert.log");
+		    	tmpInsert.createNewFile();
 		    }
 		    Files.copy(tmpInsert.toPath(), insertLog.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		    tmpInsert.delete();
 		    PrintWriter insertWriter = new PrintWriter(new FileOutputStream(insertLog), true);
 		    // get the string for current time
 		    DateTime current = new DateTime();
@@ -70,19 +73,20 @@ public class PullFiles {
 		    File logfile = new File(LOGPATH, "tmp_pull.log");
 		    PrintWriter logWriter=new PrintWriter(logfile);
 
-		    
-		    Map<String, String> env = System.getenv();
-		    for (String envName : env.keySet()) {
-		    	if (envName.contains("SOURCE_DIR")) {
-		    		source = env.get(envName);
-		    		if (source.length() > 3) {
-			    		if (new File(source).isDirectory())
-			    			cpFiles(source, DEST, TYPE, UPDATE, logWriter, insertWriter);
-			    		else
-			    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
-		    		}	
-		    	}
-		    }
+		    source = "/Users/djiao/Work/moonshot/vcf";
+		    cpFiles(source, DEST, TYPE, UPDATE, logWriter, insertWriter);
+//		    Map<String, String> env = System.getenv();
+//		    for (String envName : env.keySet()) {
+//		    	if (envName.contains("SOURCE_DIR")) {
+//		    		source = env.get(envName);
+//		    		if (source.length() > 3) {
+//			    		if (new File(source).isDirectory())
+//			    			cpFiles(source, DEST, TYPE, UPDATE, logWriter, insertWriter);
+//			    		else
+//			    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
+//		    		}	
+//		    	}
+//		    }
 		    logWriter.close();
 		    insertWriter.close();
 		    // rename log if not empty, otherwise delete it
@@ -126,8 +130,9 @@ public class PullFiles {
 			   {
 				   String fileName = filePath.getFileName().toString();
 				   DateTime now = new DateTime();
-				   String newName = fileName.split(".")[0] + "_" + FORMAT.print(now) + "." + fileName.split(".")[1];
-				   if (isType(fileName, TYPE)) {
+				   
+				   if (isType(fileName, TYPE)) {					   
+					   String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(now) + "." + fileName.split("\\.")[1];
 					   String srcPath = filePath.getParent().toString();
 					   
 					   Path fromPath = filePath;

@@ -15,12 +15,13 @@ public class AuditTable {
 	public static int insertSingle (Connection con, String sourceUri, String destUri, String protocol) {
 		int ret = 0;
 		try {
-			CallableStatement pstmt = con.prepareCall("{? = call FILE_TRANSFER.insert_file_audit_record(?,?,?,?)}");
+			CallableStatement pstmt = con.prepareCall("{? = call FILE_TRANSFER.insert_file_queue_record(?,?,?,?,?)}");
 			pstmt.registerOutParameter(1, Types.INTEGER);
 			pstmt.setString(2, sourceUri);
 			pstmt.setString(3, destUri);
 			pstmt.setString(4, protocol);
-			pstmt.setString(5, "Y");
+			pstmt.setString(5, "P");
+			pstmt.registerOutParameter(6, Types.INTEGER);
 			pstmt.executeUpdate();
 			ret = pstmt.getInt(1);
 			pstmt.close();

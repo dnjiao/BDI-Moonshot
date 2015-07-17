@@ -23,7 +23,6 @@ import org.joda.time.format.DateTimeFormatter;
 public class PushFiles {
 	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
 	final static String LOCAL_PATH = "/rsrch1/rists/moonshot";
-	//final static String LOCAL_PATH = "/rsrch1/rists/moonshot";
 	
 	public static void main(String[] args) {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
@@ -145,8 +144,7 @@ public class PushFiles {
 			filePost.setRequestEntity(re);
 			HttpClient client = new HttpClient();
 			status = client.executeMethod(filePost);
-			System.out.println(filepath + " uploaded to " + url);
-//			System.out.println("Time taken for execution " + (System.currentTimeMillis() - start) + "ms");
+			System.out.println(filepath + " uploaded to " + url + ". Status code is " + Integer.toString(status));
 			return 1;
 		} catch (HttpException e) {
 			e.printStackTrace();

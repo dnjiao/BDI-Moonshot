@@ -14,20 +14,20 @@ public class OracleDB
 		String user = "BDI_OWNER";
 		String pass = "bdiowner987";
 		Connection connection = null;
-		try {
-			Class.forName("oracle.jdbc.OracleDriver");
-			connection = DriverManager.getConnection(connectionURL, user, pass);
-			System.out.println("Connected to database.");
-			
-			
-		} catch (SQLException e) {
-			System.out.println("Connection failed.");
-			System.exit(1);
-		}  catch (ClassNotFoundException e) {
-			System.out.println("Cannot find Oracle JDBC Driver.");
-			e.printStackTrace();
-			System.exit(1);
-		} 
+//		try {
+//			Class.forName("oracle.jdbc.OracleDriver");
+//			connection = DriverManager.getConnection(connectionURL, user, pass);
+//			System.out.println("Connected to database.");
+//			
+//			
+//		} catch (SQLException e) {
+//			System.out.println("Connection failed.");
+//			System.exit(1);
+//		}  catch (ClassNotFoundException e) {
+//			System.out.println("Cannot find Oracle JDBC Driver.");
+//			e.printStackTrace();
+//			System.exit(1);
+//		} 
 		return connection;
 	}
 }
