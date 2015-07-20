@@ -16,7 +16,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
 public class FileConvert {
-	public static void flowCsv(File in, File out) {
+	public static void flowTsv(File in, File out) {
 		 // For storing data into CSV files
         StringBuffer buffer = new StringBuffer();
         try 
@@ -44,27 +44,27 @@ public class FileConvert {
 	                        switch (cell.getCellType()) 
 	                        {
 	                        case Cell.CELL_TYPE_BOOLEAN:
-	                                buffer.append(cell.getBooleanCellValue() + ",");
+	                                buffer.append(cell.getBooleanCellValue() + "\t");
 	                                break;
 	                                
 	                        case Cell.CELL_TYPE_NUMERIC:
-	                                buffer.append(cell.getNumericCellValue() + ",");
+	                                buffer.append(cell.getNumericCellValue() + "\t");
 	                                break;
 	                                
 	                        case Cell.CELL_TYPE_STRING:
-	                                buffer.append(cell.getStringCellValue() + ",");
+	                                buffer.append(cell.getStringCellValue() + "\t");
 	                                break;
 	
 	                        case Cell.CELL_TYPE_BLANK:
-	                                buffer.append("" + ",");
+	                                buffer.append("" + "\t");
 	                                break;
 	                        
 	                        default:
-	                                buffer.append(cell + ",");
+	                                buffer.append(cell + "\t");
 	                        }
 	                        
-	                        buffer.append("\n"); 
 	                }
+	                buffer.append("\n"); 
 	        }
 	
 	        fos.write(buffer.toString().getBytes());
@@ -77,7 +77,7 @@ public class FileConvert {
         }
 	}
 	
-	public static void immunoCsv (File in, File out) {
+	public static void immunoTsv (File in, File out) {
 		try {
 			//FileOutputStream fos = new FileOutputStream(out);
 			PrintWriter writer = new PrintWriter(out);
@@ -124,6 +124,9 @@ public class FileConvert {
 	        
 	        String im, ct, norm;
 	        Cell cellIm, cellCt, cellNorm;
+	        
+	        // print title row
+	        writer.println("biomarker" + "\t" + "type" + "\t" + "specimen" + "\t" + "im" + "\t" + "ct" + "\t" + "norm");
 	        // loop thru sheets (type)
 	        for (int i = 0; i < 3; i ++) {
 	        	sheet = workbook.getSheetAt(i);
@@ -154,7 +157,7 @@ public class FileConvert {
 	        			else {
 	        				norm = "";
 	        			}
-	        			writer.println(markers.get(j) + "," + type + "," + samples.get(k) + "," + im + "," + ct + "," + norm);
+	        			writer.println(markers.get(j) + "\t" + type + "\t" + samples.get(k) + "\t" + im + "\t" + ct + "\t" + norm);
 	        		}
 	        	}
 	        	
