@@ -19,7 +19,7 @@ public class AuditTable {
 			pstmt.registerOutParameter(1, Types.INTEGER);
 			pstmt.setString(2, sourceUri);
 			pstmt.setString(3, destUri);
-			pstmt.setString(4, protocol);
+			pstmt.setString(4, protocol.toUpperCase());
 			pstmt.setString(5, "P");
 			pstmt.registerOutParameter(6, Types.INTEGER);
 			pstmt.executeUpdate();

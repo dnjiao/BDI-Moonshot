@@ -12,7 +12,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
+import java.util.Map;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -23,16 +25,20 @@ import rest.PushFiles;
 
 public class PullFiles {
 	
-	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
+//	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
+	final static String DEST_ROOT = "/rsrch1/rists/moonshot";
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	final static Connection CONN = OracleDB.getConnection();
 	
 	public static void main(String[] args) {
-//		final String TYPE = System.getenv("TYPE").toLowerCase();
-//	    final String UPDATE = System.getenv("MODE").toLowerCase();
-		final String TYPE = "vcf";
-		final String UPDATE = "all";
+		final String TYPE = System.getenv("TYPE").toLowerCase();
+	    final String UPDATE = System.getenv("MODE").toLowerCase();
+	    final String PROTOCOL = System.getenv("PROTOCOL").toLowerCase();
+	    System.out.println(PROTOCOL);
+//		final String TYPE = "vcf";
+//		final String UPDATE = "all";
+//		final String PROTOCOL = "ln";
 	    if (TYPE == null || UPDATE == null) {
 	    	System.out.println("ERROR: Environment variable not set correctly.");
 	    	System.exit(1);
@@ -60,6 +66,9 @@ public class PullFiles {
 		    }
 		    else {
 		    	tmpInsert = new File(LOGPATH, "tmp_insert.log");
+		    	if (tmpInsert.exists()) {
+		    		tmpInsert.delete();
+		    	}
 		    	tmpInsert.createNewFile();
 		    }
 		    Files.copy(tmpInsert.toPath(), insertLog.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -73,20 +82,20 @@ public class PullFiles {
 		    File logfile = new File(LOGPATH, "tmp_pull.log");
 		    PrintWriter logWriter=new PrintWriter(logfile);
 
-		    source = "/Users/djiao/Work/moonshot/vcf";
-		    cpFiles(source, DEST, TYPE, UPDATE, logWriter, insertWriter);
-//		    Map<String, String> env = System.getenv();
-//		    for (String envName : env.keySet()) {
-//		    	if (envName.contains("SOURCE_DIR")) {
-//		    		source = env.get(envName);
-//		    		if (source.length() > 3) {
-//			    		if (new File(source).isDirectory())
-//			    			cpFiles(source, DEST, TYPE, UPDATE, logWriter, insertWriter);
-//			    		else
-//			    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
-//		    		}	
-//		    	}
-//		    }
+//		    source = "/Users/djiao/Work/moonshot/vcf";
+//		    cpFiles(source, DEST, TYPE, UPDATE, PROTOCOL, logWriter, insertWriter);
+		    Map<String, String> env = System.getenv();
+		    for (String envName : env.keySet()) {
+		    	if (envName.contains("SOURCE_DIR")) {
+		    		source = env.get(envName);
+		    		if (source.length() > 3) {
+			    		if (new File(source).isDirectory())
+			    			cpFiles(source, DEST, TYPE, UPDATE, PROTOCOL, logWriter, insertWriter);
+			    		else
+			    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
+		    		}	
+		    	}
+		    }
 		    logWriter.close();
 		    insertWriter.close();
 		    // rename log if not empty, otherwise delete it
@@ -113,14 +122,16 @@ public class PullFiles {
 		fileCounter++;
 	}
 	
-	public static void cpFiles(String source, String dest, String type, String update, PrintWriter logWriter, PrintWriter insertWriter) {
+	public static void cpFiles(String source, String dest, String type, String update, String protocol, PrintWriter logWriter, PrintWriter insertWriter) {
 		
     	Path top = Paths.get(source);
     	final String TYPE = type;
     	final String UPDATE = update;
+    	final String PROTOCOL = protocol;
     	final String DEST = dest;
     	final PrintWriter LOG = logWriter;
     	final PrintWriter INSERT = insertWriter;
+    	System.out.println("In method" + PROTOCOL);
     	
     	try {
 			Files.walkFileTree(top, new SimpleFileVisitor<Path>()
@@ -131,15 +142,18 @@ public class PullFiles {
 				   String fileName = filePath.getFileName().toString();
 				   DateTime now = new DateTime();
 				   
-				   if (isType(fileName, TYPE)) {					   
+				   if (isType(fileName, TYPE)) {	
 					   String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(now) + "." + fileName.split("\\.")[1];
 					   String srcPath = filePath.getParent().toString();
 					   
 					   Path fromPath = filePath;
 					   Path toPath = Paths.get(DEST, newName);
+					   String cmd = cmdConstructor(PROTOCOL, fromPath.toString(), toPath.toString());
 					   if (UPDATE.equalsIgnoreCase("all")) {  // add all files
-						   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
-						   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), "cp") == 0) {
+//						   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
+						   System.out.println(cmd);
+						   Runtime.getRuntime().exec(cmd);
+						   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 							   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 						   }
 						   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
@@ -149,8 +163,9 @@ public class PullFiles {
 					   else {  // add only new files
 						   File lastLog = PushFiles.lastPullLog(DEST + "/logs");
 						   if (lastLog == null) {
-							   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
-							   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), "cp") == 0) {
+//							   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
+							   Runtime.getRuntime().exec(cmd);
+							   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 								   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 							   }
 							   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
@@ -162,8 +177,9 @@ public class PullFiles {
 							   DateTime logTime = FORMAT.parseDateTime(timeStr);
 							   // compare last log time and file lastmodified time
 							   if (logTime.isBefore(fromPath.toFile().lastModified())) {
-								   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
-								   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), "cp") == 0) {
+//								   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
+								   Runtime.getRuntime().exec(cmd);
+								   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 									   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 								   }
 								   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
@@ -201,6 +217,17 @@ public class PullFiles {
 			}
 		}
 		return false;
+	}
+	
+	public static String cmdConstructor(String protocol, String from, String to) {
+		if (protocol.equals("ln")) {
+			return "ln -s " + from + " " + to;
+		}
+		else if (protocol.equals("cp")) {
+			return "cp " + from + " " + to;
+		}
+		else
+			return null;
 	}
 
 }
