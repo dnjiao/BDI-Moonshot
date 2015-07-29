@@ -37,31 +37,34 @@ public class FileConvert {
 	                row = rowIterator.next();
 	                // For each row, iterate through each columns
 	                Iterator<Cell> cellIterator = row.cellIterator();
+	                int cellIndex = 0;
 	                while (cellIterator.hasNext()) 
 	                {
-	                        cell = cellIterator.next();
-	                        
+	                	cellIndex ++;
+                        cell = cellIterator.next();
+                        if (cellIndex > 1 && cellIndex < 5) {
 	                        switch (cell.getCellType()) 
 	                        {
-	                        case Cell.CELL_TYPE_BOOLEAN:
-	                                buffer.append(cell.getBooleanCellValue() + "\t");
-	                                break;
-	                                
-	                        case Cell.CELL_TYPE_NUMERIC:
-	                                buffer.append(cell.getNumericCellValue() + "\t");
-	                                break;
-	                                
-	                        case Cell.CELL_TYPE_STRING:
-	                                buffer.append(cell.getStringCellValue() + "\t");
-	                                break;
-	
-	                        case Cell.CELL_TYPE_BLANK:
-	                                buffer.append("" + "\t");
-	                                break;
-	                        
-	                        default:
-	                                buffer.append(cell + "\t");
+		                        case Cell.CELL_TYPE_BOOLEAN:
+		                                buffer.append(cell.getBooleanCellValue() + "\t");
+		                                break;
+		                                
+		                        case Cell.CELL_TYPE_NUMERIC:
+		                                buffer.append(cell.getNumericCellValue() + "\t");
+		                                break;
+		                                
+		                        case Cell.CELL_TYPE_STRING:
+		                                buffer.append(cell.getStringCellValue() + "\t");
+		                                break;
+		
+		                        case Cell.CELL_TYPE_BLANK:
+		                                buffer.append("" + "\t");
+		                                break;
+		                        
+		                        default:
+		                                buffer.append(cell + "\t");
 	                        }
+                        }
 	                        
 	                }
 	                buffer.append("\n"); 
@@ -95,18 +98,18 @@ public class FileConvert {
 	        Iterator<Cell> cellIterator = row0.cellIterator();
 	        
 	        // get the list of biomarker names from first row of first sheet
-	        int cellcount = 0;
+	        int cellIndex = 0;
 	        while (cellIterator.hasNext()) 
             {
 	        	cell = cellIterator.next();
-	        	if (cellcount > 2) {
+	        	if (cellIndex > 4) {
 	        		markers.add(cell.getStringCellValue());
 	        	}
-	        	cellcount ++;
+	        	cellIndex ++;
 	        		
             }
 	        
-	        // get list of specimen from third column of first sheet
+	        // get list of accession # from third column of first sheet
 	        List<String> samples = new ArrayList<String>();
 	        int rowcount = 0;
 	        Iterator<Row> rowIterator = sheet0.iterator();
@@ -126,7 +129,7 @@ public class FileConvert {
 	        Cell cellIm, cellCt, cellNorm;
 	        
 	        // print title row
-	        writer.println("biomarker" + "\t" + "type" + "\t" + "specimen" + "\t" + "im" + "\t" + "ct" + "\t" + "norm");
+	        writer.println("biomarker" + "\t" + "type" + "\t" + "accession" + "\t" + "im" + "\t" + "ct" + "\t" + "norm");
 	        // loop thru sheets (type)
 	        for (int i = 0; i < 3; i ++) {
 	        	sheet = workbook.getSheetAt(i);
@@ -136,21 +139,21 @@ public class FileConvert {
         			// loop thru rows (sample)
         			for (int k = 0; k < samples.size(); k ++) {
         				row = sheet.getRow(k + 2);
-	        			cellIm = row.getCell(3 + j * 3);
+	        			cellIm = row.getCell(5 + j * 3);
 	        			if (cellIm != null) {
 	        				im = Double.toString(cellIm.getNumericCellValue());
 	        			} 
 	        			else {
 	        				im = "";
 	        			}
-	        			cellCt = row.getCell(4 + j * 3);
+	        			cellCt = row.getCell(6 + j * 3);
 	        			if (cellCt != null) {
 	        				ct = Double.toString(cellCt.getNumericCellValue());
 	        			} 
 	        			else {
 	        				ct = "";
 	        			}
-	        			cellNorm = row.getCell(5 + j * 3);
+	        			cellNorm = row.getCell(7 + j * 3);
 	        			if (cellNorm != null) {
 	        				norm = Double.toString(cellNorm.getNumericCellValue());
 	        			} 
@@ -160,8 +163,6 @@ public class FileConvert {
 	        			writer.println(markers.get(j) + "\t" + type + "\t" + samples.get(k) + "\t" + im + "\t" + ct + "\t" + norm);
 	        		}
 	        	}
-	        	
-	        	
 	        }
 	        writer.close();
 	        
