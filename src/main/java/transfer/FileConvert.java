@@ -14,10 +14,17 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class FileConvert {
+	/**
+	 * convert flowcytometry result file from xls to tsv.
+	 * @param in - flowcyto file in xls
+	 * @param out - converted file in tsv
+	 */
 	public static void flowTsv(File in, File out) {
-		 // For storing data into CSV files
         StringBuffer buffer = new StringBuffer();
         try 
         {
@@ -42,7 +49,7 @@ public class FileConvert {
 	                {
 	                	cellIndex ++;
                         cell = cellIterator.next();
-                        if (cellIndex > 1 && cellIndex < 5) {
+                        if (cellIndex > 1 && cellIndex < 5) { // omit three cols about specimen
 	                        switch (cell.getCellType()) 
 	                        {
 		                        case Cell.CELL_TYPE_BOOLEAN:
@@ -80,52 +87,34 @@ public class FileConvert {
         }
 	}
 	
+	/**
+	 * convert immunopath result file from xls to tsv
+	 * @param in - immunopath result file in xls or xlsx
+	 * @param out - converted/transposed file in tsv
+	 */
 	public static void immunoTsv (File in, File out) {
 		try {
 			//FileOutputStream fos = new FileOutputStream(out);
 			PrintWriter writer = new PrintWriter(out);
-			
+			Workbook workbook = null;
+			Sheet sheet;
+			// if xls format, use HSSF, if xlsx, use XSSF
+			if (in.getName().endsWith(".xls")) {
+				workbook = new HSSFWorkbook(new FileInputStream(in));
+			}
+			else if (in.getName().endsWith(".xlsx")) {
+				workbook = new XSSFWorkbook(new FileInputStream(in));
+			}
+			else {
+				System.err.println("ERROR: " + in.getName() + " is not in xls/xlsx format.");
+				System.exit(1);
+			}
 	        // Get the workbook object for XLS file
-	        HSSFWorkbook workbook = new HSSFWorkbook(new FileInputStream(in));
-	        HSSFSheet sheet;
-	        HSSFSheet sheet0 = workbook.getSheetAt(0);
-	        
 	        Cell cell;
-	        Row row0, row;
-	        String type;
-	        List<String> markers = new ArrayList<String>();
-	        row0 = sheet0.getRow(0);
-	        Iterator<Cell> cellIterator = row0.cellIterator();
+	        Row row;
+	        int readFlag = 0;
 	        
-	        // get the list of biomarker names from first row of first sheet
-	        int cellIndex = 0;
-	        while (cellIterator.hasNext()) 
-            {
-	        	cell = cellIterator.next();
-	        	if (cellIndex > 4) {
-	        		markers.add(cell.getStringCellValue());
-	        	}
-	        	cellIndex ++;
-	        		
-            }
-	        
-	        // get list of accession # from third column of first sheet
-	        List<String> samples = new ArrayList<String>();
-	        int rowcount = 0;
-	        Iterator<Row> rowIterator = sheet0.iterator();
-	        while (rowIterator.hasNext()) 
-	        {
-	        	row = rowIterator.next();
-	        	if (rowcount > 1) {
-		        	cell = row.getCell(2);
-		        	samples.add(cell.getStringCellValue());
-		        	
-	        	}
-	        	rowcount ++;
-	        
-            }
-	        
-	        String im, ct, norm;
+	        String im, ct, norm, type, accession;
 	        Cell cellIm, cellCt, cellNorm;
 	        
 	        // print title row
@@ -134,37 +123,78 @@ public class FileConvert {
 	        for (int i = 0; i < 3; i ++) {
 	        	sheet = workbook.getSheetAt(i);
 	        	type = sheet.getSheetName();
-	        	// loop thru columns (biomarker)
-        		for (int j = 0; j < markers.size(); j ++) {
-        			// loop thru rows (sample)
-        			for (int k = 0; k < samples.size(); k ++) {
-        				row = sheet.getRow(k + 2);
-	        			cellIm = row.getCell(5 + j * 3);
-	        			if (cellIm != null) {
-	        				im = Double.toString(cellIm.getNumericCellValue());
-	        			} 
-	        			else {
-	        				im = "";
-	        			}
-	        			cellCt = row.getCell(6 + j * 3);
-	        			if (cellCt != null) {
-	        				ct = Double.toString(cellCt.getNumericCellValue());
-	        			} 
-	        			else {
-	        				ct = "";
-	        			}
-	        			cellNorm = row.getCell(7 + j * 3);
-	        			if (cellNorm != null) {
-	        				norm = Double.toString(cellNorm.getNumericCellValue());
-	        			} 
-	        			else {
-	        				norm = "";
-	        			}
-	        			writer.println(markers.get(j) + "\t" + type + "\t" + samples.get(k) + "\t" + im + "\t" + ct + "\t" + norm);
-	        		}
-	        	}
-	        }
+	        	List<String> markers = new ArrayList<String>();
+	        	Iterator<Row> rowIterator = sheet.iterator();
+	        	while (rowIterator.hasNext()) 
+	        	{
+		        	row = rowIterator.next();
+		        	cell = row.getCell(0);
+		        	if (cell != null) {
+		        		int celltype = cell.getCellType();
+		        		if (readFlag == 0) {
+		        			// read block starts with "ID"
+		        			if (celltype == Cell.CELL_TYPE_STRING && cell.getStringCellValue().equalsIgnoreCase("ID")) {
+		        				readFlag = 1;
+		        				Iterator<Cell> cellIterator = row.cellIterator();
+		        		        // get the list of biomarker names from first row of first sheet
+		        		        int cellIndex = 0;
+		        		        while (cellIterator.hasNext()) 
+		        	            {
+		        		        	cell = cellIterator.next();
+		        		        	// get list of biomarkers from first row of every block
+		        		        	if (cellIndex > 4) {
+		        		        		markers.add(cell.getStringCellValue());
+		        		        	}
+		        		        	cellIndex ++;
+		        		        		
+		        	            }
+			        		}
+		        		}
+		        		if (readFlag == 1) {
+		        			if (celltype == Cell.CELL_TYPE_STRING && cell.getStringCellValue().equalsIgnoreCase("Average")) {
+		        				readFlag = 0;
+		        				markers = new ArrayList<String>();
+		        			}
+		        			else {
+			        			// loop thru biomarkers		        		
+			        			for (int j = 0; j < markers.size(); j ++) {
+			        				accession = row.getCell(2).getStringCellValue();
+			        				// remove "#x" from accession 
+			        				if (accession.contains("#")) {
+			        					accession = accession.substring(0, accession.lastIndexOf("#"));
+			        				}
+		    	        			cellIm = row.getCell(5 + j * 3);
+		    	        			if (cellIm != null) {
+		    	        				im = Double.toString(cellIm.getNumericCellValue());
+		    	        			} 
+		    	        			else {
+		    	        				im = "";
+		    	        			}
+		    	        			cellCt = row.getCell(6 + j * 3);
+		    	        			if (cellCt != null) {
+		    	        				ct = Double.toString(cellCt.getNumericCellValue());
+		    	        			} 
+		    	        			else {
+		    	        				ct = "";
+		    	        			}
+		    	        			cellNorm = row.getCell(7 + j * 3);
+		    	        			if (cellNorm != null) {
+		    	        				norm = Double.toString(cellNorm.getNumericCellValue());
+		    	        			} 
+		    	        			else {
+		    	        				norm = "";
+		    	        			}
+		    	        			writer.println(markers.get(j) + "\t" + type + "\t" + accession + "\t" + im + "\t" + ct + "\t" + norm);
+			    	        	}
+		        			}
+		        		}
+		        	
+		        	}
+		        }
+	        
+            }
 	        writer.close();
+	        workbook.close();
 	        
 		} catch (FileNotFoundException e) {
             e.printStackTrace();
