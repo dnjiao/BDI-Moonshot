@@ -142,12 +142,15 @@ public class FileConvert {
 		        	            {
 		        		        	cell = cellIterator.next();
 		        		        	// get list of biomarkers from first row of every block
-		        		        	if (cellIndex > 4) {
+		        		        	if (cellIndex > 4 && !cell.getStringCellValue().equals("")) { // merged cell has two trailing ""
 		        		        		markers.add(cell.getStringCellValue());
 		        		        	}
 		        		        	cellIndex ++;
 		        		        		
 		        	            }
+		        		        // skip next row (due to merged cell)
+		        		        row = rowIterator.next();
+		        		        continue;
 			        		}
 		        		}
 		        		if (readFlag == 1) {
@@ -194,7 +197,6 @@ public class FileConvert {
 	        
             }
 	        writer.close();
-	        workbook.close();
 	        
 		} catch (FileNotFoundException e) {
             e.printStackTrace();

@@ -148,11 +148,16 @@ public class PullFiles {
 					   
 					   Path fromPath = filePath;
 					   Path toPath = Paths.get(DEST, newName);
+					   Path oldPath = toPath;
 					   String cmd = cmdConstructor(PROTOCOL, fromPath.toString(), toPath.toString());
 					   if (UPDATE.equalsIgnoreCase("all")) {  // add all files
-//						   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 						   System.out.println(cmd);
 						   Runtime.getRuntime().exec(cmd);
+						   if (TYPE.equals("immunopath")) {
+							   newName = switchExt(newName, "tsv");
+							   toPath = Paths.get(DEST, newName);
+							   FileConvert.immunoTsv(oldPath.toFile(), toPath.toFile());
+						   }
 						   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 							   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 						   }
@@ -163,8 +168,12 @@ public class PullFiles {
 					   else {  // add only new files
 						   File lastLog = PushFiles.lastPullLog(DEST + "/logs");
 						   if (lastLog == null) {
-//							   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 							   Runtime.getRuntime().exec(cmd);
+							   if (TYPE.equals("immunopath")) {
+								   newName = switchExt(newName, "tsv");
+								   toPath = Paths.get(DEST, newName);
+								   FileConvert.immunoTsv(oldPath.toFile(), toPath.toFile());
+							   }
 							   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 								   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 							   }
@@ -177,8 +186,12 @@ public class PullFiles {
 							   DateTime logTime = FORMAT.parseDateTime(timeStr);
 							   // compare last log time and file lastmodified time
 							   if (logTime.isBefore(fromPath.toFile().lastModified())) {
-//								   Files.copy(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
 								   Runtime.getRuntime().exec(cmd);
+								   if (TYPE.equals("immunopath")) {
+									   newName = switchExt(newName, "tsv");
+									   toPath = Paths.get(DEST, newName);
+									   FileConvert.immunoTsv(oldPath.toFile(), toPath.toFile());
+								   }
 								   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 									   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 								   }
@@ -199,6 +212,8 @@ public class PullFiles {
     	
 	}
 	
+
+
 	/**
 	 * determine if a file is the type
 	 * @param filename 
@@ -216,6 +231,11 @@ public class PullFiles {
 				return true;
 			}
 		}
+		if (type.equalsIgnoreCase("immunopath")) {
+			if (filename.endsWith(".xls") || filename.endsWith(".xlsx")) {
+				return true;
+			}
+		}
 		return false;
 	}
 	
@@ -229,5 +249,12 @@ public class PullFiles {
 		else
 			return null;
 	}
+	
+	protected static String switchExt(String filename, String ext) {
+		int stop = filename.lastIndexOf(".");
+		String base = filename.substring(0, stop);
+		return base + "." + ext;
+	}
+
 
 }
