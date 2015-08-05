@@ -2,6 +2,7 @@ package transfer;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.FileVisitResult;
@@ -33,18 +34,17 @@ public class PullFiles {
 	
 	public static void main(String[] args) {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
-	    final String UPDATE = System.getenv("MODE").toLowerCase();
-	    final String PROTOCOL = System.getenv("PROTOCOL").toLowerCase();
-	    System.out.println(PROTOCOL);
-//		final String TYPE = "vcf";
-//		final String UPDATE = "all";
-//		final String PROTOCOL = "ln";
-	    if (TYPE == null || UPDATE == null) {
-	    	System.out.println("ERROR: Environment variable not set correctly.");
+	    if (TYPE == null) {
+	    	System.out.println("ERROR: Environment variable TYPE not set correctly.");
 	    	System.exit(1);
 	    }
-
-	    final String DEST = DEST_ROOT + "/" + TYPE;
+	    executeTransfer(TYPE);
+	}
+	
+	
+	private static void executeTransfer(String type) {
+	    
+	    final String DEST = DEST_ROOT + "/" + type;
 	    final String LOGPATH = DEST + "/logs";
 	    String source;
 	    File destDir = new File(DEST);
@@ -53,9 +53,25 @@ public class PullFiles {
 	        System.exit(1);
 	    }
 	    File logDir = new File(LOGPATH);
+	    String update;
 	    try {
 		    if (!logDir.exists()) {
 				Files.createDirectory(Paths.get(LOGPATH));
+				update = "all";
+		    }
+		    else {
+		    	// find all pull logs if log directory exists
+		    	File[] pullLogs = logDir.listFiles(new FilenameFilter() {
+		    	    public boolean accept(File dir, String name) {
+		    	        return name.startsWith("pull") && name.endsWith(".log");
+		    	    }
+		    	});
+		    	// if no pull logs exist, pull all files
+		    	if (pullLogs.length == 0)
+		    		update = "all";
+		    	// if pull log exists, pull only new files
+		    	else
+		    		update = "new";
 		    }
 		    File insertLog = new File(LOGPATH, "failed2insert.log");
 		    File tmpInsert = null;
@@ -89,10 +105,16 @@ public class PullFiles {
 		    	if (envName.contains("SOURCE_DIR")) {
 		    		source = env.get(envName);
 		    		if (source.length() > 3) {
-			    		if (new File(source).isDirectory())
-			    			cpFiles(source, DEST, TYPE, UPDATE, PROTOCOL, logWriter, insertWriter);
-			    		else
-			    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
+		    			if (type.equals("mapping")) {
+		    				Runtime.getRuntime().exec("rsync -auv djiao@" + source + " " + DEST);
+		    			    processMappingFiles(DEST, insertWriter, logWriter);
+		    			}
+		    			else {
+		    				if (new File(source).isDirectory())
+				    			cpFiles(source, DEST, type, update, logWriter, insertWriter);
+				    		else
+				    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
+		    			}
 		    		}	
 		    	}
 		    }
@@ -111,22 +133,37 @@ public class PullFiles {
 		    if (Files.size(insertLog.toPath()) == 0) {
 		    	insertLog.delete();
 		    }
-		    System.out.println("Total " + Integer.toString(fileCounter) + " " + TYPE + " files transferred successfully.");
+		    System.out.println("Total " + Integer.toString(fileCounter) + " " + type + " files transferred successfully.");
 	    } catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
-	
+
+	/**
+	 * process mapping files from last pull, deleting, logging and auditing
+	 * @param dest - dir of mapping files
+	 * @param insertWriter - writer of insert log
+	 * @param logWriter - writer of pull log
+	 */
+	private static void processMappingFiles(String dest, PrintWriter insertWriter, PrintWriter logWriter) {
+		
+	}
+
+
 	public static void counterMethod(){
 		fileCounter++;
 	}
 	
-	public static void cpFiles(String source, String dest, String type, String update, String protocol, PrintWriter logWriter, PrintWriter insertWriter) {
+	public static void cpFiles(String source, String dest, String type, String update, PrintWriter logWriter, PrintWriter insertWriter) {
 		
     	Path top = Paths.get(source);
     	final String TYPE = type;
     	final String UPDATE = update;
+    	String protocol = "";
+    	if (type.equals("vcf") || type.equals("cnv") || type.equals("exon") || type.equals("gene")) 
+    		protocol = "ln";
+    	else
+    		protocol = "cp";
     	final String PROTOCOL = protocol;
     	final String DEST = dest;
     	final PrintWriter LOG = logWriter;
