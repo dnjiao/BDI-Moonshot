@@ -1,7 +1,10 @@
 package transfer;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,9 +16,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-import org.apache.poi.ss.usermodel.Cell;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -107,7 +111,7 @@ public class PullFiles {
 		    		if (source.length() > 3) {
 		    			if (type.equals("mapping")) {
 		    				Runtime.getRuntime().exec("rsync -auv djiao@" + source + " " + DEST);
-		    			    processMappingFiles(DEST, insertWriter, logWriter);
+		    			    processMappingFiles(source, DEST, insertWriter, logWriter);
 		    			}
 		    			else {
 		    				if (new File(source).isDirectory())
@@ -145,10 +149,74 @@ public class PullFiles {
 	 * @param insertWriter - writer of insert log
 	 * @param logWriter - writer of pull log
 	 */
-	private static void processMappingFiles(String dest, PrintWriter insertWriter, PrintWriter logWriter) {
-		
+	private static void processMappingFiles(String source, String dest, PrintWriter insertWriter, PrintWriter logWriter) {
+		List<File> files = getNewFiles(dest);
+		for (File file : files) {
+			if (AuditTable.insertSingle(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "rsync") == 0) {
+				insertWriter.println(source + "\t" + file.getAbsolutePath());
+			}
+			logWriter.println(file.getName() + "\t" + source + "\t" + dest);
+		}	
 	}
 
+
+	/**
+	 * get a list of  files that were last transfered
+	 * @param dir - directory that contains all the files
+	 * @return - list of files
+	 */
+	private static List<File> getNewFiles(String dir) {
+		List<File> newFiles = new ArrayList<File>();
+		File[] files = new File(dir).listFiles();
+		File lastLog = PushFiles.lastPullLog(dir + "/logs");
+		for (File file : files) {		
+			// log does not exist, all files are new; exists, only files newer than last log
+			if (lastLog == null) {
+				if (isMapping(file))					
+					newFiles.add(file);
+				else
+					file.delete();
+			}
+			else {
+				String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
+				DateTime logTime = FORMAT.parseDateTime(timeStr);
+				// compare last log time and file lastmodified time
+				if (logTime.isBefore(file.lastModified())) {
+					if (isMapping(file)) 
+						newFiles.add(file);
+					else
+						file.delete();
+				}
+				
+			}
+		}
+		return newFiles;
+	}
+
+	/**
+	 * determine if a file is mapping file based on first line text
+	 * @param file - input file
+	 * @return - boolean, true means mapping false means not
+	 */
+	private static boolean isMapping(File file) {
+		boolean bool = false;
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(file));
+			String firstline = reader.readLine();
+			if (firstline.startsWith("Project|Subproject|Specimen.ID|MRN")) 
+				bool = true;
+			else
+				bool = false;
+			reader.close();
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return bool;
+		
+	}
 
 	public static void counterMethod(){
 		fileCounter++;
@@ -263,11 +331,6 @@ public class PullFiles {
 				return true;
 			}
 		}
-		if (type.equalsIgnoreCase("mapping")) {
-			if (filename.toLowerCase().startsWith("crossreference")) {
-				return true;
-			}
-		}
 		if (type.equalsIgnoreCase("immunopath")) {
 			if (filename.endsWith(".xls") || filename.endsWith(".xlsx")) {
 				return true;
@@ -276,6 +339,13 @@ public class PullFiles {
 		return false;
 	}
 	
+	/**
+	 * construct Linux command for file transfer
+	 * @param protocol - command for transfer: cp/ln
+	 * @param from - source path
+	 * @param to - destination path
+	 * @return - constructed command
+	 */
 	public static String cmdConstructor(String protocol, String from, String to) {
 		if (protocol.equals("ln")) {
 			return "ln -s " + from + " " + to;
@@ -287,6 +357,12 @@ public class PullFiles {
 			return null;
 	}
 	
+	/**
+	 * rename file with new extension
+	 * @param filename - old file name
+	 * @param ext - new extension
+	 * @return
+	 */
 	protected static String switchExt(String filename, String ext) {
 		int stop = filename.lastIndexOf(".");
 		String base = filename.substring(0, stop);
