@@ -30,8 +30,8 @@ import rest.PushFiles;
 
 public class PullFiles {
 	
-//	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
-	final static String DEST_ROOT = "/rsrch1/rists/moonshot";
+	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
+//	final static String DEST_ROOT = "/rsrch1/rists/moonshot";
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	final static Connection CONN = OracleDB.getConnection();
@@ -110,7 +110,8 @@ public class PullFiles {
 		    		source = env.get(envName);
 		    		if (source.length() > 3) {
 		    			if (type.equals("mapping")) {
-		    				Runtime.getRuntime().exec("rsync -auv djiao@" + source + " " + DEST);
+		    				//Runtime.getRuntime().exec("rsync -auv djiao@" + source + " " + DEST);
+		    				Runtime.getRuntime().exec("rsync -auv " + source + "/ " + DEST);
 		    			    processMappingFiles(source, DEST, insertWriter, logWriter);
 		    			}
 		    			else {
@@ -167,27 +168,30 @@ public class PullFiles {
 	 */
 	private static List<File> getNewFiles(String dir) {
 		List<File> newFiles = new ArrayList<File>();
-		File[] files = new File(dir).listFiles();
+		File dirFile = new File(dir);
+		File[] files = dirFile.listFiles();
 		File lastLog = PushFiles.lastPullLog(dir + "/logs");
-		for (File file : files) {		
-			// log does not exist, all files are new; exists, only files newer than last log
-			if (lastLog == null) {
-				if (isMapping(file))					
-					newFiles.add(file);
-				else
-					file.delete();
-			}
-			else {
-				String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
-				DateTime logTime = FORMAT.parseDateTime(timeStr);
-				// compare last log time and file lastmodified time
-				if (logTime.isBefore(file.lastModified())) {
-					if (isMapping(file)) 
+		for (File file : files) {	
+			if (file.isDirectory() == false) {
+				// log does not exist, all files are new; exists, only files newer than last log
+				if (lastLog == null) {
+					if (isMapping(file))					
 						newFiles.add(file);
 					else
 						file.delete();
 				}
-				
+				else {
+					String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
+					DateTime logTime = FORMAT.parseDateTime(timeStr);
+					// compare last log time and file lastmodified time
+					if (logTime.isBefore(file.lastModified())) {
+						if (isMapping(file)) 
+							newFiles.add(file);
+						else
+							file.delete();
+					}
+					
+				}
 			}
 		}
 		return newFiles;

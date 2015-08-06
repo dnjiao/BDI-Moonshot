@@ -3,6 +3,7 @@ package rest;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -104,7 +105,11 @@ public class PushFiles {
 	 */
 	public static File lastPullLog(String path) {
 		File dir = new File(path);
-		File[] logs = dir.listFiles();
+		File[] logs = dir.listFiles(new FilenameFilter() {
+    	    public boolean accept(File dir, String name) {
+    	        return name.startsWith("pull") && name.endsWith(".log");
+    	    }
+    	});
 		if (logs.length == 0) {  // no logs found
 			return null;
 		}
