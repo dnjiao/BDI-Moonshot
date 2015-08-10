@@ -74,7 +74,7 @@ public class FileConvert {
 	                {
 	                	cellIndex ++;
                         cell = cellIterator.next();
-                        if (cellIndex > 1 && cellIndex < 5) { // omit three cols about specimen
+                        if (cellIndex < 2 || cellIndex > 4) { // omit three cols about specimen
 	                        switch (cell.getCellType()) 
 	                        {
 		                        case Cell.CELL_TYPE_BOOLEAN:
@@ -179,6 +179,7 @@ public class FileConvert {
 			        		}
 		        		}
 		        		if (readFlag == 1) {
+		        			// read block stops at "Average"
 		        			if (celltype == Cell.CELL_TYPE_STRING && cell.getStringCellValue().equalsIgnoreCase("Average")) {
 		        				readFlag = 0;
 		        				markers = new ArrayList<String>();
