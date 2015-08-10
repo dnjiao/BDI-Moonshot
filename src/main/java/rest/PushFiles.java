@@ -117,17 +117,20 @@ public class PushFiles {
 		DateTime last = format.parseDateTime("01012000000000");
 		for (File file : logs) {
 			String filename = file.getName();
-			if (filename.startsWith("pull") && filename.endsWith(".log")) {
-				String timeStr = filename.substring(0, filename.lastIndexOf(".")).split("_")[1];
-				DateTime time = format.parseDateTime(timeStr);
-				if (time.isAfter(last)) {
-					last = time;
-				}
+			String timeStr = filename.substring(0, filename.lastIndexOf(".")).split("_")[1];
+			DateTime time = format.parseDateTime(timeStr);
+			if (time.isAfter(last)) {
+				last = time;
 			}
 		}
-		String timeStr = last.toString(format);
-		File file = new File(path, "pull_" + timeStr + ".log");
-		return file;
+		if (last == format.parseDateTime("01012000000000")) {
+			return null;	
+		}
+		else {
+			String timeStr = last.toString(format);
+			File file = new File(path, "pull_" + timeStr + ".log");
+			return file;
+		}
 	}
 	
 	/**

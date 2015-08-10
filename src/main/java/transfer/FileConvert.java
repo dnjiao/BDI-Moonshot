@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -19,6 +20,30 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class FileConvert {
+	public static void main(String[] args) {
+		if (args.length != 1) {
+			System.err.println("Usage FileConvert [input_file_path] [type]");
+			System.exit(1);
+		}
+		File in = new File(args[0]);
+		if (!in.exists()) {
+			System.err.println("ERROR: File " + args[0] + " does not exist.");
+			System.exit(1);
+		}
+		String outpath = in.getParent() + "/" + FilenameUtils.removeExtension(in.getName()) + "tsv";
+		File out = new File(outpath);
+		if (args[1].equalsIgnoreCase("flow")) {
+			flowTsv(in, out);
+		}
+		else if (args[1].equalsIgnoreCase("immuno")) {
+			immunoTsv(in, out);
+		}
+		else {
+			System.err.println("ERROR: Invalid argument " + args[1]);
+			System.exit(1);
+		}
+	}
+	
 	/**
 	 * convert flowcytometry result file from xls to tsv.
 	 * @param in - flowcyto file in xls
@@ -26,7 +51,7 @@ public class FileConvert {
 	 */
 	public static void flowTsv(File in, File out) {
         StringBuffer buffer = new StringBuffer();
-        try 
+        try
         {
 	        FileOutputStream fos = new FileOutputStream(out);
 	
@@ -39,7 +64,7 @@ public class FileConvert {
 	
 	        // Iterate through each rows from first sheet
 	        Iterator<Row> rowIterator = sheet.iterator();
-	        while (rowIterator.hasNext()) 
+	        while (rowIterator.hasNext())
 	        {
 	                row = rowIterator.next();
 	                // For each row, iterate through each columns

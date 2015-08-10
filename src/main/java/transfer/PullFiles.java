@@ -30,8 +30,8 @@ import rest.PushFiles;
 
 public class PullFiles {
 	
-	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
-//	final static String DEST_ROOT = "/rsrch1/rists/moonshot";
+//	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
+	final static String DEST_ROOT = "/rsrch1/rists/moonshot/data/dev";
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	final static Connection CONN = OracleDB.getConnection();
@@ -110,9 +110,15 @@ public class PullFiles {
 		    		source = env.get(envName);
 		    		if (source.length() > 3) {
 		    			if (type.equals("mapping")) {
-		    				//Runtime.getRuntime().exec("rsync -auv djiao@" + source + " " + DEST);
-		    				Runtime.getRuntime().exec("rsync -auv " + source + "/ " + DEST);
-		    			    processMappingFiles(source, DEST, insertWriter, logWriter);
+		    				try {
+		    					String cmd = "rsync -auv --delete --include=*.txt --include=*.csv --exclude=* bdiuser@" + source + "/ " + DEST;
+		    					System.out.println(cmd);
+		    					Process p = Runtime.getRuntime().exec(cmd);
+								p.waitFor();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+		    			    fileCounter = processMappingFiles(source, DEST, insertWriter, logWriter);
 		    			}
 		    			else {
 		    				if (new File(source).isDirectory())
@@ -149,8 +155,9 @@ public class PullFiles {
 	 * @param dest - dir of mapping files
 	 * @param insertWriter - writer of insert log
 	 * @param logWriter - writer of pull log
+	 * 
 	 */
-	private static void processMappingFiles(String source, String dest, PrintWriter insertWriter, PrintWriter logWriter) {
+	private static int processMappingFiles(String source, String dest, PrintWriter insertWriter, PrintWriter logWriter) {
 		List<File> files = getNewFiles(dest);
 		for (File file : files) {
 			if (AuditTable.insertSingle(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "rsync") == 0) {
@@ -158,6 +165,7 @@ public class PullFiles {
 			}
 			logWriter.println(file.getName() + "\t" + source + "\t" + dest);
 		}	
+		return files.size();
 	}
 
 
@@ -190,7 +198,6 @@ public class PullFiles {
 						else
 							file.delete();
 					}
-					
 				}
 			}
 		}
@@ -207,7 +214,7 @@ public class PullFiles {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			String firstline = reader.readLine();
-			if (firstline.startsWith("Project|Subproject|Specimen.ID|MRN")) 
+			if (firstline.startsWith("Project|Subproject|Specimen")) 
 				bool = true;
 			else
 				bool = false;
@@ -231,12 +238,7 @@ public class PullFiles {
     	Path top = Paths.get(source);
     	final String TYPE = type;
     	final String UPDATE = update;
-    	String protocol = "";
-    	if (type.equals("vcf") || type.equals("cnv") || type.equals("exon") || type.equals("gene")) 
-    		protocol = "ln";
-    	else
-    		protocol = "cp";
-    	final String PROTOCOL = protocol;
+    	final String PROTOCOL = System.getenv("PROTOCOL");
     	final String DEST = dest;
     	final PrintWriter LOG = logWriter;
     	final PrintWriter INSERT = insertWriter;
