@@ -22,7 +22,8 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 public class PushFiles {
-	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
+//	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
+	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
 	final static String LOCAL_PATH = "/rsrch1/rists/moonshot";
 	
 	public static void main(String[] args) {
