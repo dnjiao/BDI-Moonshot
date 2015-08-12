@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -21,8 +22,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class FileConvert {
 	public static void main(String[] args) {
-		if (args.length != 1) {
-			System.err.println("Usage FileConvert [input_file_path] [type]");
+		if (args.length != 2) {
+			System.err.println("Usage: FileConvert [input_file_path] [type]");
 			System.exit(1);
 		}
 		File in = new File(args[0]);
@@ -30,7 +31,7 @@ public class FileConvert {
 			System.err.println("ERROR: File " + args[0] + " does not exist.");
 			System.exit(1);
 		}
-		String outpath = in.getParent() + "/" + FilenameUtils.removeExtension(in.getName()) + "tsv";
+		String outpath = in.getParent() + "/" + FilenameUtils.removeExtension(in.getName()) + ".tsv";
 		File out = new File(outpath);
 		if (args[1].equalsIgnoreCase("flow")) {
 			flowTsv(in, out);
@@ -105,6 +106,7 @@ public class FileConvert {
 	        fos.write(buffer.toString().getBytes());
 	        fos.close();
 	        workbook.close();
+	        System.out.println("File conversion complete. " + out.getAbsolutePath());
         } catch (FileNotFoundException e) {
                 e.printStackTrace();
         } catch (IOException e) {
@@ -188,10 +190,13 @@ public class FileConvert {
 			        			// loop thru biomarkers		        		
 			        			for (int j = 0; j < markers.size(); j ++) {
 			        				accession = row.getCell(2).getStringCellValue();
-			        				// remove "#x" from accession 
-			        				if (accession.contains("#")) {
-			        					accession = accession.substring(0, accession.lastIndexOf("#"));
+			        				if (accession.lastIndexOf(' ') != (accession.length() - 1) && accession.lastIndexOf(' ') != -1) {
+			        					accession = accession.substring(0, accession.lastIndexOf(' '));
 			        				}
+			        				if (StringUtils.countMatches(accession, "-") == 2) {
+			        					accession = accession.substring(0, accession.lastIndexOf('-'));
+			        				}
+			        				
 		    	        			cellIm = row.getCell(5 + j * 3);
 		    	        			if (cellIm != null) {
 		    	        				im = Double.toString(cellIm.getNumericCellValue());
@@ -223,6 +228,7 @@ public class FileConvert {
 	        
             }
 	        writer.close();
+	        System.out.println("File conversion complete. " + out.getAbsolutePath());
 	        
 		} catch (FileNotFoundException e) {
             e.printStackTrace();
