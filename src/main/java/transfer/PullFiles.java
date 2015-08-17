@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -35,6 +36,7 @@ public class PullFiles {
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	final static Connection CONN = OracleDB.getConnection();
+	final static String PROTOCOL = System.getenv("PROTOCOL");
 	
 	public static void main(String[] args) {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
@@ -82,7 +84,7 @@ public class PullFiles {
 		    
 		    // if failed2insert.log exist, insert records from last time to database
 		    if (insertLog.exists()) {
-		    	tmpInsert = AuditTable.insertMulti(CONN, insertLog);
+		    	tmpInsert = AuditTable.insertMulti(CONN, insertLog, PROTOCOL);
 		    }
 		    else {
 		    	tmpInsert = new File(LOGPATH, "tmp_insert.log");
@@ -111,10 +113,16 @@ public class PullFiles {
 		    		if (source.length() > 3) {
 		    			if (type.equals("mapping")) {
 		    				try {
-		    					String cmd = "rsync -auv --delete --include=*.txt --include=*.csv --exclude=* bdiuser@" + source + "/ " + DEST;
+		    					String cmd = "/rsrch2/rists/djiao/apps/sshpass/bin/sshpass -p 'b#gd#123' rsync -auv --delete --include=*.txt --include=*.csv --exclude=* bdiuser@dcprpinformat1.mdanderson.edu:/inform/flatfiles/ipct/ " + DEST;
 		    					System.out.println(cmd);
 		    					Process p = Runtime.getRuntime().exec(cmd);
+		    					String line;
 								p.waitFor();
+								BufferedReader in = new BufferedReader(new OutputStreamReader(p.getOutputStream()));
+								while ((line = in.readLine()) != null) {
+									System.out.println(line);
+								}
+								in.close();
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -160,6 +168,7 @@ public class PullFiles {
 	private static int processMappingFiles(String source, String dest, PrintWriter insertWriter, PrintWriter logWriter) {
 		List<File> files = getNewFiles(dest);
 		for (File file : files) {
+			System.out.println(file.getName());
 			if (AuditTable.insertSingle(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "rsync") == 0) {
 				insertWriter.println(source + "\t" + file.getAbsolutePath());
 			}
@@ -238,11 +247,10 @@ public class PullFiles {
     	Path top = Paths.get(source);
     	final String TYPE = type;
     	final String UPDATE = update;
-    	final String PROTOCOL = System.getenv("PROTOCOL");
+    	
     	final String DEST = dest;
     	final PrintWriter LOG = logWriter;
     	final PrintWriter INSERT = insertWriter;
-    	System.out.println("In method" + PROTOCOL);
     	
     	try {
 			Files.walkFileTree(top, new SimpleFileVisitor<Path>()
@@ -262,7 +270,6 @@ public class PullFiles {
 					   Path oldPath = toPath;
 					   String cmd = cmdConstructor(PROTOCOL, fromPath.toString(), toPath.toString());
 					   if (UPDATE.equalsIgnoreCase("all")) {  // add all files
-						   System.out.println(cmd);
 						   Runtime.getRuntime().exec(cmd);
 						   if (TYPE.equals("immunopath")) {
 							   newName = switchExt(newName, "tsv");
@@ -270,10 +277,10 @@ public class PullFiles {
 							   FileConvert.immunoTsv(oldPath.toFile(), toPath.toFile());
 						   }
 						   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
+							   System.out.println("not inserted " + fromPath.toString() + "\t" + toPath.toString());
 							   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 						   }
 						   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
-						   System.out.println(newName);
 						   counterMethod();
 					   }
 					   else {  // add only new files
@@ -289,7 +296,6 @@ public class PullFiles {
 								   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 							   }
 							   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
-							   System.out.println(newName);
 							   counterMethod();
 						   }
 						   else {
@@ -307,7 +313,6 @@ public class PullFiles {
 									   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 								   }
 								   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
-								   System.out.println(newName);
 								   counterMethod();
 							   }
 						   }
