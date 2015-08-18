@@ -117,11 +117,12 @@ public class PullFiles {
 		    					System.out.println(cmd);
 		    					Process p = Runtime.getRuntime().exec(cmd);
 		    					String line;
-								p.waitFor();
-								BufferedReader in = new BufferedReader(new OutputStreamReader(p.getOutputStream()));
+								
+								BufferedReader in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 								while ((line = in.readLine()) != null) {
 									System.out.println(line);
 								}
+								p.waitFor();
 								in.close();
 							} catch (InterruptedException e) {
 								e.printStackTrace();
