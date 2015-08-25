@@ -112,18 +112,24 @@ public class PullFiles {
 		    		source = env.get(envName);
 		    		if (source.length() > 3) {
 		    			if (type.equals("mapping")) {
+		    				// call bash script to transfer mapping files by sftp
 		    				try {
-		    					String cmd = "/rsrch2/rists/djiao/apps/sshpass/bin/sshpass -p 'b#gd#123' rsync -auv --delete --include=*.txt --include=*.csv --exclude=* bdiuser@dcprpinformat1.mdanderson.edu:/inform/flatfiles/ipct/ " + DEST;
+		    					String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp.sh", DEST_ROOT + "/mapping"};
 		    					System.out.println(cmd);
 		    					Process p = Runtime.getRuntime().exec(cmd);
 		    					String line;
 								
-								BufferedReader in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+		    					BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 								while ((line = in.readLine()) != null) {
+									System.out.println(line);
+								}
+								BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+								while ((line = err.readLine()) != null) {
 									System.out.println(line);
 								}
 								p.waitFor();
 								in.close();
+								err.close();
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}

@@ -1,14 +1,23 @@
 package transfer;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class RsyncTest {
+public class SftpTest {
 	public static void main(String[] args) {
-		String cmd = "/rsrch2/rists/djiao/apps/sshpass/bin/sshpass -p 'b#gd#123' rsync -auv --delete --include=*.txt --include=*.csv --exclude=* "
-				+ "bdiuser@dcprpinformat1.mdanderson.edu:/inform/flatfiles/ipct/ /rsrch1/rists/moonshot/data/dev/mapping";
-		System.out.println(cmd);
+		File dest = new File(args[1]);
+		if (!dest.exists()) {
+			System.err.println(args[1] + " does not exist.");
+			return;
+		}
+		if (!dest.isDirectory()) {
+			System.err.println(args[1] + " is not a directory.");
+			return;
+		}
+		
+		String[] cmd = new String[]{"/bin/bash", args[0], args[1]};
 		Process p;
 		try {
 			p = Runtime.getRuntime().exec(cmd);
