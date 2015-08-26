@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +16,7 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -24,7 +24,7 @@ import org.joda.time.format.DateTimeFormatter;
 public class PushFiles {
 //	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
 	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
-	final static String LOCAL_PATH = "/rsrch1/rists/moonshot";
+	final static String LOCAL_PATH = "/rsrch1/rists/moonshot/data/dev";
 	
 	public static void main(String[] args) {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
@@ -32,8 +32,8 @@ public class PushFiles {
 		String path = LOCAL_PATH + "/" + TYPE;
 		PrintWriter writer = null;
 		try {
-			
 			List<String> files = getFiles(path);
+			System.out.println(files.size());
 			File notSentLog = new File(path + "/logs/not_sent.log");
 			writer = new PrintWriter(notSentLog);
 			int sentCount = 0;
@@ -58,7 +58,7 @@ public class PushFiles {
 					e.printStackTrace();
 				} 
 			}
-			System.out.println(Integer.toString(sentCount) + " files have been uploaded.");
+			System.out.println(Integer.toString(sentCount) + " files have been pushed to BDI.");
 		} catch(IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -140,6 +140,7 @@ public class PushFiles {
 	 * @param filepath - Path of local file to be uploaded
 	 */
 	public static int pushSingle(String prefix, String filepath) {
+//		return 1;
 		int status = 500;
 		PostMethod filePost = null;
 		try {
@@ -148,13 +149,42 @@ public class PushFiles {
 			String fileName = f.getName();
 			//Need to validate the file name from the file name
 			String url = prefix + fileName.substring(0,fileName.lastIndexOf("."));
+			System.out.println("PostMethod URL: " + url);
 			filePost = new PostMethod(url);
 			RequestEntity re = new FileRequestEntity(f,	"application/octet-stream");
 			filePost.setRequestEntity(re);
+			
+			// hard timeout after 15 sec
+			int timeout = 15;
 			HttpClient client = new HttpClient();
+			client.getHttpConnectionManager().getParams().setConnectionTimeout(timeout * 1000); 
+			client.getHttpConnectionManager().getParams().setSoTimeout(timeout * 1000);
 			status = client.executeMethod(filePost);
-			System.out.println(filepath + " uploaded to " + url + ". Status code is " + Integer.toString(status));
-			return 1;
+			
+			if (status == 201) {
+				System.out.println(filepath + " uploaded to " + url + ". Status=" + Integer.toString(status));
+				return 1;
+			}
+			else if (status == 404) {
+				System.out.println("RESOURCE NOT FOUND,Check the request path. Status= " + status);
+				return 0;
+			}
+			else if (status == 405) {
+				System.out.println("RESOURCE METHOD NOT FOUND,Check the request path. Status= "	+ status);
+				return 0;
+			}
+			else if (status == 500) {
+				System.out.println("INTERNAL SERVER ERROR. Status= " + status);
+				return 0;
+			}
+			else if (status == 504 || status == 404) {
+				System.out.println("Time out. Status= " + status);
+				return 0;
+			}
+			else {
+				System.out.println("Status=" + status);
+				return 0;
+			}
 		} catch (HttpException e) {
 			e.printStackTrace();
 			return 0;
