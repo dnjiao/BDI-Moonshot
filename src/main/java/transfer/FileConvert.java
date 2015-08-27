@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -141,11 +142,11 @@ public class FileConvert {
 	        Row row;
 	        int readFlag = 0;
 	        
-	        String im, ct, norm, type, accession;
+	        String im, ct, norm, type, specimen, mrn, accession;
 	        Cell cellIm, cellCt, cellNorm;
 	        
 	        // print title row
-	        writer.println("biomarker" + "\t" + "type" + "\t" + "accession" + "\t" + "im" + "\t" + "ct" + "\t" + "norm");
+	        writer.println("Specimen_ID\t" + "MRN\t" + "Tissue_Acc\t" + "biomarker\t" + "type\t" + "im\t" + "ct\t" + "norm");
 	        // loop thru sheets (type)
 	        for (int i = 0; i < 3; i ++) {
 	        	sheet = workbook.getSheetAt(i);
@@ -187,15 +188,19 @@ public class FileConvert {
 		        				markers = new ArrayList<String>();
 		        			}
 		        			else {
+		        				// generate RIS specimen ID
+		        				specimen = "RIS" + UUID.randomUUID().toString().replaceAll("-", "");
+		        				mrn = row.getCell(1).getStringCellValue();
+		        				accession = row.getCell(2).getStringCellValue();
+		        				if (accession.lastIndexOf(' ') != (accession.length() - 1) && accession.lastIndexOf(' ') != -1) {
+		        					accession = accession.substring(0, accession.lastIndexOf(' '));
+		        				}
+		        				if (StringUtils.countMatches(accession, "-") == 2) {
+		        					accession = accession.substring(0, accession.lastIndexOf('-'));
+		        				}
+		        				
 			        			// loop thru biomarkers		        		
 			        			for (int j = 0; j < markers.size(); j ++) {
-			        				accession = row.getCell(2).getStringCellValue();
-			        				if (accession.lastIndexOf(' ') != (accession.length() - 1) && accession.lastIndexOf(' ') != -1) {
-			        					accession = accession.substring(0, accession.lastIndexOf(' '));
-			        				}
-			        				if (StringUtils.countMatches(accession, "-") == 2) {
-			        					accession = accession.substring(0, accession.lastIndexOf('-'));
-			        				}
 			        				
 		    	        			cellIm = row.getCell(5 + j * 3);
 		    	        			if (cellIm != null) {
@@ -218,7 +223,7 @@ public class FileConvert {
 		    	        			else {
 		    	        				norm = "";
 		    	        			}
-		    	        			writer.println(markers.get(j) + "\t" + type + "\t" + accession + "\t" + im + "\t" + ct + "\t" + norm);
+		    	        			writer.println(specimen + "\t" + mrn + "\t" + accession + "\t" + markers.get(j) + "\t" + type + "\t" + im + "\t" + ct + "\t" + norm);
 			    	        	}
 		        			}
 		        		}

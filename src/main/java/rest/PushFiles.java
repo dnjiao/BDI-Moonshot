@@ -6,8 +6,6 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +21,8 @@ import org.joda.time.format.DateTimeFormatter;
 
 public class PushFiles {
 //	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
-	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
+//	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
+	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
 	final static String LOCAL_PATH = "/rsrch1/rists/moonshot/data/dev";
 	
 	public static void main(String[] args) {
@@ -50,13 +49,8 @@ public class PushFiles {
 				}
 			}
 			// if all files sent, delete "not_sent.log"
-			if (notsentCount == 0) {
-				Path p = notSentLog.toPath();
-			    try {
-					Files.delete(p);
-				} catch (IOException e) {
-					e.printStackTrace();
-				} 
+			if (notsentCount == 0 && notSentLog.exists()) {
+				notSentLog.delete(); 
 			}
 			System.out.println(Integer.toString(sentCount) + " files have been pushed to BDI.");
 		} catch(IOException e) {
