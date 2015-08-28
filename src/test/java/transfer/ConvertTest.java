@@ -1,5 +1,7 @@
 package transfer;
 
+import imt_data.FileConversion;
+
 import java.io.File;
 
 import org.junit.Test;
@@ -14,7 +16,7 @@ public class ConvertTest {
 //		File output = new File(path, "final_summary.csv");
 		File input = new File(path, "tsv_Summary_08032015162913.xls");
 		File output = new File(path, "Test Summary.tsv");
-		FileConvert.immunoTsv(input, output);
+		FileConversion.immunoTsv(input, output);
 		
 	}
 }

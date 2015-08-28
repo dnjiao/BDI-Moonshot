@@ -1,4 +1,4 @@
-package transfer;
+package imt_data;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,7 +21,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class FileConvert {
+public class FileConversion {
 	public static void main(String[] args) {
 		if (args.length != 2) {
 			System.err.println("Usage: FileConvert [input_file_path] [type]");

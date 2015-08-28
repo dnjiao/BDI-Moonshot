@@ -1,5 +1,8 @@
 package transfer;
 
+import imt_data.FileConversion;
+import imt_data.FlowData;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -135,6 +138,9 @@ public class PullFiles {
 							}
 		    			    fileCounter = processMappingFiles(source, DEST, insertWriter, logWriter);
 		    			}
+		    			else if (type.equals("flowcyto")) {
+		    				processFlowFiles(source, DEST, insertWriter, logWriter);
+		    			}
 		    			else {
 		    				if (new File(source).isDirectory())
 				    			cpFiles(source, DEST, type, update, logWriter, insertWriter);
@@ -164,6 +170,7 @@ public class PullFiles {
 			e.printStackTrace();
 		}
 	}
+
 
 	/**
 	 * process mapping files from last pull, deleting, logging and auditing
@@ -249,6 +256,46 @@ public class PullFiles {
 		fileCounter++;
 	}
 	
+	
+	private static void processFlowFiles(String source, String dest, PrintWriter insertWriter, PrintWriter logWriter) {
+		Path top = Paths.get(source);
+    	final String DEST = dest;
+    	final PrintWriter LOG = logWriter;
+    	final PrintWriter INSERT = insertWriter;
+    	
+    	try {
+    		Files.walkFileTree(top, new SimpleFileVisitor<Path>()
+			{  
+			   @Override
+			   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
+			   {
+				   File dir = filePath.toFile();
+				   if (dir.isDirectory()) {
+					   String dirName = dir.getName();
+					   if (dirName.toLowerCase().endsWith("moonshot")) {
+						   DateTime now = new DateTime();
+						   String newName = dirName.split(" ")[0] + "_" + FORMAT.print(now) + ".tsv";
+						   String outFile = DEST + "/" + dirName.split(" ")[0] + "_" + FORMAT.print(now) + ".tsv";
+						   FlowData.BdiFlowSummary(dir, outFile); 
+						   LOG.println(newName + "\t" + dir.toString() + "\t" + DEST);
+						   counterMethod();
+						   if (AuditTable.insertSingle(CONN, dir.toString(), outFile, "Process") == 0) {
+							   System.out.println("not inserted " + dir.toString() + "\t" + outFile);
+							   INSERT.println(dir.toString() + "\t" + outFile);
+						   }
+					   }
+					   
+				   }
+				   return FileVisitResult.CONTINUE;
+			   }
+			});
+				
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	} 
+	}
+
+
 	public static void cpFiles(String source, String dest, String type, String update, PrintWriter logWriter, PrintWriter insertWriter) {
 		
     	Path top = Paths.get(source);
@@ -281,7 +328,7 @@ public class PullFiles {
 						   if (TYPE.equals("immunopath")) {
 							   newName = switchExt(newName, "tsv");
 							   toPath = Paths.get(DEST, newName);
-							   FileConvert.immunoTsv(oldPath.toFile(), toPath.toFile());
+							   FileConversion.immunoTsv(oldPath.toFile(), toPath.toFile());
 						   }
 						   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 							   System.out.println("not inserted " + fromPath.toString() + "\t" + toPath.toString());
@@ -297,7 +344,7 @@ public class PullFiles {
 							   if (TYPE.equals("immunopath")) {
 								   newName = switchExt(newName, "tsv");
 								   toPath = Paths.get(DEST, newName);
-								   FileConvert.immunoTsv(oldPath.toFile(), toPath.toFile());
+								   FileConversion.immunoTsv(oldPath.toFile(), toPath.toFile());
 							   }
 							   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 								   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
@@ -314,7 +361,7 @@ public class PullFiles {
 								   if (TYPE.equals("immunopath")) {
 									   newName = switchExt(newName, "tsv");
 									   toPath = Paths.get(DEST, newName);
-									   FileConvert.immunoTsv(oldPath.toFile(), toPath.toFile());
+									   FileConversion.immunoTsv(oldPath.toFile(), toPath.toFile());
 								   }
 								   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 									   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
