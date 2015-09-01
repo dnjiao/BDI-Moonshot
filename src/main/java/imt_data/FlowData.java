@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -26,6 +27,11 @@ import dao.OracleDB;
 
 
 public class FlowData {
+	
+	public static void main(String[] args) {
+		File dir = new File(args[0]);
+		BdiFlowSummary(dir, args[1]);
+	}
 	public static void BdiFlowSummary(File dir, String outFile) {
 		try {
 			// get connection to Oracle DB
@@ -129,7 +135,12 @@ public class FlowData {
 			
 			if (comList.size() != 0) {  // no "com" specified in column "Staining", all rows are accounted for
 				for (int j : comList) {
-					readDataRow(sheet.getRow(j), gateList, writer);
+					FlowSample samp = readDataRow(sheet.getRow(j), gateList);
+					for (FlowGate gate : samp.getGates()) {
+						String[] words = {samp.getSpecimenID(), panelCode, panelName, panelAntibodies,
+					  		  			  gate.getCode(), gate.getName(), gate.getDefinition(), Double.toString(gate.getValue()), gate.getParent()};
+						writer.println(StringUtils.join(words, "\t"));
+					}
 				}
 			}
 			workbook.close();
@@ -195,9 +206,36 @@ public class FlowData {
 	}
 
 
-	public static List<FlowGate> readDataRow(HSSFRow row, List<FlowGate> gateList, PrintWriter writer) {
+	public static FlowSample readDataRow(HSSFRow row, List<FlowGate> gateList) {
+		String sampleString = row.getCell(1).getStringCellValue();
+		String[] fields = parseSampleField(sampleString);
+		if (fields[1] == null) {
+			System.err.println("Error with Sample field: " + sampleString);
+			return null;
+		}
+		String date = fields[0];
+		String mrn = fields[1].substring(3);
+		String protocol = fields[2].split("-")[0] + "-" + fields[2].split("-")[1];
+		String accession = fields[2].split("-")[2];
+		String cycle = fields[3];
+		String specimen = null;
+		// if all information is available, construct specimen ID with them
+		if (protocol != null && accession != null && cycle != null) {
+			int collection = cycleToColl(fields[3]);
+			specimen = protocol + ":" + accession + ":" + Integer.toString(collection);
+		}
 		
-		return null;
+		// if any information is missing (most likely collection) generate RIS specimen ID with UID
+		else {
+			specimen = "RIS-" + UUID.randomUUID().toString().replaceAll("-", "");
+		}
+		
+		for (FlowGate gate : gateList) {
+			gate.setValue(row.getCell(gate.getCol()).getNumericCellValue());
+		}
+		
+		FlowSample sample = new FlowSample(mrn, specimen, date, gateList);
+		return sample;
 	}
 	
 	/**
@@ -257,5 +295,17 @@ public class FlowData {
 		if (str.charAt(0) == 'C' && str.replaceAll("[^a-zA-Z]+", "").equals("CD") && (str.indexOf('D') - str.indexOf('C')) > 1)
 			return true;
 		return false;
+	}
+	
+	/**
+	 * Translate cycle "CxDy" format to collection number
+	 * @param str - cycle string
+	 * @return - collection number
+	 */
+	private static int cycleToColl(String str) {
+		int dIndex = str.indexOf('D');
+		int c = Integer.parseInt(str.substring(1, dIndex));
+		int d = Integer.parseInt(str.substring(dIndex + 1));
+		return (c - 1) * 2 + d;
 	}
 }
