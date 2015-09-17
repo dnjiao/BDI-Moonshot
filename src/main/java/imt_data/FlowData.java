@@ -32,6 +32,7 @@ public class FlowData {
 		File dir = new File(args[0]);
 		BdiFlowSummary(dir, args[1]);
 	}
+	
 	public static void BdiFlowSummary(File dir, String outFile) {
 		try {
 			// get connection to Oracle DB
@@ -55,10 +56,9 @@ public class FlowData {
 	public static List<File> getDataFiles(File dir) {
 		List<File> dataFiles = new ArrayList<File>();
 		File[] files = dir.listFiles();
-		String prefix = dir.getName().split(" ")[0];
 		for (File file : files) {	
 			if (file.isDirectory() == false ) {
-				if (file.getName().startsWith(prefix) && file.getName().endsWith(".xls")){
+				if (file.getName().endsWith(".xls")){
 					dataFiles.add(file);
 				}
 			}
@@ -87,17 +87,17 @@ public class FlowData {
 			Statement stmt;
 			stmt = con.createStatement();
 			
-			String query = "select ID, PANEL_CODE, PANEL_NAME, PANEL_ANTIBODIES from IMT_PANEL where FILENAME = " + filename;
+			String query = "select ROW_ID, CODE, NAME, ANTIBODIES from PANEL_TB where FILE_NAME = '" + filename + "'";
 			ResultSet rs = stmt.executeQuery(query);
 			// if panel does not exist in database, skip the file
 			if (rs.next() == false) {
 				System.out.println(filename + " does not have a matching Panel in Database.");
 				return;
 			}
-			int panelID = rs.getInt("ID");
-			String panelCode = rs.getString("PANEL_CODE");
-			String panelName = rs.getString("PANEL_NAME");
-			String panelAntibodies = rs.getString("PANEL_ANTIBODIES");
+			int panelID = rs.getInt("ROW_ID");
+			String panelCode = rs.getString("CODE");
+			String panelName = rs.getString("NAME");
+			String panelAntibodies = rs.getString("ANTIBODIES");
 			
 			Iterator<Row> rowIter = sheet.rowIterator();
 			int rowCount = 0;
@@ -133,7 +133,7 @@ public class FlowData {
 				comList = nonList;
 			}
 			
-			if (comList.size() != 0) {  // no "com" specified in column "Staining", all rows are accounted for
+			if (comList.size() != 0) {  // no "com" specified in column "Staining", all rows are accounted format
 				for (int j : comList) {
 					FlowSample samp = readDataRow(sheet.getRow(j), gateList);
 					for (FlowGate gate : samp.getGates()) {
@@ -179,24 +179,20 @@ public class FlowData {
 		// knock out the gatenames that do not exist in Gate table in DB
 		try {
 			Statement stmt = con.createStatement();
-			String query = "select GATE_COLNAME, GATE_CODE, GATE_NAME, GATE_DEF, PARENT_GATE from IMT_GATE where PANEL_ID = " + Integer.toString(panelID);
+			String query = "select FILE_COL_NAME, CODE, DEFINITION, PARENT_GATE from GATE_TB where PANEL_ID = " + Integer.toString(panelID);
 			ResultSet rs = stmt.executeQuery(query);
-			
-			for (String key : gateMap.keySet()) {
-				int foundFlag = 0;
-				rs.first();
-				while (rs.next()) {
-					if (key.equalsIgnoreCase(rs.getString("GATE_COLNAME"))) {
+			while (rs.next()) {
+				for (String key : gateMap.keySet()) {
+					int foundFlag = 0;
+					if (key.equalsIgnoreCase(rs.getString("FILE_COL_NAME"))) {
 						foundFlag = 1;
-						FlowGate gate = new FlowGate(rs.getString("GATE_NAME"), rs.getString("GATE_CODE"), 
-								rs.getString("GATE_DEF"), rs.getString("PARENT_GATE"), gateMap.get(key));
+						String gateName = rs.getString("CODE") + " (" + rs.getString("DEFINITION") + ")";
+						FlowGate gate = new FlowGate(gateName, rs.getString("CODE"), 
+								rs.getString("DEFINITION"), rs.getString("PARENT_GATE"), gateMap.get(key));
 						gateList.add(gate);
+						gateMap.remove(key);
 						break;
 					}
-				}
-				// does not find gate in DB
-				if (foundFlag == 0) {
-					gateMap.remove(key);
 				}
 			}
 		} catch (SQLException e) {

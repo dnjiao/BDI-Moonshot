@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated Sep 15, 2015 4:11:19 PM by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping>
+    <class name="hibernate.FileType" table="FILE_TYPE_TB">
+        <id name="id" type="int">
+            <column name="ROW_ID" />
+            <generator class="native" />
+        </id>
+        <property name="code" type="java.lang.String">
+            <column name="FILE_TYPE_CODE" />
+        </property>
+    </class>
+</hibernate-mapping>

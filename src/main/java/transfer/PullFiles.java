@@ -147,6 +147,7 @@ public class PullFiles {
 				    		else
 				    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
 		    			}
+		    			insertFileLocationTB(type, source, current);
 		    		}	
 		    	}
 		    }
@@ -251,6 +252,10 @@ public class PullFiles {
 		return bool;
 		
 	}
+	
+	private static void insertFileLocationTB(String type, String source, DateTime current) {
+		
+	}
 
 	public static void counterMethod(){
 		fileCounter++;
@@ -296,8 +301,7 @@ public class PullFiles {
 	}
 
 
-	public static void cpFiles(String source, String dest, String type, String update, PrintWriter logWriter, PrintWriter insertWriter) {
-		
+	public static void cpFiles(String source, String dest, String type, String update, PrintWriter logWriter, PrintWriter insertWriter) {		
     	Path top = Paths.get(source);
     	final String TYPE = type;
     	final String UPDATE = update;
@@ -381,8 +385,6 @@ public class PullFiles {
     	} 
     	
 	}
-	
-
 
 	/**
 	 * determine if a file is the type
