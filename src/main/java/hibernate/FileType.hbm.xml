@@ -6,7 +6,9 @@
     <class name="hibernate.FileType" table="FILE_TYPE_TB">
         <id name="id" type="int">
             <column name="ROW_ID" />
-            <generator class="native" />
+            <generator class="sequence">
+            	<param name="sequence">FILE_TYPE_TB.seq</param>
+            </generator>
         </id>
         <property name="code" type="java.lang.String">
             <column name="FILE_TYPE_CODE" />

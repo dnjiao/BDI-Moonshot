@@ -1,5 +1,8 @@
 package transfer;
 
+import hibernate.FileLocation;
+import hibernate.FileType;
+import hibernate.HibernateUtil;
 import imt_data.FileConversion;
 import imt_data.FlowData;
 
@@ -24,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -254,6 +259,53 @@ public class PullFiles {
 	}
 	
 	private static void insertFileLocationTB(String type, String source, DateTime current) {
+		String typeCode;
+		switch (type) {
+			case "vcf":
+				typeCode = "VCF";
+				break;
+			case "cnv":
+				typeCode = "CNV";
+				break;
+			case "immunopath":
+				typeCode = "Immunopathology";
+				break;
+			case "flowcyto":
+				typeCode = "Flow Cytometry";
+				break;
+			case "mapping":
+				typeCode = "MRN Mapping";
+				break;
+			case "gene":
+				typeCode = "RNASeq Gene Counts";
+				break;
+			case "exon":
+				typeCode = "RNASeq Exon Counts";
+				break;
+			case "junction":
+				typeCode = "RNASeq Junctions Counts";
+				break;
+			default:
+				System.err.println("Invalid file type: " + type);
+				return;
+		}
+		
+		Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        // get filetype ID by filetype code from FILE_TYPE_TB
+        String hql = "FROM FileType FT WHERE FT.code = \"" + typeCode + "\"";
+        Query query = session.createQuery(hql);
+        List results = query.list();
+        // only retrieve one object
+        query.setMaxResults(1);
+        FileType ft = (FileType) query.uniqueResult();
+        
+        // insert record into FILE_LOCATION_TB with filetype ID
+        FileLocation fLoc = new FileLocation(ft.getId(), source, current);
+        fLoc.setType("SRC");
+        session.save(fLoc);
+        session.getTransaction().commit();
+        HibernateUtil.shutdown();
 		
 	}
 

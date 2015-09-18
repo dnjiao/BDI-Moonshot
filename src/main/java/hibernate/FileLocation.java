@@ -4,27 +4,28 @@ import org.joda.time.DateTime;
 
 public class FileLocation {
 	private int rowId;
+	private int fileTypeId;
 	private String dirPath;
-	private String type;
 	private DateTime lastCopy;
-	private FileType fileType;
-
-	public FileLocation(int rowId, String dirPath, String type,
-			DateTime lastCopy, FileType fileType) {
+	private String type;
+	
+	public FileLocation(int fileTypeId, String dirPath, DateTime lastCopy) {
 		super();
-		this.rowId = rowId;
+		this.fileTypeId = fileTypeId;
 		this.dirPath = dirPath;
-		this.type = type;
 		this.lastCopy = lastCopy;
-		this.fileType = fileType;
 	}
 
 	public int getRowId() {
 		return rowId;
 	}
 
-	public void setRowId(int rowId) {
-		this.rowId = rowId;
+	public int getFileTypeId() {
+		return fileTypeId;
+	}
+
+	public void setFileTypeId(int fileTypeId) {
+		this.fileTypeId = fileTypeId;
 	}
 
 	public String getDirPath() {
@@ -35,14 +36,6 @@ public class FileLocation {
 		this.dirPath = dirPath;
 	}
 
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
 	public DateTime getLastCopy() {
 		return lastCopy;
 	}
@@ -51,12 +44,14 @@ public class FileLocation {
 		this.lastCopy = lastCopy;
 	}
 
-	public FileType getFileType() {
-		return fileType;
+	public String getType() {
+		return type;
 	}
 
-	public void setFileType(FileType fileType) {
-		this.fileType = fileType;
+	public void setType(String type) {
+		this.type = type;
 	}
 	
+	
+
 }
