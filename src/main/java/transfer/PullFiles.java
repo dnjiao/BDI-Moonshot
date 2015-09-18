@@ -141,14 +141,14 @@ public class PullFiles {
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
-		    			    fileCounter = processMappingFiles(source, DEST, insertWriter, logWriter);
+		    			    fileCounter = processMappingFiles(source, DEST, insertWriter);
 		    			}
 		    			else if (type.equals("flowcyto")) {
-		    				processFlowFiles(source, DEST, insertWriter, logWriter);
+		    				processFlowFiles(source, DEST, insertWriter);
 		    			}
 		    			else {
 		    				if (new File(source).isDirectory())
-				    			cpFiles(source, DEST, type, update, logWriter, insertWriter);
+				    			cpFiles(source, DEST, type, update, insertWriter);
 				    		else
 				    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
 		    			}
@@ -156,17 +156,8 @@ public class PullFiles {
 		    		}	
 		    	}
 		    }
-		    logWriter.close();
 		    insertWriter.close();
-		    // rename log if not empty, otherwise delete it
-		    if (Files.size(logfile.toPath()) > 0) {
-		    	File newlog = new File(LOGPATH, "pull_" + dtStr + ".log");
-		    	logfile.renameTo(newlog);
-		    }
-		    else {
-		    	logfile.delete();
-		    }
-		    
+		  
 		    // delete insert log if empty
 		    if (Files.size(insertLog.toPath()) == 0) {
 		    	insertLog.delete();
@@ -185,14 +176,13 @@ public class PullFiles {
 	 * @param logWriter - writer of pull log
 	 * 
 	 */
-	private static int processMappingFiles(String source, String dest, PrintWriter insertWriter, PrintWriter logWriter) {
+	private static int processMappingFiles(String source, String dest, PrintWriter insertWriter) {
 		List<File> files = getNewFiles(dest);
 		for (File file : files) {
 			System.out.println(file.getName());
 			if (AuditTable.insertSingle(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "rsync") == 0) {
 				insertWriter.println(source + "\t" + file.getAbsolutePath());
 			}
-			logWriter.println(file.getName() + "\t" + source + "\t" + dest);
 		}	
 		return files.size();
 	}
@@ -258,6 +248,12 @@ public class PullFiles {
 		
 	}
 	
+	/**
+	 * Insert timestamp of pulling files from particular path for a specific data type
+	 * @param type - data type
+	 * @param source - source dir (top path)
+	 * @param current - timestamp of the latest pull.
+	 */
 	private static void insertFileLocationTB(String type, String source, DateTime current) {
 		String typeCode;
 		switch (type) {
@@ -314,10 +310,9 @@ public class PullFiles {
 	}
 	
 	
-	private static void processFlowFiles(String source, String dest, PrintWriter insertWriter, PrintWriter logWriter) {
+	private static void processFlowFiles(String source, String dest, PrintWriter insertWriter) {
 		Path top = Paths.get(source);
     	final String DEST = dest;
-    	final PrintWriter LOG = logWriter;
     	final PrintWriter INSERT = insertWriter;
     	
     	try {
@@ -334,7 +329,6 @@ public class PullFiles {
 						   String newName = dirName.split(" ")[0] + "_" + FORMAT.print(now) + ".tsv";
 						   String outFile = DEST + "/" + dirName.split(" ")[0] + "_" + FORMAT.print(now) + ".tsv";
 						   FlowData.BdiFlowSummary(dir, outFile); 
-						   LOG.println(newName + "\t" + dir.toString() + "\t" + DEST);
 						   counterMethod();
 						   if (AuditTable.insertSingle(CONN, dir.toString(), outFile, "Process") == 0) {
 							   System.out.println("not inserted " + dir.toString() + "\t" + outFile);
@@ -353,13 +347,12 @@ public class PullFiles {
 	}
 
 
-	public static void cpFiles(String source, String dest, String type, String update, PrintWriter logWriter, PrintWriter insertWriter) {		
+	public static void cpFiles(String source, String dest, String type, String update, PrintWriter insertWriter) {		
     	Path top = Paths.get(source);
     	final String TYPE = type;
     	final String UPDATE = update;
     	
     	final String DEST = dest;
-    	final PrintWriter LOG = logWriter;
     	final PrintWriter INSERT = insertWriter;
     	
     	try {
@@ -390,7 +383,6 @@ public class PullFiles {
 							   System.out.println("not inserted " + fromPath.toString() + "\t" + toPath.toString());
 							   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 						   }
-						   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
 						   counterMethod();
 					   }
 					   else {  // add only new files
@@ -405,7 +397,6 @@ public class PullFiles {
 							   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 								   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 							   }
-							   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
 							   counterMethod();
 						   }
 						   else {
@@ -422,7 +413,6 @@ public class PullFiles {
 								   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
 									   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
 								   }
-								   LOG.println(newName + "\t" + srcPath + "\t" + DEST);
 								   counterMethod();
 							   }
 						   }

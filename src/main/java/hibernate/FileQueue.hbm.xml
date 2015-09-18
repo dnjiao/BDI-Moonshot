@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated Sep 18, 2015 3:32:01 PM by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping>
+    <class name="hibernate.FileQueue" table="FILE_QUEUE_TB">
+        <id name="rowId" type="int">
+            <column name="ROW_ID" />
+            <generator class="sequence">
+            	<param name="sequence">FILE_QUEUE_TB.seq</param>
+            </generator>
+        </id>
+        <property name="status" type="java.lang.String">
+            <column name="TRANSFER_STATUS" />
+        </property>
+    </class>
+</hibernate-mapping>
