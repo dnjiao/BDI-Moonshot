@@ -6,17 +6,18 @@
     <class name="hibernate.FileLocation" table="FILE_LOCATION_TB">
     	<id name="rowId" type="int">
             <column name="ROW_ID" />
-            <generator class="sequence">
-            	<param name="sequence">FILE_LOCATION_TB.seq</param>
+            <generator class="assigned">
+            	<param name="sequence">FILE_LOCATION_TB_SEQ</param>
             </generator>
         </id>
-        <property name="typeId" type="int">
+        <property name="fileTypeId" type="int">
             <column name="FILE_TYPE_ID" />
         </property>
         <property name="dirPath" type="java.lang.String">
             <column name="DIR_PATH" />
         </property>
-        <property name="lastCopy" type="org.joda.time.contrib.hibernate.PersistentDateTime">
+<!--         <property name="lastCopy" type="org.joda.time.contrib.hibernate.PersistentDateTime"> -->
+        	<property name="lastCopy" type="org.jadira.usertype.dateandtime.joda.PersistentDateTime">
             <column name="LAST_COPY_TS" />
         </property>
         <property name="type" type="java.lang.String">

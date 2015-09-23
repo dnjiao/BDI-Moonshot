@@ -4,6 +4,8 @@ public class FileType {
 	private int id;
 	private String code;
 	
+	public FileType() {
+	}
 	public FileType(String code) {
 		super();
 		this.code = code;
@@ -11,6 +13,10 @@ public class FileType {
 
 	public int getId() {
 		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 
 	public String getCode() {

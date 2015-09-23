@@ -2,11 +2,14 @@
 <!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
                                          "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
- <session-factory name="BDISessionFactory">
+ <session-factory>
   <property name="hibernate.connection.driver_class">oracle.jdbc.driver.OracleDriver</property>
   <property name="hibernate.connection.password">bdi987s</property>
-  <property name="hibernate.connection.url">jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3</property>
+  <property name="hibernate.connection.url">jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3,cn=OracleContext,dc=mdacc,dc=tmc,dc=edu</property>
   <property name="hibernate.connection.username">BDI_OWNER_STG</property>
   <property name="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</property>
+  <mapping resource="hibernate/FileLocation.hbm.xml"/>
+  <mapping resource="hibernate/FileQueue.hbm.xml"/>
+  <mapping resource="hibernate/FileType.hbm.xml"/>
  </session-factory>
 </hibernate-configuration>

@@ -7,7 +7,7 @@
         <id name="id" type="int">
             <column name="ROW_ID" />
             <generator class="sequence">
-            	<param name="sequence">FILE_TYPE_TB.seq</param>
+            	<param name="sequence">FILE_TYPE_TB_SEQ</param>
             </generator>
         </id>
         <property name="code" type="java.lang.String">

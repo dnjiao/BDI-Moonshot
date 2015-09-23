@@ -254,7 +254,7 @@ public class PullFiles {
 	 * @param source - source dir (top path)
 	 * @param current - timestamp of the latest pull.
 	 */
-	private static void insertFileLocationTB(String type, String source, DateTime current) {
+	public static void insertFileLocationTB(String type, String source, DateTime current) {
 		String typeCode;
 		switch (type) {
 			case "vcf":
@@ -289,7 +289,7 @@ public class PullFiles {
 		Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         // get filetype ID by filetype code from FILE_TYPE_TB
-        String hql = "FROM FileType FT WHERE FT.code = \"" + typeCode + "\"";
+        String hql = "FROM hibernate.FileType FT WHERE FT.code = '" + typeCode + "'";
         Query query = session.createQuery(hql);
         List results = query.list();
         // only retrieve one object

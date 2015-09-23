@@ -9,6 +9,10 @@ public class FileLocation {
 	private DateTime lastCopy;
 	private String type;
 	
+	
+	public FileLocation() {
+	}
+
 	public FileLocation(int fileTypeId, String dirPath, DateTime lastCopy) {
 		super();
 		this.fileTypeId = fileTypeId;
@@ -18,6 +22,10 @@ public class FileLocation {
 
 	public int getRowId() {
 		return rowId;
+	}
+
+	public void setRowId(int rowId) {
+		this.rowId = rowId;
 	}
 
 	public int getFileTypeId() {
