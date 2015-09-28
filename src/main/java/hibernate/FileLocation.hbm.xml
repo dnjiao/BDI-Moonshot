@@ -16,8 +16,13 @@
         <property name="dirPath" type="java.lang.String">
             <column name="DIR_PATH" />
         </property>
-<!--         <property name="lastCopy" type="org.joda.time.contrib.hibernate.PersistentDateTime"> -->
-        	<property name="lastCopy" type="org.jadira.usertype.dateandtime.joda.PersistentDateTime">
+        <property name="insertDate" type="org.jadira.usertype.dateandtime.joda.PersistentDateTime">
+            <column name="INSERT_TS" />
+        </property>
+        <property name="updateDate" type="org.jadira.usertype.dateandtime.joda.PersistentDateTime">
+            <column name="UPDATE_TS" />
+        </property>
+        <property name="lastCopy" type="org.jadira.usertype.dateandtime.joda.PersistentDateTime">
             <column name="LAST_COPY_TS" />
         </property>
         <property name="type" type="java.lang.String">

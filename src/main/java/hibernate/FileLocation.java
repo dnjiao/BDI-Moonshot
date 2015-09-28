@@ -6,6 +6,8 @@ public class FileLocation {
 	private int rowId;
 	private int fileTypeId;
 	private String dirPath;
+	private DateTime insertDate;
+	private DateTime updateDate;
 	private DateTime lastCopy;
 	private String type;
 	
@@ -13,10 +15,12 @@ public class FileLocation {
 	public FileLocation() {
 	}
 
-	public FileLocation(int fileTypeId, String dirPath, DateTime lastCopy) {
+	public FileLocation(int fileTypeId, String dirPath, DateTime insertDate, DateTime updateDate, DateTime lastCopy) {
 		super();
 		this.fileTypeId = fileTypeId;
 		this.dirPath = dirPath;
+		this.insertDate = insertDate;
+		this.updateDate = updateDate;
 		this.lastCopy = lastCopy;
 	}
 
@@ -42,6 +46,22 @@ public class FileLocation {
 
 	public void setDirPath(String dirPath) {
 		this.dirPath = dirPath;
+	}
+
+	public DateTime getInsertDate() {
+		return insertDate;
+	}
+
+	public void setInsertDate(DateTime insertDate) {
+		this.insertDate = insertDate;
+	}
+
+	public DateTime getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(DateTime updateDate) {
+		this.updateDate = updateDate;
 	}
 
 	public DateTime getLastCopy() {

@@ -1,23 +1,36 @@
 package rest;
 
+import hibernate.FileQueue;
+import hibernate.HibernateUtil;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import oracle.jdbc.OracleTypes;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
-
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+
+import dao.OracleDB;
 
 public class PushFiles {
 //	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
@@ -28,69 +41,50 @@ public class PushFiles {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
 		String prefix = URL_STRING  + TYPE + "&fileName=";
 		String path = LOCAL_PATH + "/" + TYPE;
-		PrintWriter writer = null;
+		
+		
+		Connection conn = OracleDB.getConnection();
 		try {
-			List<String> files = getFiles(path);
-			System.out.println(files.size());
-			File notSentLog = new File(path + "/logs/not_sent.log");
-			writer = new PrintWriter(notSentLog);
-			int sentCount = 0;
-			int notsentCount = 0;
 			
-			for (String filename : files) {
-				String filepath = path + "/" + filename;
-				if (pushSingle(prefix, filepath) == 0) { // not sent successfully
-					notsentCount ++;
-					writer.println(filename);
-				} 
-				else {
-					sentCount ++;
-				}
+			// create Hibernate session and Transaction
+			Session session = HibernateUtil.getSessionFactory().openSession();
+	        Transaction ts = session.beginTransaction();
+	        
+	        // call stored procedure
+			CallableStatement pstmt = conn.prepareCall("{call FILE_PROCESS.get_untransferred_file_by_type(?,?)}");
+			pstmt.setString(1, TYPE);
+			pstmt.registerOutParameter(2, OracleTypes.CURSOR);
+			pstmt.executeUpdate();
+			
+			// get cursor and cast it to ResultSet
+			ResultSet rs = (ResultSet) pstmt.getObject(2);
+			
+			// loop thru results
+			while (rs.next()) {
+				int rowId = rs.getInt("ROW_ID");
+				String filepath = rs.getString("DEST_FILE_URI");
+				pushSingle(prefix, filepath, false);
+				FileQueue fq = (FileQueue)session.get(FileQueue.class, rowId);
+				fq.setStatus("Y");
+				session.update(fq);
 			}
-			// if all files sent, delete "not_sent.log"
-			if (notsentCount == 0 && notSentLog.exists()) {
-				notSentLog.delete(); 
-			}
-			System.out.println(Integer.toString(sentCount) + " files have been pushed to BDI.");
-		} catch(IOException e) {
+			ts.commit();
+			session.close();
+			
+			pstmt.close();
+			conn.close();
+		}
+		catch (SQLException e) {
 			e.printStackTrace();
-		} finally {
-			writer.close();
+			System.exit(1);
+		}
+		catch (HibernateException e) {
+			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 	
-	/**
-	 * Obtain a list of files to be sent
-	 * @param path - path to the local file directory
-	 * @return list of files
-	 * @throws IOException 
-	 */
-	public static List<String> getFiles(String path) throws IOException {
-		List<String> files = new ArrayList<String>();
-		String logPath = path + "/logs";
-		File pullLog = lastPullLog(logPath);
-		BufferedReader br = new BufferedReader(new FileReader(pullLog));
-		String line = null;
-		while ((line = br.readLine()) != null) {
-			files.add(line.split("\t")[0]);
-		}
-		br.close();
-		File fp = new File(path, "not_sent.log");
-		if (!fp.exists()) {
-			return files;
-		}
-		br = new BufferedReader(new FileReader(fp));
-		String linestr;
-		while ((line = br.readLine()) != null) {
-			linestr = line.replaceAll("(\\r|\\n)", "");
-			if (!files.contains(linestr)) {
-				files.add(linestr);
-			}
-		}
-		br.close();
-		return files;
-		
-	}
+
 	
 	/**
 	 * Get the log that is last generated
@@ -132,8 +126,12 @@ public class PushFiles {
 	 * @param url - RestFul URL (destination)
 	 * @param filepath - Path of local file to be uploaded
 	 */
-	public static int pushSingle(String prefix, String filepath) {
-//		return 1;
+	public static int pushSingle(String prefix, String filepath, boolean ifReal) {
+		// fake push for testing purpose
+		if (ifReal == false) {
+			System.out.println(filepath + "pushed (mock).");
+			return 1;
+		}
 		int status = 500;
 		PostMethod filePost = null;
 		try {

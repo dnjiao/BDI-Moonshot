@@ -7,6 +7,7 @@ public class FileQueue {
 	
 	public FileQueue() {
 	}
+	
 
 	public int getId() {
 		return id;

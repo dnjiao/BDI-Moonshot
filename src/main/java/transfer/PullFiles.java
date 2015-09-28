@@ -297,7 +297,7 @@ public class PullFiles {
         FileType ft = (FileType) query.uniqueResult();
         
         // insert record into FILE_LOCATION_TB with filetype ID
-        FileLocation fLoc = new FileLocation(ft.getId(), source, current);
+        FileLocation fLoc = new FileLocation(ft.getId(), source, current, current, current);
         fLoc.setType("SRC");
         session.save(fLoc);
         session.getTransaction().commit();

@@ -25,7 +25,7 @@ public class CallLoader {
 		if (type.equals("mapping"))
 			arr[5] = "Y";
 		try {
-			CallableStatement pstmt = conn.prepareCall("{call FILE_LOADER.process_file(?,?,?,?,?,?)}");
+			CallableStatement pstmt = conn.prepareCall("{call FILE_PROCESS.load_file(?,?,?,?,?,?)}");
 			for (int i = 1; i < 7; i ++) {
 				pstmt.setString(i, arr[i - 1]);
 			}
