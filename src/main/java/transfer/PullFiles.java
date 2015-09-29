@@ -255,36 +255,7 @@ public class PullFiles {
 	 * @param current - timestamp of the latest pull.
 	 */
 	public static void insertFileLocationTB(String type, String source, DateTime current) {
-		String typeCode;
-		switch (type) {
-			case "vcf":
-				typeCode = "VCF";
-				break;
-			case "cnv":
-				typeCode = "CNV";
-				break;
-			case "immunopath":
-				typeCode = "Immunopathology";
-				break;
-			case "flowcyto":
-				typeCode = "Flow Cytometry";
-				break;
-			case "mapping":
-				typeCode = "MRN Mapping";
-				break;
-			case "gene":
-				typeCode = "RNASeq Gene Counts";
-				break;
-			case "exon":
-				typeCode = "RNASeq Exon Counts";
-				break;
-			case "junction":
-				typeCode = "RNASeq Junctions Counts";
-				break;
-			default:
-				System.err.println("Invalid file type: " + type);
-				return;
-		}
+		String typeCode = convertTypeStr(type);
 		
 		Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
@@ -304,6 +275,31 @@ public class PullFiles {
         HibernateUtil.shutdown();
 		
 	}
+
+	public static String convertTypeStr(String type) {
+		switch (type) {
+			case "vcf":
+				return "VCF";
+			case "cnv":
+				return "CNV";
+			case "immunopath":
+				return "Immunopathology";
+			case "flowcyto":
+				return "Flow Cytometry";
+			case "mapping":
+				return "MRN Mapping";
+			case "gene":
+				return "RNASeq Gene Counts";
+			case "exon":
+				return "RNASeq Exon Counts";
+			case "junction":
+				return "RNASeq Junctions Counts";
+			default:
+				System.err.println("Invalid file type: " + type);
+				return null;
+		}
+	}
+
 
 	public static void counterMethod(){
 		fileCounter++;

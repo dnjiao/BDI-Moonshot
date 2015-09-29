@@ -30,6 +30,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import transfer.PullFiles;
 import dao.OracleDB;
 
 public class PushFiles {
@@ -52,7 +53,7 @@ public class PushFiles {
 	        
 	        // call stored procedure
 			CallableStatement pstmt = conn.prepareCall("{call FILE_PROCESS.get_untransferred_file_by_type(?,?)}");
-			pstmt.setString(1, TYPE);
+			pstmt.setString(1, PullFiles.convertTypeStr(TYPE));
 			pstmt.registerOutParameter(2, OracleTypes.CURSOR);
 			pstmt.executeUpdate();
 			
@@ -86,40 +87,7 @@ public class PushFiles {
 	
 
 	
-	/**
-	 * Get the log that is last generated
-	 * @param path - Log path
-	 * @return latest log file
-	 */
-	public static File lastPullLog(String path) {
-		File dir = new File(path);
-		File[] logs = dir.listFiles(new FilenameFilter() {
-    	    public boolean accept(File dir, String name) {
-    	        return name.startsWith("pull") && name.endsWith(".log");
-    	    }
-    	});
-		if (logs.length == 0) {  // no logs found
-			return null;
-		}
-		DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
-		DateTime last = format.parseDateTime("01012000000000");
-		for (File file : logs) {
-			String filename = file.getName();
-			String timeStr = filename.substring(0, filename.lastIndexOf(".")).split("_")[1];
-			DateTime time = format.parseDateTime(timeStr);
-			if (time.isAfter(last)) {
-				last = time;
-			}
-		}
-		if (last == format.parseDateTime("01012000000000")) {
-			return null;	
-		}
-		else {
-			String timeStr = last.toString(format);
-			File file = new File(path, "pull_" + timeStr + ".log");
-			return file;
-		}
-	}
+
 	
 	/**
 	 * call Restful service and push single file
