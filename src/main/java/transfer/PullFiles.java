@@ -59,59 +59,18 @@ public class PullFiles {
 	private static void executeTransfer(String type) {
 	    
 	    final String DEST = DEST_ROOT + "/" + type;
-	    final String LOGPATH = DEST + "/logs";
 	    String source;
 	    File destDir = new File(DEST);
 	    if (!destDir.exists()){
 	        System.err.println("ERROR: Destination path " + DEST + " does not exist.");
 	        System.exit(1);
 	    }
-	    File logDir = new File(LOGPATH);
 	    String update;
 	    try {
-		    if (!logDir.exists()) {
-				Files.createDirectory(Paths.get(LOGPATH));
-				update = "all";
-		    }
-		    else {
-		    	// find all pull logs if log directory exists
-		    	File[] pullLogs = logDir.listFiles(new FilenameFilter() {
-		    	    public boolean accept(File dir, String name) {
-		    	        return name.startsWith("pull") && name.endsWith(".log");
-		    	    }
-		    	});
-		    	// if no pull logs exist, pull all files
-		    	if (pullLogs.length == 0)
-		    		update = "all";
-		    	// if pull log exists, pull only new files
-		    	else
-		    		update = "new";
-		    }
-		    File insertLog = new File(LOGPATH, "failed2insert.log");
-		    File tmpInsert = null;
-		    
-		    // if failed2insert.log exist, insert records from last time to database
-		    if (insertLog.exists()) {
-		    	tmpInsert = AuditTable.insertMulti(CONN, insertLog, PROTOCOL);
-		    }
-		    else {
-		    	tmpInsert = new File(LOGPATH, "tmp_insert.log");
-		    	if (tmpInsert.exists()) {
-		    		tmpInsert.delete();
-		    	}
-		    	tmpInsert.createNewFile();
-		    }
-		    Files.copy(tmpInsert.toPath(), insertLog.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		    tmpInsert.delete();
-		    PrintWriter insertWriter = new PrintWriter(new FileOutputStream(insertLog), true);
 		    // get the string for current time
 		    DateTime current = new DateTime();
 		    String dtStr = FORMAT.print(current);
 		    
-		    // open log file to write
-		    File logfile = new File(LOGPATH, "tmp_pull.log");
-		    PrintWriter logWriter=new PrintWriter(logfile);
-
 		    Map<String, String> env = System.getenv();
 		    for (String envName : env.keySet()) {
 		    	if (envName.contains("SOURCE_DIR")) {
@@ -140,28 +99,28 @@ public class PullFiles {
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
-		    			    fileCounter = processMappingFiles(source, DEST, insertWriter);
+		    			    fileCounter = processMappingFiles(source, DEST, current);
 		    			}
 		    			else if (type.equals("flowcyto")) {
-		    				processFlowFiles(source, DEST, insertWriter);
+		    				processFlowFiles(source, DEST);
+		    				dao.updateTimeStamp("mapping", "Informat", current);
 		    			}
 		    			else {
-		    				if (new File(source).isDirectory())
-				    			cpFiles(source, DEST, type, update, insertWriter);
+		    				
+		    				if (new File(source).isDirectory()) {
+		    					DateTime lastTS = dao.getLastTimeStamp(type, source);
+		    					cpFiles(source, DEST, type, current, lastTS);
+		    					dao.updateTimeStamp(type, source, current);
+		    				}
+				    			
 				    		else
 				    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
 		    			}
-		    			insertFileLocationTB(type, source, current);
 		    		}	
 		    	}
 		    }
-		    insertWriter.close();
-		  
-		    // delete insert log if empty
-		    if (Files.size(insertLog.toPath()) == 0) {
-		    	insertLog.delete();
-		    }
-		    System.out.println("Total " + Integer.toString(fileCounter) + " " + type + " files transferred successfully.");
+		    
+		    System.out.println("Total " + Integer.toString(fileCounter) + " " + type + " files pulled successfully.");
 	    } catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -175,87 +134,37 @@ public class PullFiles {
 	 * @param logWriter - writer of pull log
 	 * 
 	 */
-	private static int processMappingFiles(String source, String dest, PrintWriter insertWriter) {
-		List<File> files = getNewMappingFiles(dest);
-		for (File file : files) {
-			System.out.println(file.getName());
-			if (AuditTable.insertSingle(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "sftp") == 0) {
-				insertWriter.println(source + "\t" + file.getAbsolutePath());
-			}
-		}	
-		return files.size();
-	}
-
-
-	/**
-	 * get a list of  files that were last transfered
-	 * @param dir - directory that contains all the files
-	 * @return - list of files
-	 */
-	private static List<File> getNewMappingFiles(String dir) {
-		List<File> newFiles = new ArrayList<File>();
-		File dirFile = new File(dir);
-		File[] files = dirFile.listFiles();
-		File lastLog = lastPullLog(dir + "/logs");
-		for (File file : files) {	
-			if (file.isDirectory() == false) {
-				// log does not exist, all files are new; exists, only files newer than last log
-				if (lastLog == null) {
-					if (isMapping(file))					
-						newFiles.add(file);
-					else
-						file.delete();
-				}
-				else {
-					String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
-					DateTime logTime = FORMAT.parseDateTime(timeStr);
-					// compare last log time and file lastmodified time
-					if (logTime.isBefore(file.lastModified())) {
-						if (isMapping(file)) 
-							newFiles.add(file);
-						else
+	private static int processMappingFiles(String source, String dest, DateTime current) {
+		DateTime lastTS = dao.getLastTimeStamp("mapping", "Informat");
+		File destDir = new File(dest);
+		int fileCounter = 0;
+		
+		for (File file : destDir.listFiles()) {
+			if (file.isDirectory() == false) { // ignore directories
+				if (isMapping(file)) {
+					if (lastTS.isBefore(file.lastModified())) {
+						System.out.println(file.getName());
+						if (AuditTable.insertSingle(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "sftp") == 0) {
 							file.delete();
+							System.err.println("Cannot insert " + file.getAbsolutePath() + " to database.");
+						}
+						else {
+							fileCounter ++;
+						}
 					}
 				}
+				else {
+					file.delete();
+				}
+			}
+			else {
+				file.delete();
 			}
 		}
-		return newFiles;
+		
+		return fileCounter;
 	}
 	
-	/**
-	 * Get the log that is last generated
-	 * @param path - Log path
-	 * @return latest log file
-	 */
-	public static File lastPullLog(String path) {
-		File dir = new File(path);
-		File[] logs = dir.listFiles(new FilenameFilter() {
-    	    public boolean accept(File dir, String name) {
-    	        return name.startsWith("pull") && name.endsWith(".log");
-    	    }
-    	});
-		if (logs.length == 0) {  // no logs found
-			return null;
-		}
-		DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
-		DateTime last = format.parseDateTime("01012000000000");
-		for (File file : logs) {
-			String filename = file.getName();
-			String timeStr = filename.substring(0, filename.lastIndexOf(".")).split("_")[1];
-			DateTime time = format.parseDateTime(timeStr);
-			if (time.isAfter(last)) {
-				last = time;
-			}
-		}
-		if (last == format.parseDateTime("01012000000000")) {
-			return null;	
-		}
-		else {
-			String timeStr = last.toString(format);
-			File file = new File(path, "pull_" + timeStr + ".log");
-			return file;
-		}
-	}
 
 	/**
 	 * determine if a file is mapping file based on first line text
@@ -279,34 +188,6 @@ public class PullFiles {
 			e.printStackTrace();
 		}
 		return bool;
-		
-	}
-	
-	/**
-	 * Insert timestamp of pulling files from particular path for a specific data type
-	 * @param type - data type
-	 * @param source - source dir (top path)
-	 * @param current - timestamp of the latest pull.
-	 */
-	public static void insertFileLocationTB(String type, String source, DateTime current) {
-		String typeCode = convertTypeStr(type);
-		
-		Session session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        // get filetype ID by filetype code from FILE_TYPE_TB
-        String hql = "FROM hibernate.FileType FT WHERE FT.code = '" + typeCode + "'";
-        Query query = session.createQuery(hql);
-        List results = query.list();
-        // only retrieve one object
-        query.setMaxResults(1);
-        FileType ft = (FileType) query.uniqueResult();
-        
-        // insert record into FILE_LOCATION_TB with filetype ID
-        FileLocation fLoc = new FileLocation(ft.getId(), source, current, current, current);
-        fLoc.setType("SRC");
-        session.save(fLoc);
-        session.getTransaction().commit();
-        HibernateUtil.shutdown();
 		
 	}
 
@@ -340,7 +221,7 @@ public class PullFiles {
 	}
 	
 	
-	private static void processFlowFiles(String source, String dest, PrintWriter insertWriter) {
+	private static void processFlowFiles(String source, String dest) {
 		Path top = Paths.get(source);
     	final String DEST = dest;
     	final PrintWriter INSERT = insertWriter;
@@ -377,13 +258,12 @@ public class PullFiles {
 	}
 
 
-	public static void cpFiles(String source, String dest, String type, String update, PrintWriter insertWriter) {		
+	public static void cpFiles(String source, String dest, String type, DateTime current, DateTime lastTS) {		
     	Path top = Paths.get(source);
-    	final String TYPE = type;
-    	final String UPDATE = update;
-    	
-    	final String DEST = dest;
-    	final PrintWriter INSERT = insertWriter;
+    	final String TYPE = type;    	
+    	final String DEST = dest;  
+    	final DateTime CURRENT = current;
+    	final DateTime LAST = lastTS;
     	
     	try {
 			Files.walkFileTree(top, new SimpleFileVisitor<Path>()
@@ -402,7 +282,8 @@ public class PullFiles {
 					   Path toPath = Paths.get(DEST, newName);
 					   Path oldPath = toPath;
 					   String cmd = cmdConstructor(PROTOCOL, fromPath.toString(), toPath.toString());
-					   if (UPDATE.equalsIgnoreCase("all")) {  // add all files
+					   
+					   if (LAST.isBefore(fromPath.toFile().lastModified())) {  // add only new files 
 						   Runtime.getRuntime().exec(cmd);
 						   if (TYPE.equals("immunopath")) {
 							   newName = switchExt(newName, "tsv");
@@ -410,42 +291,10 @@ public class PullFiles {
 							   FileConversion.immunoTsv(oldPath.toFile(), toPath.toFile());
 						   }
 						   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
-							   System.out.println("not inserted " + fromPath.toString() + "\t" + toPath.toString());
-							   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
+							   toPath.toFile().delete();
 						   }
-						   counterMethod();
-					   }
-					   else {  // add only new files
-						   File lastLog = lastPullLog(DEST + "/logs");
-						   if (lastLog == null) {
-							   Runtime.getRuntime().exec(cmd);
-							   if (TYPE.equals("immunopath")) {
-								   newName = switchExt(newName, "tsv");
-								   toPath = Paths.get(DEST, newName);
-								   FileConversion.immunoTsv(oldPath.toFile(), toPath.toFile());
-							   }
-							   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
-								   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
-							   }
-							   counterMethod();
-						   }
-						   else {
-							   String timeStr = lastLog.getName().split(".log")[0].split("_")[1];
-							   DateTime logTime = FORMAT.parseDateTime(timeStr);
-							   // compare last log time and file lastmodified time
-							   if (logTime.isBefore(fromPath.toFile().lastModified())) {
-								   Runtime.getRuntime().exec(cmd);
-								   if (TYPE.equals("immunopath")) {
-									   newName = switchExt(newName, "tsv");
-									   toPath = Paths.get(DEST, newName);
-									   FileConversion.immunoTsv(oldPath.toFile(), toPath.toFile());
-								   }
-								   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
-									   INSERT.println(fromPath.toString() + "\t" + toPath.toString());
-								   }
-								   counterMethod();
-							   }
-						   }
+						   else 
+							   counterMethod();  
 					   }
 				   }
 			      return FileVisitResult.CONTINUE;
@@ -506,6 +355,33 @@ public class PullFiles {
 		int stop = filename.lastIndexOf(".");
 		String base = filename.substring(0, stop);
 		return base + "." + ext;
+	}
+	
+	/**
+	 * Insert timestamp of pulling files from particular path for a specific data type
+	 * @param type - data type
+	 * @param source - source dir (top path)
+	 * @param current - timestamp of the latest pull.
+	 */
+	public static void insertFileLocationTB(String type, String source, DateTime current) {
+		String typeCode = convertTypeStr(type);
+		
+		Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        // get filetype ID by filetype code from FILE_TYPE_TB
+        String hql = "FROM hibernate.FileType FT WHERE FT.code = '" + typeCode + "'";
+        Query query = session.createQuery(hql);
+        // only retrieve one object
+        query.setMaxResults(1);
+        FileType ft = (FileType) query.uniqueResult();
+        
+        // insert record into FILE_LOCATION_TB with filetype ID
+        FileLocation fLoc = new FileLocation(ft.getId(), source, current, current, current);
+        fLoc.setType("SRC");
+        session.save(fLoc);
+        session.getTransaction().commit();
+        HibernateUtil.shutdown();
+		
 	}
 
 
