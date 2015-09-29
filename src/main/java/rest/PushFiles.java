@@ -60,17 +60,23 @@ public class PushFiles {
 			// get cursor and cast it to ResultSet
 			ResultSet rs = (ResultSet) pstmt.getObject(2);
 			
+			// counter of successfully pushed files
+			int rowcount = 0;
+			
 			// loop thru results
 			while (rs.next()) {
 				int rowId = rs.getInt("ROW_ID");
 				String filepath = rs.getString("DEST_FILE_URI");
-				pushSingle(prefix, filepath, pushFlag);
+				if (pushSingle(prefix, filepath, pushFlag) == 1) {
+					rowcount ++;
+				}
 				FileQueue fq = (FileQueue)session.get(FileQueue.class, rowId);
 				fq.setStatus("Y");
 				session.update(fq);
 			}
 			ts.commit();
 			session.close();
+			System.out.println("Total of " + Integer.toString(rowcount) + " files pushed.");
 			
 			pstmt.close();
 			conn.close();
