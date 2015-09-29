@@ -41,7 +41,7 @@ public class PushFiles {
 	public static void main(String[] args) {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
 		String prefix = URL_STRING  + TYPE + "&fileName=";
-		String path = LOCAL_PATH + "/" + TYPE;
+		boolean pushFlag = Boolean.parseBoolean(args[0]);
 		
 		
 		Connection conn = OracleDB.getConnection();
@@ -64,7 +64,7 @@ public class PushFiles {
 			while (rs.next()) {
 				int rowId = rs.getInt("ROW_ID");
 				String filepath = rs.getString("DEST_FILE_URI");
-				pushSingle(prefix, filepath, false);
+				pushSingle(prefix, filepath, pushFlag);
 				FileQueue fq = (FileQueue)session.get(FileQueue.class, rowId);
 				fq.setStatus("Y");
 				session.update(fq);
@@ -84,15 +84,13 @@ public class PushFiles {
 			System.exit(1);
 		}
 	}
-	
-
-	
 
 	
 	/**
 	 * call Restful service and push single file
 	 * @param url - RestFul URL (destination)
 	 * @param filepath - Path of local file to be uploaded
+	 * @param ifReal - boolean flag for real/fake push
 	 */
 	public static int pushSingle(String prefix, String filepath, boolean ifReal) {
 		// fake push for testing purpose
