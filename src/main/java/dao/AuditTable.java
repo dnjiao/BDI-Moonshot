@@ -16,7 +16,7 @@ public class AuditTable {
 		int ret = 0;
 		try {
 			
-			CallableStatement pstmt = con.prepareCall("{? = call FILE_TRANSFER.insert_file_queue_record(?,?,?,?,?,?,?,?)}");
+			CallableStatement pstmt = con.prepareCall("{? = call FILE_PROCESS.insert_file_queue_record(?,?,?,?,?,?,?,?)}");
 			pstmt.registerOutParameter(1, Types.INTEGER);
 			pstmt.setString(2, sourceUri);
 			pstmt.setString(3, destUri);

@@ -112,8 +112,6 @@ public class PullFiles {
 		    File logfile = new File(LOGPATH, "tmp_pull.log");
 		    PrintWriter logWriter=new PrintWriter(logfile);
 
-//		    source = "/Users/djiao/Work/moonshot/vcf";
-//		    cpFiles(source, DEST, TYPE, UPDATE, PROTOCOL, logWriter, insertWriter);
 		    Map<String, String> env = System.getenv();
 		    for (String envName : env.keySet()) {
 		    	if (envName.contains("SOURCE_DIR")) {
@@ -127,6 +125,7 @@ public class PullFiles {
 		    					Process p = Runtime.getRuntime().exec(cmd);
 		    					String line;
 								
+		    					// stdout and stderr of bash script
 		    					BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 								while ((line = in.readLine()) != null) {
 									System.out.println(line);
@@ -177,10 +176,10 @@ public class PullFiles {
 	 * 
 	 */
 	private static int processMappingFiles(String source, String dest, PrintWriter insertWriter) {
-		List<File> files = getNewFiles(dest);
+		List<File> files = getNewMappingFiles(dest);
 		for (File file : files) {
 			System.out.println(file.getName());
-			if (AuditTable.insertSingle(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "rsync") == 0) {
+			if (AuditTable.insertSingle(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "sftp") == 0) {
 				insertWriter.println(source + "\t" + file.getAbsolutePath());
 			}
 		}	
@@ -193,11 +192,11 @@ public class PullFiles {
 	 * @param dir - directory that contains all the files
 	 * @return - list of files
 	 */
-	private static List<File> getNewFiles(String dir) {
+	private static List<File> getNewMappingFiles(String dir) {
 		List<File> newFiles = new ArrayList<File>();
 		File dirFile = new File(dir);
 		File[] files = dirFile.listFiles();
-		File lastLog = PushFiles.lastPullLog(dir + "/logs");
+		File lastLog = lastPullLog(dir + "/logs");
 		for (File file : files) {	
 			if (file.isDirectory() == false) {
 				// log does not exist, all files are new; exists, only files newer than last log
@@ -221,6 +220,41 @@ public class PullFiles {
 			}
 		}
 		return newFiles;
+	}
+	
+	/**
+	 * Get the log that is last generated
+	 * @param path - Log path
+	 * @return latest log file
+	 */
+	public static File lastPullLog(String path) {
+		File dir = new File(path);
+		File[] logs = dir.listFiles(new FilenameFilter() {
+    	    public boolean accept(File dir, String name) {
+    	        return name.startsWith("pull") && name.endsWith(".log");
+    	    }
+    	});
+		if (logs.length == 0) {  // no logs found
+			return null;
+		}
+		DateTimeFormatter format = DateTimeFormat.forPattern("MMddyyyyHHmmss");
+		DateTime last = format.parseDateTime("01012000000000");
+		for (File file : logs) {
+			String filename = file.getName();
+			String timeStr = filename.substring(0, filename.lastIndexOf(".")).split("_")[1];
+			DateTime time = format.parseDateTime(timeStr);
+			if (time.isAfter(last)) {
+				last = time;
+			}
+		}
+		if (last == format.parseDateTime("01012000000000")) {
+			return null;	
+		}
+		else {
+			String timeStr = last.toString(format);
+			File file = new File(path, "pull_" + timeStr + ".log");
+			return file;
+		}
 	}
 
 	/**
@@ -382,7 +416,7 @@ public class PullFiles {
 						   counterMethod();
 					   }
 					   else {  // add only new files
-						   File lastLog = PushFiles.lastPullLog(DEST + "/logs");
+						   File lastLog = lastPullLog(DEST + "/logs");
 						   if (lastLog == null) {
 							   Runtime.getRuntime().exec(cmd);
 							   if (TYPE.equals("immunopath")) {
