@@ -2,8 +2,7 @@ package hibernate;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
-
-import transfer.PullFiles;
+import org.mdacc.rists.bdi.transfer.PullFiles;
 
 public class InsertFileLocationTest {
 	@Test

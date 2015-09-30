@@ -1,4 +1,4 @@
-package hibernate;
+package org.mdacc.rists.bdi.hibernate;
 
 public class FileQueue {
 	private int id;

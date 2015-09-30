@@ -1,10 +1,9 @@
 package transfer;
 
-import imt_data.FileConversion;
-
 import java.io.File;
 
 import org.junit.Test;
+import org.mdacc.rists.bdi.datafiles.FileConversion;
 
 
 public class ConvertTest {

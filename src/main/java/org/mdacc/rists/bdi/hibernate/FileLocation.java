@@ -1,4 +1,4 @@
-package hibernate;
+package org.mdacc.rists.bdi.hibernate;
 
 import org.joda.time.DateTime;
 

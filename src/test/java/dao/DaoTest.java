@@ -6,8 +6,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import org.junit.Test;
-
-import db_op.OracleDB;
+import org.mdacc.rists.bdi.dbops.OracleDB;
 
 public class DaoTest {
 	@Test

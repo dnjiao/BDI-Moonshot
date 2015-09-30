@@ -1,4 +1,4 @@
-package hibernate;
+package org.mdacc.rists.bdi.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;

@@ -1,4 +1,4 @@
-package imt_data;
+package org.mdacc.rists.bdi.datafiles;
 
 public class FlowGate {
 	String name;

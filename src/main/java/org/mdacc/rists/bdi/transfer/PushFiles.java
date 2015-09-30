@@ -1,7 +1,4 @@
-package transfer;
-
-import hibernate.FileQueue;
-import hibernate.HibernateUtil;
+package org.mdacc.rists.bdi.transfer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,8 +26,9 @@ import org.hibernate.Transaction;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import db_op.OracleDB;
+import org.mdacc.rists.bdi.dbops.OracleDB;
+import org.mdacc.rists.bdi.hibernate.FileQueue;
+import org.mdacc.rists.bdi.hibernate.HibernateUtil;
 
 public class PushFiles {
 //	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
@@ -52,7 +50,7 @@ public class PushFiles {
 	        
 	        // call stored procedure
 			CallableStatement pstmt = conn.prepareCall("{call FILE_PROCESS.get_untransferred_file_by_type(?,?)}");
-			pstmt.setString(1, PullFiles.convertTypeStr(TYPE));
+			pstmt.setString(1, TransferUtils.convertTypeStr(TYPE));
 			pstmt.registerOutParameter(2, OracleTypes.CURSOR);
 			pstmt.executeUpdate();
 			

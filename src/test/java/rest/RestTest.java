@@ -3,8 +3,7 @@ package rest;
 import java.io.File;
 
 import org.junit.Test;
-
-import transfer.PushFiles;
+import org.mdacc.rists.bdi.transfer.PushFiles;
 
 public class RestTest {
 	@Test

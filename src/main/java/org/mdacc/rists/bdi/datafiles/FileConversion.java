@@ -1,4 +1,4 @@
-package imt_data;
+package org.mdacc.rists.bdi.datafiles;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,6 +44,21 @@ public class FileConversion {
 			System.err.println("ERROR: Invalid argument " + args[1]);
 			System.exit(1);
 		}
+	}
+	
+	public static void mappingPsv(File in, File out) {
+		StringBuffer buffer = new StringBuffer();
+        try
+        {
+	        FileOutputStream fos = new FileOutputStream(out);
+	        
+	        
+	        fos.write(buffer.toString().getBytes());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+	    } catch (IOException e) {
+	            e.printStackTrace();
+	    }
 	}
 	
 	/**

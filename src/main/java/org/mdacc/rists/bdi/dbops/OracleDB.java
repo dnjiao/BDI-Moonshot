@@ -1,4 +1,4 @@
-package db_op;
+package org.mdacc.rists.bdi.dbops;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
