@@ -7,6 +7,8 @@ import java.sql.Types;
 
 import org.junit.Test;
 
+import db_op.OracleDB;
+
 public class DaoTest {
 	@Test
 	public void testInsert () {

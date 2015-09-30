@@ -1,4 +1,4 @@
-package rest;
+package transfer;
 
 import hibernate.FileQueue;
 import hibernate.HibernateUtil;
@@ -30,8 +30,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import transfer.PullFiles;
-import dao.OracleDB;
+import db_op.OracleDB;
 
 public class PushFiles {
 //	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
