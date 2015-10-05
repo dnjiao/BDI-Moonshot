@@ -27,6 +27,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.mdacc.rists.bdi.dbops.DBConnection;
+import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 import org.mdacc.rists.bdi.hibernate.FileQueue;
 import org.mdacc.rists.bdi.hibernate.HibernateUtil;
 
@@ -44,18 +45,8 @@ public class PushFiles {
 		Connection conn = DBConnection.getConnection();
 		try {
 			
-			// create Hibernate session and Transaction
-			Session session = HibernateUtil.getSessionFactory().openSession();
-	        Transaction ts = session.beginTransaction();
-	        
-	        // call stored procedure
-			CallableStatement pstmt = conn.prepareCall("{call FILE_PROCESS.get_untransferred_file_by_type(?,?)}");
-			pstmt.setString(1, TransferUtils.convertTypeStr(TYPE));
-			pstmt.registerOutParameter(2, OracleTypes.CURSOR);
-			pstmt.executeUpdate();
-			
-			// get cursor and cast it to ResultSet
-			ResultSet rs = (ResultSet) pstmt.getObject(2);
+	        // call stored procedure to get unsent files by type
+			ResultSet rs = FileQueueUtil.getUnsent(conn, TYPE);
 			
 			// counter of successfully pushed files
 			int rowcount = 0;
@@ -63,29 +54,18 @@ public class PushFiles {
 			// loop thru results
 			while (rs.next()) {
 				int rowId = rs.getInt("ROW_ID");
-				String filepath = rs.getString("DEST_FILE_URI");
-				if (pushSingle(prefix, filepath, pushFlag) == 1) {
-					rowcount ++;
-				}
-				FileQueue fq = (FileQueue)session.get(FileQueue.class, rowId);
-				fq.setStatus("Y");
-				session.update(fq);
+				FileQueueUtil.updateSendStatus(conn, rowId);
+				rowcount++;
 			}
-			ts.commit();
-			session.close();
-			System.out.println("Total of " + Integer.toString(rowcount) + " files pushed.");
 			
-			pstmt.close();
+			System.out.println("Total of " + Integer.toString(rowcount) + " files pushed.");
 			conn.close();
 		}
 		catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		catch (HibernateException e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
+		
 	}
 
 	
