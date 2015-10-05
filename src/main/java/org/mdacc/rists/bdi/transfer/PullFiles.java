@@ -101,14 +101,14 @@ public class PullFiles {
 		    			}
 		    			else if (type.equals("flowcyto")) {
 		    				processFlowFiles(source, DEST);
-		    				FileLocationUtil.setLastTimestamp(CONN, "mapping", "Informat server", current);
+		    				FileLocationUtil.setLastTimeStamp(CONN, "mapping", "Informat server", current);
 		    			}
 		    			else {
 		    				
 		    				if (new File(source).isDirectory()) {
 		    					DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, type, source);
 		    					cpFiles(source, DEST, type, current, lastTS);
-		    					FileLocationUtil.setLastTimestamp(CONN, "mapping", "Informat server", current);
+		    					FileLocationUtil.setLastTimeStamp(CONN, "mapping", "Informat server", current);
 		    				}
 				    			
 				    		else

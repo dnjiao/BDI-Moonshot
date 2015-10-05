@@ -10,14 +10,13 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.List;
 
 public class FileTransferAuditUtil {
 	public static int insertRecord (Connection con, String sourceUri, String destUri, String protocol) {
 		int ret = 0;
 		try {
-			
 			CallableStatement pstmt = con.prepareCall("{call FILE_TRANSFER_AUDIT_UTIL.insert_record(?,?,?,?,?,?,?)}");
-			
 			pstmt.setString(1, sourceUri);
 			pstmt.setString(2, destUri);
 			pstmt.setString(3, protocol.toUpperCase());
@@ -31,7 +30,6 @@ public class FileTransferAuditUtil {
 				System.out.println(pstmt.getString(6));
 			}
 			System.out.println("Return code: " + ret);
-
 			pstmt.close();
 		}
 		catch (SQLException e) {
@@ -41,5 +39,8 @@ public class FileTransferAuditUtil {
 		return ret;
 	}
 	
+	public static void updateFileQueueId (Connection con, List<String> fileList, int fileQueueId) {
+		String[] fileArray = fileList.toArray(new String[fileList.size()]);
+	}
 	
 }
