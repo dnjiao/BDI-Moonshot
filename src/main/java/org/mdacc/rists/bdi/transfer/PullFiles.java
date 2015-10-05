@@ -28,11 +28,13 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.mdacc.rists.bdi.datafiles.FileConversion;
 import org.mdacc.rists.bdi.datafiles.FlowData;
-import org.mdacc.rists.bdi.dbops.AuditTable;
-import org.mdacc.rists.bdi.dbops.OracleDB;
+import org.mdacc.rists.bdi.dbops.FileLocationUtil;
+import org.mdacc.rists.bdi.dbops.FileTransferAuditUtil;
+import org.mdacc.rists.bdi.dbops.DBConnection;
 import org.mdacc.rists.bdi.hibernate.FileLocation;
 import org.mdacc.rists.bdi.hibernate.FileType;
 import org.mdacc.rists.bdi.hibernate.HibernateUtil;
+
 
 public class PullFiles {
 	
@@ -40,8 +42,7 @@ public class PullFiles {
 	final static String DEST_ROOT = "/rsrch1/rists/moonshot/data/dev";
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
-	final static Connection CONN = OracleDB.getConnection();
-	final static String PROTOCOL = System.getenv("PROTOCOL");
+	final static Connection CONN = DBConnection.getConnection();
 	
 	public static void main(String[] args) {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
@@ -100,14 +101,14 @@ public class PullFiles {
 		    			}
 		    			else if (type.equals("flowcyto")) {
 		    				processFlowFiles(source, DEST);
-		    				dao.updateTimeStamp("mapping", "Informat", current);
+		    				FileLocationUtil.setLastTimestamp(CONN, "mapping", "Informat server", current);
 		    			}
 		    			else {
 		    				
 		    				if (new File(source).isDirectory()) {
-		    					DateTime lastTS = dao.getLastTimeStamp(type, source);
+		    					DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, type, source);
 		    					cpFiles(source, DEST, type, current, lastTS);
-		    					dao.updateTimeStamp(type, source, current);
+		    					FileLocationUtil.setLastTimestamp(CONN, "mapping", "Informat server", current);
 		    				}
 				    			
 				    		else
@@ -132,20 +133,25 @@ public class PullFiles {
 	 * 
 	 */
 	private static int processMappingFiles(String source, String dest, DateTime current) {
-		DateTime lastTS = dao.getLastTimeStamp("mapping", "Informat");
+		DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "mapping", "Informat server");
 		File destDir = new File(dest);
 		int fileCounter = 0;
 		
 		for (File file : destDir.listFiles()) {
 			if (file.isDirectory() == false) { // ignore directories
-				if (isMapping(file)) {
+				if (TransferUtils.isMapping(file)) {
 					if (lastTS.isBefore(file.lastModified())) {
-						System.out.println(file.getName());
-						if (AuditTable.insertSingle(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "sftp") == 0) {
+						String fileName = file.getName();
+						String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(current) + "." + fileName.split("\\.")[1];
+						File newFile = new File(file.getParent(), newName);
+						file.renameTo(newFile);
+						int fileQueueId = FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "sftp");
+						if (fileQueueId == 0) {
 							file.delete();
 							System.err.println("Cannot insert " + file.getAbsolutePath() + " to database.");
 						}
 						else {
+							
 							fileCounter ++;
 						}
 					}
@@ -173,9 +179,7 @@ public class PullFiles {
 	
 	private static void processFlowFiles(String source, String dest) {
 		Path top = Paths.get(source);
-    	final String DEST = dest;
-    	final PrintWriter INSERT = insertWriter;
-    	
+    	final String DEST = dest;    	
     	try {
     		Files.walkFileTree(top, new SimpleFileVisitor<Path>()
 			{  
@@ -191,9 +195,8 @@ public class PullFiles {
 						   String outFile = DEST + "/" + dirName.split(" ")[0] + "_" + FORMAT.print(now) + ".tsv";
 						   FlowData.BdiFlowSummary(dir, outFile); 
 						   counterMethod();
-						   if (AuditTable.insertSingle(CONN, dir.toString(), outFile, "Process") == 0) {
+						   if (FileTransferAuditUtil.insertRecord(CONN, dir.toString(), outFile, "Process") == 0) {
 							   System.out.println("not inserted " + dir.toString() + "\t" + outFile);
-							   INSERT.println(dir.toString() + "\t" + outFile);
 						   }
 					   }
 					   
@@ -221,26 +224,24 @@ public class PullFiles {
 			   @Override
 			   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
 			   {
-				   String fileName = filePath.getFileName().toString();
-				   DateTime now = new DateTime();
-				   
-				   if (isType(fileName, TYPE)) {	
-					   String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(now) + "." + fileName.split("\\.")[1];
+				   String fileName = filePath.getFileName().toString();				   
+				   if (TransferUtils.isType(fileName, TYPE)) {	
+					   String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(CURRENT) + "." + fileName.split("\\.")[1];
 					   String srcPath = filePath.getParent().toString();
 					   
 					   Path fromPath = filePath;
 					   Path toPath = Paths.get(DEST, newName);
 					   Path oldPath = toPath;
-					   String cmd = cmdConstructor(PROTOCOL, fromPath.toString(), toPath.toString());
+					   String cmd = "cp " + fromPath.toString() + " " + toPath.toString();
 					   
 					   if (LAST.isBefore(fromPath.toFile().lastModified())) {  // add only new files 
 						   Runtime.getRuntime().exec(cmd);
 						   if (TYPE.equals("immunopath")) {
-							   newName = switchExt(newName, "tsv");
+							   newName = TransferUtils.switchExt(newName, "tsv");
 							   toPath = Paths.get(DEST, newName);
 							   FileConversion.immunoTsv(oldPath.toFile(), toPath.toFile());
 						   }
-						   if (AuditTable.insertSingle(CONN, fromPath.toString(), toPath.toString(), PROTOCOL) == 0) {
+						   if (FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp") == 0) {
 							   toPath.toFile().delete();
 						   }
 						   else 
@@ -258,7 +259,6 @@ public class PullFiles {
 	}
 
 
-	
 	/**
 	 * Insert timestamp of pulling files from particular path for a specific data type
 	 * @param type - data type

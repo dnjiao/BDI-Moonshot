@@ -22,7 +22,7 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.mdacc.rists.bdi.dbops.OracleDB;
+import org.mdacc.rists.bdi.dbops.DBConnection;
 
 
 public class FlowData {
@@ -35,7 +35,7 @@ public class FlowData {
 	public static void BdiFlowSummary(File dir, String outFile) {
 		try {
 			// get connection to Oracle DB
-			Connection con = OracleDB.getConnection();
+			Connection con = DBConnection.getConnection();
 			List<File> dataFiles = getDataFiles(dir);
 			File out = new File(outFile);
 			PrintWriter writer = new PrintWriter(new FileOutputStream(out), true);

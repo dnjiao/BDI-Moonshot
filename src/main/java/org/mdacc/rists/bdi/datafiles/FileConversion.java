@@ -46,21 +46,6 @@ public class FileConversion {
 		}
 	}
 	
-	public static void mappingPsv(File in, File out) {
-		StringBuffer buffer = new StringBuffer();
-        try
-        {
-	        FileOutputStream fos = new FileOutputStream(out);
-	        
-	        
-	        fos.write(buffer.toString().getBytes());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-	    } catch (IOException e) {
-	            e.printStackTrace();
-	    }
-	}
-	
 	/**
 	 * convert flowcytometry result file from xls to tsv.
 	 * @param in - flowcyto file in xls

@@ -6,12 +6,12 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import org.junit.Test;
-import org.mdacc.rists.bdi.dbops.OracleDB;
+import org.mdacc.rists.bdi.dbops.DBConnection;
 
 public class DaoTest {
 	@Test
 	public void testInsert () {
-		Connection conn = OracleDB.getConnection();
+		Connection conn = DBConnection.getConnection();
 		try {
 			CallableStatement pstmt = conn.prepareCall("{? = call FILE_TRANSFER.insert_file_queue_record(?,?,?,?,?,?,?,?)}");
 			pstmt.registerOutParameter(1, Types.INTEGER);

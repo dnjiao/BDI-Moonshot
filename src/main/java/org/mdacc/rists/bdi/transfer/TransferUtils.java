@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class TransferUtils {
 	
@@ -13,7 +14,7 @@ public class TransferUtils {
 	 * @param file - input file
 	 * @return - boolean, true means mapping false means not
 	 */
-	private static boolean isMapping(File file) {
+	public static boolean isMapping(File file) {
 		boolean bool = false;
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -103,5 +104,48 @@ public class TransferUtils {
 		int stop = filename.lastIndexOf(".");
 		String base = filename.substring(0, stop);
 		return base + "." + ext;
+	}
+
+	/**
+	 * remove "\r" in each line of a file
+	 * @param filepath - path of the input file
+	 */
+	public static void removeReturnChar(String filepath) {
+		File inFile = new File(filepath);
+		File tmpFile = new File(filepath + ".tmp");
+		BufferedReader br = null;
+		boolean replace = false;
+	    try
+	    {
+	    	PrintWriter writer = new PrintWriter(tmpFile);
+			br = new BufferedReader(new FileReader(inFile));
+			String line, outline;
+			while ((line = br.readLine()) != null) {
+				if (line.endsWith("\r\n")) {
+					outline = line.replaceAll("\r\n", "\n");
+					writer.print(outline);
+					replace = true;
+				}
+				else {
+					writer.print(line);
+				}
+			}
+			br.close();
+			
+			// if files are different, overwrite old with new
+			if (replace) {
+				inFile.delete();
+				tmpFile.renameTo(inFile);
+			}
+			// if files are the same, delete new one
+			else {
+				tmpFile.delete();
+			}
+			writer.close();
+	    } catch (FileNotFoundException e) {
+	        e.printStackTrace();
+	    } catch (IOException e) {
+	            e.printStackTrace();
+	    }
 	}
 }

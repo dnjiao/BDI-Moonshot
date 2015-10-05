@@ -4,13 +4,13 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class CallLoader {
+public class FileProcess {
 	public static void main(String[] args) {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
 		loader(TYPE);
 	}
 	public static void loader (String type) {
-		Connection conn = OracleDB.getConnection();
+		Connection conn = DBConnection.getConnection();
 		String[] arr = new String[6];
 		if (type.equals("vcf"))
 			arr[0] = "Y";

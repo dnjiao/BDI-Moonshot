@@ -26,7 +26,7 @@ import org.hibernate.Transaction;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.mdacc.rists.bdi.dbops.OracleDB;
+import org.mdacc.rists.bdi.dbops.DBConnection;
 import org.mdacc.rists.bdi.hibernate.FileQueue;
 import org.mdacc.rists.bdi.hibernate.HibernateUtil;
 
@@ -41,7 +41,7 @@ public class PushFiles {
 		boolean pushFlag = Boolean.parseBoolean(args[0]);
 		
 		
-		Connection conn = OracleDB.getConnection();
+		Connection conn = DBConnection.getConnection();
 		try {
 			
 			// create Hibernate session and Transaction
