@@ -2,19 +2,13 @@ package org.mdacc.rists.bdi.transfer;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -29,6 +23,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.mdacc.rists.bdi.datafiles.FileConversion;
 import org.mdacc.rists.bdi.datafiles.FlowData;
 import org.mdacc.rists.bdi.dbops.FileLocationUtil;
+import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 import org.mdacc.rists.bdi.dbops.FileTransferAuditUtil;
 import org.mdacc.rists.bdi.dbops.DBConnection;
 import org.mdacc.rists.bdi.hibernate.FileLocation;
@@ -63,7 +58,6 @@ public class PullFiles {
 	        System.err.println("ERROR: Destination path " + DEST + " does not exist.");
 	        System.exit(1);
 	    }
-	    String update;
 	    try {
 		    // get the string for current time
 		    DateTime current = new DateTime();
@@ -136,24 +130,22 @@ public class PullFiles {
 		DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "mapping", "Informat server");
 		File destDir = new File(dest);
 		int fileCounter = 0;
+		List<String> files;
 		
 		for (File file : destDir.listFiles()) {
 			if (file.isDirectory() == false) { // ignore directories
 				if (TransferUtils.isMapping(file)) {
-					if (lastTS.isBefore(file.lastModified())) {
+					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
+						files = new ArrayList<String>();
 						String fileName = file.getName();
 						String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(current) + "." + fileName.split("\\.")[1];
 						File newFile = new File(file.getParent(), newName);
 						file.renameTo(newFile);
-						int fileQueueId = FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "sftp");
-						if (fileQueueId == 0) {
-							file.delete();
-							System.err.println("Cannot insert " + file.getAbsolutePath() + " to database.");
-						}
-						else {
-							
-							fileCounter ++;
-						}
+						FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "sftp");
+						int fileQueueId = FileQueueUtil.insertRecord(CONN, file.getAbsolutePath(), "mapping");
+						fileCounter ++;
+						files.add(file.getAbsolutePath());
+						FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
 					}
 				}
 				else {
@@ -168,10 +160,6 @@ public class PullFiles {
 		return fileCounter;
 	}
 	
-
-
-
-
 	public static void counterMethod(){
 		fileCounter++;
 	}
@@ -195,11 +183,8 @@ public class PullFiles {
 						   String outFile = DEST + "/" + dirName.split(" ")[0] + "_" + FORMAT.print(now) + ".tsv";
 						   FlowData.BdiFlowSummary(dir, outFile); 
 						   counterMethod();
-						   if (FileTransferAuditUtil.insertRecord(CONN, dir.toString(), outFile, "Process") == 0) {
-							   System.out.println("not inserted " + dir.toString() + "\t" + outFile);
-						   }
+						   FileTransferAuditUtil.insertRecord(CONN, dir.toString(), outFile, "Process");
 					   }
-					   
 				   }
 				   return FileVisitResult.CONTINUE;
 			   }
@@ -234,18 +219,20 @@ public class PullFiles {
 					   Path oldPath = toPath;
 					   String cmd = "cp " + fromPath.toString() + " " + toPath.toString();
 					   
-					   if (LAST.isBefore(fromPath.toFile().lastModified())) {  // add only new files 
+					   if (LAST == null || (LAST != null && LAST.isBefore(fromPath.toFile().lastModified()))) {  // add only new files 
+						   List<String> files = new ArrayList<String>();
 						   Runtime.getRuntime().exec(cmd);
+						   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
 						   if (TYPE.equals("immunopath")) {
 							   newName = TransferUtils.switchExt(newName, "tsv");
 							   toPath = Paths.get(DEST, newName);
 							   FileConversion.immunoTsv(oldPath.toFile(), toPath.toFile());
 						   }
-						   if (FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp") == 0) {
-							   toPath.toFile().delete();
-						   }
-						   else 
-							   counterMethod();  
+						   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
+						   counterMethod();
+						   files.add(toPath.toString());
+						   FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
+							   
 					   }
 				   }
 			      return FileVisitResult.CONTINUE;
