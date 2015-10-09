@@ -34,13 +34,12 @@ import org.mdacc.rists.bdi.hibernate.HibernateUtil;
 public class PushFiles {
 //	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
 	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
-	final static String LOCAL_PATH = "/rsrch1/rists/moonshot/data/dev";
+	final static String LOCAL_PATH = "/rsrch1/rists/moonshot/data/stg";
 	
 	public static void main(String[] args) {
 		final String TYPE = System.getenv("TYPE").toLowerCase();
 		String prefix = URL_STRING  + TYPE + "&fileName=";
 		boolean pushFlag = Boolean.parseBoolean(args[0]);
-		
 		
 		Connection conn = DBConnection.getConnection();
 		try {

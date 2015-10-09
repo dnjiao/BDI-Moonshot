@@ -30,16 +30,21 @@ import org.mdacc.rists.bdi.hibernate.FileLocation;
 import org.mdacc.rists.bdi.hibernate.FileType;
 import org.mdacc.rists.bdi.hibernate.HibernateUtil;
 
-
 public class PullFiles {
 	
-//	final static String DEST_ROOT = "/Users/djiao/Work/moonshot/dest";
-	final static String DEST_ROOT = "/rsrch1/rists/moonshot/data/dev";
+	final static String DEST_ROOT = "/rsrch1/rists/moonshot/data/stg";
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	final static Connection CONN = DBConnection.getConnection();
 	
 	public static void main(String[] args) {
+//		String str1 = "10092015153925";
+//		String str2 = "08092015221742";
+//		DateTime dt1 = FORMAT.parseDateTime(str1);
+//		DateTime dt2 = FORMAT.parseDateTime(str2);
+//		System.out.println(dt1);
+//		System.out.println(dt1.isBefore(dt2));
+		
 		final String TYPE = System.getenv("TYPE").toLowerCase();
 	    if (TYPE == null) {
 	    	System.out.println("ERROR: Environment variable TYPE not set correctly.");
@@ -67,6 +72,7 @@ public class PullFiles {
 		    for (String envName : env.keySet()) {
 		    	if (envName.contains("SOURCE_DIR")) {
 		    		source = env.get(envName);
+		    		System.out.println("source: " + source);
 		    		if (source.length() > 3) {
 		    			if (type.equals("mapping")) {
 		    				// call bash script to transfer mapping files by sftp
@@ -101,8 +107,10 @@ public class PullFiles {
 		    				
 		    				if (new File(source).isDirectory()) {
 		    					DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, type, source);
+		    					System.out.println("Before cpFiles, lastTS: ");
+		    					System.out.println(lastTS);
 		    					cpFiles(source, DEST, type, current, lastTS);
-		    					FileLocationUtil.setLastTimeStamp(CONN, "mapping", "Informat server", current);
+		    					FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, current);
 		    				}
 				    			
 				    		else
@@ -202,6 +210,8 @@ public class PullFiles {
     	final String DEST = dest;  
     	final DateTime CURRENT = current;
     	final DateTime LAST = lastTS;
+    	System.out.println("In cpFiles: lastTS");
+    	System.out.println(LAST);
     	
     	try {
 			Files.walkFileTree(top, new SimpleFileVisitor<Path>()
@@ -219,7 +229,11 @@ public class PullFiles {
 					   Path oldPath = toPath;
 					   String cmd = "cp " + fromPath.toString() + " " + toPath.toString();
 					   
+//					   System.out.println("is before: " + Boolean.toString(LAST.isBefore(fromPath.toFile().lastModified())));
 					   if (LAST == null || (LAST != null && LAST.isBefore(fromPath.toFile().lastModified()))) {  // add only new files 
+						   System.out.println("last_ts: " + FORMAT.print(LAST));
+						   System.out.println(LAST);
+						   System.out.println("file modifield_ts: " + FORMAT.print(fromPath.toFile().lastModified()));
 						   List<String> files = new ArrayList<String>();
 						   Runtime.getRuntime().exec(cmd);
 						   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
@@ -272,6 +286,4 @@ public class PullFiles {
         HibernateUtil.shutdown();
 		
 	}
-
-
 }
