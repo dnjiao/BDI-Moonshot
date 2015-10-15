@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class TransferUtils {
+	public static void main(String[] args) {
+		File file = new File("/Users/djiao/Work/moonshot/mapping/MS-03-Batch1-7-16-2015.txt");
+		System.out.println(isMapping(file));
+	}
 	
 	/**
 	 * determine if a file is mapping file based on first line text
@@ -19,8 +23,13 @@ public class TransferUtils {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			String firstline = reader.readLine();
-			if (firstline.startsWith("Project|Subproject|Specimen")) 
-				bool = true;
+			if (firstline.startsWith("Project|Subproject")) {
+				String[] strs = firstline.split("\\|");
+				if (strs.length == 16)
+					bool = true;
+				else
+					bool = false;
+			}
 			else
 				bool = false;
 			reader.close();

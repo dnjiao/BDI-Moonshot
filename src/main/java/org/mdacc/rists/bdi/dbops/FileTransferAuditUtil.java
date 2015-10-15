@@ -46,7 +46,7 @@ public class FileTransferAuditUtil {
 			if (ret == 0) {
 				System.out.println(stmt.getString(6));
 			}
-			System.out.println("Return code: " + ret);
+			
 			stmt.close();
 		}
 		catch (SQLException e) {
@@ -70,7 +70,6 @@ public class FileTransferAuditUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			
 			stmt.execute();
-			System.out.println(stmt.getInt(3));
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);

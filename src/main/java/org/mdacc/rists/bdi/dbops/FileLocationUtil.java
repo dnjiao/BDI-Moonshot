@@ -20,7 +20,7 @@ public class FileLocationUtil {
 		DateTime dt = null;
 		Connection con = DBConnection.getConnection();
 		dt = getLastTimeStamp(con, type, path);
-		System.out.println(FORMATTER.print(dt));
+		System.out.println(dt);
 		
 	}
 	
@@ -76,11 +76,8 @@ public class FileLocationUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.executeUpdate();
 			dtStr = stmt.getString(3);
-			System.out.println("dtStr: " + dtStr);
 			if (dtStr != null) {
 				dt = FORMATTER.parseDateTime(dtStr);
-				System.out.println("In get ts method");
-				System.out.println(dt);
 			}
 			stmt.close();
 			

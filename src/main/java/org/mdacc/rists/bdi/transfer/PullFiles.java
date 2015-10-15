@@ -2,8 +2,11 @@ package org.mdacc.rists.bdi.transfer;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,15 +38,10 @@ public class PullFiles {
 	final static String DEST_ROOT = "/rsrch1/rists/moonshot/data/stg";
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
+	static List<String> dirs = new ArrayList<String>();
 	final static Connection CONN = DBConnection.getConnection();
 	
 	public static void main(String[] args) {
-//		String str1 = "10092015153925";
-//		String str2 = "08092015221742";
-//		DateTime dt1 = FORMAT.parseDateTime(str1);
-//		DateTime dt2 = FORMAT.parseDateTime(str2);
-//		System.out.println(dt1);
-//		System.out.println(dt1.isBefore(dt2));
 		
 		final String TYPE = System.getenv("TYPE").toLowerCase();
 	    if (TYPE == null) {
@@ -51,6 +49,7 @@ public class PullFiles {
 	    	System.exit(1);
 	    }
 	    executeTransfer(TYPE);
+		
 	}
 	
 	
@@ -66,58 +65,59 @@ public class PullFiles {
 	    try {
 		    // get the string for current time
 		    DateTime current = new DateTime();
-		    String dtStr = FORMAT.print(current);
-		    
-		    Map<String, String> env = System.getenv();
-		    for (String envName : env.keySet()) {
-		    	if (envName.contains("SOURCE_DIR")) {
-		    		source = env.get(envName);
-		    		System.out.println("source: " + source);
-		    		if (source.length() > 3) {
-		    			if (type.equals("mapping")) {
-		    				// call bash script to transfer mapping files by sftp
-		    				try {
-		    					String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp.sh", DEST_ROOT + "/mapping"};
-		    					System.out.println(cmd);
-		    					Process p = Runtime.getRuntime().exec(cmd);
-		    					String line;
-								
-		    					// stdout and stderr of bash script
-		    					BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-								while ((line = in.readLine()) != null) {
-									System.out.println(line);
-								}
-								BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-								while ((line = err.readLine()) != null) {
-									System.out.println(line);
-								}
-								p.waitFor();
-								in.close();
-								err.close();
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-		    			    fileCounter = processMappingFiles(source, DEST, current);
-		    			}
-		    			else if (type.equals("flowcyto")) {
-		    				processFlowFiles(source, DEST);
-		    				FileLocationUtil.setLastTimeStamp(CONN, "mapping", "Informat server", current);
-		    			}
-		    			else {
-		    				
-		    				if (new File(source).isDirectory()) {
-		    					DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, type, source);
-		    					System.out.println("Before cpFiles, lastTS: ");
-		    					System.out.println(lastTS);
-		    					cpFiles(source, DEST, type, current, lastTS);
-		    					FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, current);
-		    				}
-				    			
-				    		else
-				    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
-		    			}
-		    		}	
-		    	}
+		    if (type.equals("mapping")) {
+				// call bash script to transfer mapping files by sftp
+				try {
+					String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp.sh", DEST};
+					source = "Informat";
+					
+					Process p = Runtime.getRuntime().exec(cmd);
+					String line;
+					
+					// stdout and stderr of bash script
+					BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+					while ((line = in.readLine()) != null) {
+						System.out.println(line);
+					}
+					BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+					while ((line = err.readLine()) != null) {
+						System.out.println(line);
+					}
+					p.waitFor();
+					fileCounter = processMappingFiles(source, DEST, current);
+					in.close();
+					err.close();
+					
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		    else {
+			    Map<String, String> env = System.getenv();
+			    for (String envName : env.keySet()) {
+			    	if (envName.contains("SOURCE_DIR")) {
+			    		source = env.get(envName);
+			    		System.out.println("source: " + source);
+			    		if (source.length() > 3) {
+			    			if (type.equals("flowcyto")) {
+			    				processFlowFiles(source, DEST);
+			    				FileLocationUtil.setLastTimeStamp(CONN, "mapping", "Informat server", current);
+			    			}
+			    			else {
+			    				if (new File(source).isDirectory()) {
+			    					cpFiles(source, DEST, type, current);
+			    					for (String d : dirs) {
+			    						System.out.println("Dir: " + d);
+			    						FileLocationUtil.setLastTimeStamp(CONN, type, d, current);
+			    					}
+			    				}
+					    			
+					    		else
+					    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
+			    			}
+			    		}	
+			    	}
+			    }
 		    }
 		    
 		    System.out.println("Total " + Integer.toString(fileCounter) + " " + type + " files pulled successfully.");
@@ -135,7 +135,9 @@ public class PullFiles {
 	 * 
 	 */
 	private static int processMappingFiles(String source, String dest, DateTime current) {
-		DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "mapping", "Informat server");
+		DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "mapping", source);
+		System.out.print("last_ts for mapping: ");
+		System.out.println(lastTS);
 		File destDir = new File(dest);
 		int fileCounter = 0;
 		List<String> files;
@@ -143,18 +145,24 @@ public class PullFiles {
 		for (File file : destDir.listFiles()) {
 			if (file.isDirectory() == false) { // ignore directories
 				if (TransferUtils.isMapping(file)) {
+					System.out.println(file.getName() + " last modified ts: " + FORMAT.print(file.lastModified()));
 					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
 						files = new ArrayList<String>();
 						String fileName = file.getName();
 						String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(current) + "." + fileName.split("\\.")[1];
-						File newFile = new File(file.getParent(), newName);
-						file.renameTo(newFile);
-						FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), file.getAbsolutePath(), "sftp");
-						int fileQueueId = FileQueueUtil.insertRecord(CONN, file.getAbsolutePath(), "mapping");
+						File newfile = new File(file.getParent(), newName);
+						removeReturnChar(file, newfile);
+						System.out.println(newfile.getName());
+						FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newfile.getAbsolutePath(), "sftp");
+						file.delete();
+						int fileQueueId = FileQueueUtil.insertRecord(CONN, newfile.getAbsolutePath(), "mapping");
 						fileCounter ++;
-						files.add(file.getAbsolutePath());
+						files.add(newfile.getAbsolutePath());
 						FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
+						DateTime ts = new DateTime();
+						FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, ts);
 					}
+					
 				}
 				else {
 					file.delete();
@@ -168,8 +176,35 @@ public class PullFiles {
 		return fileCounter;
 	}
 	
+	private static void removeReturnChar(File oldfile, File newfile) {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(oldfile));
+			PrintWriter writer = new PrintWriter(newfile);
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.contains("\r")) {
+					line = line.replaceAll("\r\n", "\n");
+					line = line.replaceAll("\r", "");
+				}
+				writer.println(line);
+			}
+			writer.close();
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+
 	public static void counterMethod(){
 		fileCounter++;
+	}
+	
+	private static void addDirs(String dirPath) {
+		if (! dirs.contains(dirPath)) 
+			dirs.add(dirPath);
 	}
 	
 	
@@ -204,14 +239,11 @@ public class PullFiles {
 	}
 
 
-	public static void cpFiles(String source, String dest, String type, DateTime current, DateTime lastTS) {		
+	public static void cpFiles(String source, String dest, String type, DateTime current) {		
     	Path top = Paths.get(source);
     	final String TYPE = type;    	
     	final String DEST = dest;  
     	final DateTime CURRENT = current;
-    	final DateTime LAST = lastTS;
-    	System.out.println("In cpFiles: lastTS");
-    	System.out.println(LAST);
     	
     	try {
 			Files.walkFileTree(top, new SimpleFileVisitor<Path>()
@@ -219,23 +251,20 @@ public class PullFiles {
 			   @Override
 			   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
 			   {
+				   File file = filePath.toFile();
 				   String fileName = filePath.getFileName().toString();				   
 				   if (TransferUtils.isType(fileName, TYPE)) {	
-					   String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(CURRENT) + "." + fileName.split("\\.")[1];
-					   String srcPath = filePath.getParent().toString();
-					   
-					   Path fromPath = filePath;
-					   Path toPath = Paths.get(DEST, newName);
-					   Path oldPath = toPath;
-					   String cmd = "cp " + fromPath.toString() + " " + toPath.toString();
-					   
-//					   System.out.println("is before: " + Boolean.toString(LAST.isBefore(fromPath.toFile().lastModified())));
-					   if (LAST == null || (LAST != null && LAST.isBefore(fromPath.toFile().lastModified()))) {  // add only new files 
-						   System.out.println("last_ts: " + FORMAT.print(LAST));
-						   System.out.println(LAST);
-						   System.out.println("file modifield_ts: " + FORMAT.print(fromPath.toFile().lastModified()));
+					   String srcPath = file.getParent();
+					   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath);
+					   if (lastDt == null || (lastDt != null && lastDt.isBefore(file.lastModified()))) {
+						   String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(CURRENT) + "." + fileName.split("\\.")[1];
+						   Path fromPath = filePath;
+						   Path toPath = Paths.get(DEST, newName);
+						   Path oldPath = toPath;
+						   String cmd = "cp " + fromPath.toString() + " " + toPath.toString();				  
 						   List<String> files = new ArrayList<String>();
 						   Runtime.getRuntime().exec(cmd);
+						   addDirs(srcPath);
 						   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
 						   if (TYPE.equals("immunopath")) {
 							   newName = TransferUtils.switchExt(newName, "tsv");
