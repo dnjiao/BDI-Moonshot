@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class FileProcess {
 	public static void main(String[] args) {
-		final String TYPE = System.getenv("TYPE").toLowerCase();
+		final String TYPE = "vcf";
 		loader(TYPE);
 	}
 	public static void loader (String type) {

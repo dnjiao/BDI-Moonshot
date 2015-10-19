@@ -2,14 +2,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.mda.rists</groupId>
   <artifactId>RIStore_Flow</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.1-SNAPSHOT</version>
   <!-- JBoss repository for Hibernate -->
   <repositories>
 	<repository>
 		<id>JBoss repository</id>
 		<url>http://repository.jboss.org/nexus/content/groups/public/</url>
 	</repository>
-  </repositories>
+  </repositories>e
   <dependencies>
   	<dependency>
 		<groupId>com.oracle</groupId>
