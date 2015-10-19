@@ -6,13 +6,16 @@ import java.sql.SQLException;
 
 public class DBConnection
 {
+	public static void main(String[] args) {
+		Connection con = getConnection();
+	}
+	
 	public static Connection getConnection() 
 	{
 		String connectionURL = "jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu";
-		String user = "BDI_OWNER_STG";
-		String pass = "bdi987s";
-//		String user = "BDI_OWNER";
-//		String pass = "bdiowner987";
+		String user = "ristore_owner_stg";
+		String pass = "ristore987s";
+
 		Connection connection = null;
 		try {
 			Class.forName("oracle.jdbc.OracleDriver");
