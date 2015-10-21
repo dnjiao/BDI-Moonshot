@@ -53,8 +53,11 @@ public class PushFiles {
 			// loop thru results
 			while (rs.next()) {
 				int rowId = rs.getInt("ROW_ID");
-				FileQueueUtil.updateSendStatus(conn, rowId);
-				rowcount++;
+				String filepath = rs.getString("FILE_URI");
+				if (pushSingle(prefix, filepath, pushFlag) == 1) {
+					FileQueueUtil.updateSendStatus(conn, rowId);
+					rowcount ++;
+				}
 			}
 			
 			System.out.println("Total of " + Integer.toString(rowcount) + " files pushed.");
@@ -77,7 +80,7 @@ public class PushFiles {
 	public static int pushSingle(String prefix, String filepath, boolean ifReal) {
 		// fake push for testing purpose
 		if (ifReal == false) {
-			System.out.println(filepath + "pushed (mock).");
+			System.out.println(filepath + " pushed (mock).");
 			return 1;
 		}
 		int status = 500;

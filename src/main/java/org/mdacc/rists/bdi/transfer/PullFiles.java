@@ -24,7 +24,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.mdacc.rists.bdi.datafiles.FileConversion;
-import org.mdacc.rists.bdi.datafiles.FlowData;
+import org.mdacc.rists.bdi.datafiles.FlowSample;
 import org.mdacc.rists.bdi.dbops.FileLocationUtil;
 import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 import org.mdacc.rists.bdi.dbops.FileTransferAuditUtil;
@@ -100,7 +100,7 @@ public class PullFiles {
 			    		System.out.println("source: " + source);
 			    		if (source.length() > 3) {
 			    			if (type.equals("flowcyto")) {
-			    				processFlowFiles(source, DEST);
+			    				processFlowFiles(source, DEST, current);
 			    				FileLocationUtil.setLastTimeStamp(CONN, "mapping", "Informat server", current);
 			    			}
 			    			else {
@@ -208,7 +208,7 @@ public class PullFiles {
 	}
 	
 	
-	private static void processFlowFiles(String source, String dest) {
+	private static void processFlowFiles(String source, String dest, DateTime current) {
 		Path top = Paths.get(source);
     	final String DEST = dest;    	
     	try {
@@ -217,14 +217,16 @@ public class PullFiles {
 			   @Override
 			   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
 			   {
-				   File dir = filePath.toFile();
-				   if (dir.isDirectory()) {
-					   String dirName = dir.getName();
-					   if (dirName.toLowerCase().endsWith("moonshot")) {
+				   File file = filePath.toFile();
+				   if (!file.isDirectory()) {
+					   String fileName = file.getName();
+					   if (fileName.endsWith(".csv") && fileName.contains("moonshot")) {
 						   DateTime now = new DateTime();
-						   String newName = dirName.split(" ")[0] + "_" + FORMAT.print(now) + ".tsv";
-						   String outFile = DEST + "/" + dirName.split(" ")[0] + "_" + FORMAT.print(now) + ".tsv";
-						   FlowData.BdiFlowSummary(dir, outFile); 
+						   FlowSample sample = new FlowSample();
+						   sample.readSampleFile(file);
+						   String newName = fileName.split(".csv")[0] + "_" + FORMAT.print(now) + ".tsv";
+						   File outFile = new File(DEST + "/" + newName);
+						   sample.writeToTsv(outFile);
 						   counterMethod();
 						   FileTransferAuditUtil.insertRecord(CONN, dir.toString(), outFile, "Process");
 					   }

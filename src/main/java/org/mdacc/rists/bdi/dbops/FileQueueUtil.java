@@ -13,19 +13,22 @@ import org.mdacc.rists.bdi.transfer.TransferUtils;
 public class FileQueueUtil {
 	
 	public static void main(String[] args) {
-		String type = args[0];
-		String path = args[1];
+		String type = "vcf";
+		
 		Connection con = DBConnection.getConnection();
-		insertRecord(con, path, type);
+		getUnsent(con,type);
 		
 	}
 	public static ResultSet getUnsent (Connection con, String type) {
 		CallableStatement stmt;
 		ResultSet rs = null;
 		try {
-			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unsent_file_by_type(?,?)}");
-			stmt.setString(1, type);
+			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unsent_file_by_type(?,?,?,?,?)}");
+			stmt.setString(1, TransferUtils.convertTypeStr(type));
 			stmt.registerOutParameter(2, OracleTypes.CURSOR);
+			stmt.registerOutParameter(3, Types.VARCHAR);
+			stmt.registerOutParameter(4, Types.VARCHAR);
+			stmt.registerOutParameter(5, Types.VARCHAR);
 			stmt.executeUpdate();
 			
 			// get cursor and cast it to ResultSet
@@ -74,11 +77,12 @@ public class FileQueueUtil {
 	public static void updateSendStatus (Connection con, int rowId) {
 		CallableStatement stmt;
 		try {
-			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.update_send_status(?,?,?,?)}");
+			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.update_send_status(?,?,?,?,?)}");
 			stmt.setInt(1, rowId);
-			stmt.registerOutParameter(2, Types.VARCHAR);
+			stmt.registerOutParameter(2, Types.INTEGER);
 			stmt.registerOutParameter(3, Types.VARCHAR);
 			stmt.registerOutParameter(4, Types.VARCHAR);
+			stmt.registerOutParameter(5, Types.VARCHAR);
 			stmt.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();

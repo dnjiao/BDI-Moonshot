@@ -3,10 +3,11 @@ package org.mdacc.rists.bdi.dbops;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Types;
 
 public class FileProcess {
 	public static void main(String[] args) {
-		final String TYPE = "vcf";
+		final String TYPE = System.getenv("TYPE").toLowerCase();
 		loader(TYPE);
 	}
 	public static void loader (String type) {
@@ -25,13 +26,16 @@ public class FileProcess {
 		if (type.equals("mapping"))
 			arr[5] = "Y";
 		try {
-			CallableStatement pstmt = conn.prepareCall("{call FILE_PROCESS.load_file(?,?,?,?,?,?)}");
+			CallableStatement stmt = conn.prepareCall("{call FILE_PROCESS.load_file(?,?,?,?,?,?,?,?,?)}");
 			for (int i = 1; i < 7; i ++) {
-				pstmt.setString(i, arr[i - 1]);
+				stmt.setString(i, arr[i - 1]);
 			}
-			pstmt.executeUpdate();
+			stmt.registerOutParameter(7, Types.VARCHAR);
+			stmt.registerOutParameter(8, Types.VARCHAR);
+			stmt.registerOutParameter(9, Types.VARCHAR);
+			stmt.executeUpdate();
 			
-			pstmt.close();
+			stmt.close();
 			conn.close();
 		}
 		catch (SQLException e) {

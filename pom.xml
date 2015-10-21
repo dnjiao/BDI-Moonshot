@@ -9,7 +9,7 @@
 		<id>JBoss repository</id>
 		<url>http://repository.jboss.org/nexus/content/groups/public/</url>
 	</repository>
-  </repositories>e
+  </repositories>
   <dependencies>
   	<dependency>
 		<groupId>com.oracle</groupId>
