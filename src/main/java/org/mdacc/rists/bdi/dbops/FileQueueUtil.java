@@ -8,15 +8,18 @@ import java.sql.Types;
 
 import oracle.jdbc.OracleTypes;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.mdacc.rists.bdi.transfer.TransferUtils;
 
 public class FileQueueUtil {
 	
 	public static void main(String[] args) {
-		String type = "vcf";
+		DateTime dt = new DateTime();
 		
 		Connection con = DBConnection.getConnection();
-		getUnsent(con,type);
+		updateSendStatus(con, 2162, dt);
 		
 	}
 	public static ResultSet getUnsent (Connection con, String type) {
@@ -74,15 +77,18 @@ public class FileQueueUtil {
 		}
 		return queueId;
 	}
-	public static void updateSendStatus (Connection con, int rowId) {
+	public static void updateSendStatus (Connection con, int rowId, DateTime dt) {
+		DateTimeFormatter formatter = DateTimeFormat.forPattern("MMddyyyyHHmmss");
+		String dtStr = formatter.print(dt);
 		CallableStatement stmt;
 		try {
-			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.update_send_status(?,?,?,?,?)}");
+			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.update_send_status(?,?,?,?,?,?)}");
 			stmt.setInt(1, rowId);
-			stmt.registerOutParameter(2, Types.INTEGER);
-			stmt.registerOutParameter(3, Types.VARCHAR);
+			stmt.setString(2, dtStr);
+			stmt.registerOutParameter(3, Types.INTEGER);
 			stmt.registerOutParameter(4, Types.VARCHAR);
 			stmt.registerOutParameter(5, Types.VARCHAR);
+			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();

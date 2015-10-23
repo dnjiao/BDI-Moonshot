@@ -49,13 +49,15 @@ public class PushFiles {
 			
 			// counter of successfully pushed files
 			int rowcount = 0;
+			DateTime dt;
 			
 			// loop thru results
 			while (rs.next()) {
 				int rowId = rs.getInt("ROW_ID");
 				String filepath = rs.getString("FILE_URI");
+				dt = new DateTime();
 				if (pushSingle(prefix, filepath, pushFlag) == 1) {
-					FileQueueUtil.updateSendStatus(conn, rowId);
+					FileQueueUtil.updateSendStatus(conn, rowId, dt);
 					rowcount ++;
 				}
 			}
