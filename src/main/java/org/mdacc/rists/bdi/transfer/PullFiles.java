@@ -35,7 +35,7 @@ import org.mdacc.rists.bdi.hibernate.HibernateUtil;
 
 public class PullFiles {
 	
-	final static String DEST_ROOT = "/rsrch1/rists/moonshot/data/stg";
+	final static String DEST_ROOT = "/rsrch1/rists/moonshot/data/prod";
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	static List<String> dirs = new ArrayList<String>();
@@ -144,6 +144,7 @@ public class PullFiles {
 		
 		for (File file : destDir.listFiles()) {
 			if (file.isDirectory() == false) { // ignore directories
+				System.out.println(file.getName());
 				if (TransferUtils.isMapping(file)) {
 					System.out.println(file.getName() + " last modified ts: " + FORMAT.print(file.lastModified()));
 					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
@@ -162,10 +163,10 @@ public class PullFiles {
 						DateTime ts = new DateTime();
 						FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, ts);
 					}
-					
 				}
 				else {
 					file.delete();
+					System.out.println(file.getName() + " is not a mapping file. Deleted.");
 				}
 			}
 			else {
@@ -228,7 +229,7 @@ public class PullFiles {
 						   File outFile = new File(DEST + "/" + newName);
 						   sample.writeToTsv(outFile);
 						   counterMethod();
-						   FileTransferAuditUtil.insertRecord(CONN, dir.toString(), outFile, "Process");
+	//					   FileTransferAuditUtil.insertRecord(CONN, file.toString(), outFile, "Process");
 					   }
 				   }
 				   return FileVisitResult.CONTINUE;
