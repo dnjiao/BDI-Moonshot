@@ -35,7 +35,6 @@ import org.mdacc.rists.bdi.hibernate.HibernateUtil;
 
 public class PullFiles {
 	
-	final static String DEST_ROOT = "/rsrch1/rists/moonshot/data/prod";
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	static List<String> dirs = new ArrayList<String>();
@@ -43,23 +42,23 @@ public class PullFiles {
 	
 	public static void main(String[] args) {
 		
-		final String TYPE = System.getenv("TYPE").toLowerCase();
+		final String TYPE = args[0].toLowerCase();
+		final String SOURCE = args[1];
+		final String DEST = args[2] + "/" + TYPE;
 	    if (TYPE == null) {
 	    	System.out.println("ERROR: Environment variable TYPE not set correctly.");
 	    	System.exit(1);
 	    }
-	    executeTransfer(TYPE);
+	    executeTransfer(TYPE, SOURCE, DEST);
 		
 	}
 	
 	
-	private static void executeTransfer(String type) {
+	private static void executeTransfer(String type, String source, String dest) {
 	    
-	    final String DEST = DEST_ROOT + "/" + type;
-	    String source;
-	    File destDir = new File(DEST);
+	    File destDir = new File(dest);
 	    if (!destDir.exists()){
-	        System.err.println("ERROR: Destination path " + DEST + " does not exist.");
+	        System.err.println("ERROR: Destination path " + dest + " does not exist.");
 	        System.exit(1);
 	    }
 	    try {
@@ -68,7 +67,7 @@ public class PullFiles {
 		    if (type.equals("mapping")) {
 				// call bash script to transfer mapping files by sftp
 				try {
-					String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp.sh", DEST};
+					String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp.sh", dest};
 					source = "Informat";
 					
 					Process p = Runtime.getRuntime().exec(cmd);
@@ -84,7 +83,7 @@ public class PullFiles {
 						System.out.println(line);
 					}
 					p.waitFor();
-					fileCounter = processMappingFiles(source, DEST, current);
+					fileCounter = processMappingFiles(source, dest, current);
 					in.close();
 					err.close();
 					
@@ -92,33 +91,24 @@ public class PullFiles {
 					e.printStackTrace();
 				}
 			}
+		    else if (type.equals("flowcyto")) {
+				processFlowFiles(source, dest, current);
+				FileLocationUtil.setLastTimeStamp(CONN, "mapping", "Informat server", current);
+			}
 		    else {
-			    Map<String, String> env = System.getenv();
-			    for (String envName : env.keySet()) {
-			    	if (envName.contains("SOURCE_DIR")) {
-			    		source = env.get(envName);
-			    		System.out.println("source: " + source);
-			    		if (source.length() > 3) {
-			    			if (type.equals("flowcyto")) {
-			    				processFlowFiles(source, DEST, current);
-			    				FileLocationUtil.setLastTimeStamp(CONN, "mapping", "Informat server", current);
-			    			}
-			    			else {
-			    				if (new File(source).isDirectory()) {
-			    					cpFiles(source, DEST, type, current);
-			    					for (String d : dirs) {
-			    						System.out.println("Dir: " + d);
-			    						FileLocationUtil.setLastTimeStamp(CONN, type, d, current);
-			    					}
-			    				}
-					    			
-					    		else
-					    			System.err.println("Source Dir " + envName + "(" + source + ")" + " is not a directory.");
-			    			}
-			    		}	
-			    	}
-			    }
-		    }
+				if (new File(source).isDirectory()) {
+					cpFiles(source, dest, type, current);
+					for (String d : dirs) {
+						System.out.println("Dir: " + d);
+						FileLocationUtil.setLastTimeStamp(CONN, type, d, current);
+					}
+				}
+	    			
+	    		else
+	    			System.err.println("Source Dir " + source + " is not a directory.");
+			}
+		
+			
 		    
 		    System.out.println("Total " + Integer.toString(fileCounter) + " " + type + " files pulled successfully.");
 	    } catch (IOException e) {

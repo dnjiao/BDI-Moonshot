@@ -24,11 +24,7 @@ public class TransferUtils {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			String firstline = reader.readLine();
 			if (firstline.startsWith("Project|Subproject")) {
-				String[] strs = firstline.split("\\|");
-				if (strs.length == 16)
-					bool = true;
-				else
-					bool = false;
+				bool = true;
 			}
 			else
 				bool = false;
