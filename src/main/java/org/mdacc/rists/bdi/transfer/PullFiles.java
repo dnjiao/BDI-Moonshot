@@ -218,7 +218,7 @@ public class PullFiles {
 						   File outFile = new File(DEST + "/" + newName);
 						   if (FileConversion.flowTsv(file, outFile) == 1) {
 							   counterMethod();
-							   FileTransferAuditUtil.insertRecord(CONN, file.toString(), outFile, "Process");
+							   FileTransferAuditUtil.insertRecord(CONN, file.toString(), outFile.getAbsolutePath(), "cp");
 						   }
 					   }
 				   }
