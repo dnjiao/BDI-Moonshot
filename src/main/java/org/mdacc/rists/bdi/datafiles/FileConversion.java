@@ -1,12 +1,15 @@
 package org.mdacc.rists.bdi.datafiles;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -47,74 +50,75 @@ public class FileConversion {
 	}
 	
 	/**
+	 * 
+	 * @param in 
+	 * @param out 
+	 */
+	
+	/**
 	 * convert flowcytometry result file from xls to tsv.
 	 * @param in - flowcyto file in xls
 	 * @param out - converted file in tsv
+	 * @return 0 means failure, 1 means success
 	 */
-	public static void flowTsv(File in, File out) {
+	public static int flowTsv(File in, File out) {
         StringBuffer buffer = new StringBuffer();
         try
         {
-	        FileOutputStream fos = new FileOutputStream(out);
-	
-	        // Get the workbook object for XLS file
-	        HSSFWorkbook workbook = new HSSFWorkbook(new FileInputStream(in));
-	        // Get first sheet from the workbook
-	        HSSFSheet sheet = workbook.getSheetAt(0);
-	        Cell cell;
-	        Row row;
-	
-	        // Iterate through each rows from first sheet
-	        Iterator<Row> rowIterator = sheet.iterator();
-	        while (rowIterator.hasNext())
-	        {
-	                row = rowIterator.next();
-	                // For each row, iterate through each columns
-	                Iterator<Cell> cellIterator = row.cellIterator();
-	                int cellIndex = 0;
-	                while (cellIterator.hasNext()) 
-	                {
-	                	cellIndex ++;
-                        cell = cellIterator.next();
-                        if (cellIndex < 2 || cellIndex > 4) { // omit three cols about specimen
-	                        switch (cell.getCellType()) 
-	                        {
-		                        case Cell.CELL_TYPE_BOOLEAN:
-		                                buffer.append(cell.getBooleanCellValue() + "\t");
-		                                break;
-		                                
-		                        case Cell.CELL_TYPE_NUMERIC:
-		                                buffer.append(cell.getNumericCellValue() + "\t");
-		                                break;
-		                                
-		                        case Cell.CELL_TYPE_STRING:
-		                                buffer.append(cell.getStringCellValue() + "\t");
-		                                break;
-		
-		                        case Cell.CELL_TYPE_BLANK:
-		                                buffer.append("" + "\t");
-		                                break;
-		                        
-		                        default:
-		                                buffer.append(cell + "\t");
-	                        }
-                        }
-	                        
-	                }
-	                buffer.append("\n"); 
-	        }
-	
-	        fos.write(buffer.toString().getBytes());
-	        fos.close();
-	        workbook.close();
-	        System.out.println("File conversion complete. " + out.getAbsolutePath());
+        	BufferedReader reader = new BufferedReader(new FileReader(in));
+			PrintWriter writer = new PrintWriter(out);
+			String line;
+			int lineno = 0;
+			
+			String[] gateNames =new String[0];
+			String[] gateValues = new String[0];
+			String[] metainfo = new String[0];
+			String accession = "";
+			String panelName = "";
+			while ((line = reader.readLine()) != null) {
+				lineno++;
+				String[] items = line.split(",");
+				if (items.length < 5) {
+					System.err.println("Invalid file format.");
+					return 0;
+				}
+				if (lineno == 1) {
+					gateNames = Arrays.copyOfRange(items, 4, items.length);
+				}
+				if (lineno == 2) {
+					metainfo = parseSampleField(items[1]);
+					accession = parsePanelField(items[2])[0];
+					panelName = parsePanelField(items[2])[1];
+					gateValues = Arrays.copyOfRange(items, 4, items.length);
+					break;
+				}
+			}
+			reader.close();
+			
         } catch (FileNotFoundException e) {
                 e.printStackTrace();
         } catch (IOException e) {
                 e.printStackTrace();
         }
+        
 	}
 	
+	private static String[] parseSampleField(String string) {
+		String[] tmp = string.split("-");
+		String[] meta = new String[4];
+		meta[0] = tmp[0] + "-" + tmp[1];
+		meta[1] = tmp[2];
+		meta[2] = tmp[3];
+		meta[3] = tmp[4];
+		return meta;
+	}
+
+	private static String[] parsePanelField(String string) {
+		String[] tmp = string.split("-");
+		return Arrays.copyOfRange(tmp, 0, 2);
+	}
+	
+
 	/**
 	 * convert immunopath result file from xls to tsv
 	 * @param in - immunopath result file in xls or xlsx

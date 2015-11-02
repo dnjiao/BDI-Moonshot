@@ -16,8 +16,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.joda.time.DateTime;
@@ -41,7 +39,10 @@ public class PullFiles {
 	final static Connection CONN = DBConnection.getConnection();
 	
 	public static void main(String[] args) {
-		
+		if (args.length != 3) {
+			System.err.println("Invalid arguments. Usage: PullFiles [type] [source] [dest]");
+			System.exit(1);
+		}
 		final String TYPE = args[0].toLowerCase();
 		final String SOURCE = args[1];
 		final String DEST = args[2] + "/" + TYPE;
@@ -213,13 +214,12 @@ public class PullFiles {
 					   String fileName = file.getName();
 					   if (fileName.endsWith(".csv") && fileName.contains("moonshot")) {
 						   DateTime now = new DateTime();
-						   FlowSample sample = new FlowSample();
-						   sample.readSampleFile(file);
 						   String newName = fileName.split(".csv")[0] + "_" + FORMAT.print(now) + ".tsv";
 						   File outFile = new File(DEST + "/" + newName);
-						   sample.writeToTsv(outFile);
-						   counterMethod();
-	//					   FileTransferAuditUtil.insertRecord(CONN, file.toString(), outFile, "Process");
+						   if (FileConversion.flowTsv(file, outFile) == 1) {
+							   counterMethod();
+							   FileTransferAuditUtil.insertRecord(CONN, file.toString(), outFile, "Process");
+						   }
 					   }
 				   }
 				   return FileVisitResult.CONTINUE;

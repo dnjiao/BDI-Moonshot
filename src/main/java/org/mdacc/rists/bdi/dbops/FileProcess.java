@@ -7,7 +7,11 @@ import java.sql.Types;
 
 public class FileProcess {
 	public static void main(String[] args) {
-		final String TYPE = System.getenv("TYPE").toLowerCase();
+		if (args.length != 1) {
+			System.err.println("Invalid arguments. Usage: FileProcess [type]");
+			System.exit(1);
+		}
+		final String TYPE = args[0].toLowerCase();
 		loader(TYPE);
 	}
 	public static void loader (String type) {

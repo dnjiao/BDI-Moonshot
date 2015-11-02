@@ -1,45 +1,31 @@
 package org.mdacc.rists.bdi.transfer;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import oracle.jdbc.OracleTypes;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.mdacc.rists.bdi.dbops.DBConnection;
 import org.mdacc.rists.bdi.dbops.FileQueueUtil;
-import org.mdacc.rists.bdi.hibernate.FileQueue;
-import org.mdacc.rists.bdi.hibernate.HibernateUtil;
 
 public class PushFiles {
 //	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
 	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
-	final static String LOCAL_PATH = "/rsrch1/rists/moonshot/data/prod";
 	
 	public static void main(String[] args) {
-		final String TYPE = System.getenv("TYPE").toLowerCase();
+		if (args.length != 2) {
+			System.err.println("Invalid arguments.Usage: PushFiles [type] [bool]");
+			System.exit(1);
+		}
+		final String TYPE = args[0].toLowerCase();
 		String prefix = URL_STRING  + TYPE + "&fileName=";
-		boolean pushFlag = Boolean.parseBoolean(args[0]);
+		boolean pushFlag = Boolean.parseBoolean(args[1]);
 		
 		Connection conn = DBConnection.getConnection();
 		try {
