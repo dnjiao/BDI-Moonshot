@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
@@ -20,12 +21,13 @@ public class PushFiles {
 	
 	public static void main(String[] args) {
 		if (args.length != 2) {
-			System.err.println("Invalid arguments.Usage: PushFiles [type] [bool]");
+			System.err.println("Invalid arguments.Usage: PushFiles [bool] [type]");
 			System.exit(1);
 		}
-		final String TYPE = args[0].toLowerCase();
+		boolean pushFlag = Boolean.parseBoolean(args[0]);
+		final String TYPE = args[1].toLowerCase();
 		String prefix = URL_STRING  + TYPE + "&fileName=";
-		boolean pushFlag = Boolean.parseBoolean(args[1]);
+		
 		
 		Connection conn = DBConnection.getConnection();
 		try {
