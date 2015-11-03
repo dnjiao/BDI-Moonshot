@@ -75,6 +75,7 @@ public class FileConversion {
 			String[] metainfo = new String[0];
 			String accession = "";
 			String panelName = "";
+			String specimen = "";
 			while ((line = reader.readLine()) != null) {
 				lineno++;
 				String[] items = line.split(",");
@@ -88,18 +89,25 @@ public class FileConversion {
 				if (lineno == 2) {
 					metainfo = parseSampleField(items[1]);
 					accession = parsePanelField(items[2])[0];
-					panelName = parsePanelField(items[2])[1];
+					panelName = parsePanelField(items[2])[2];
 					gateValues = Arrays.copyOfRange(items, 4, items.length);
+					specimen = "RIS" + UUID.randomUUID().toString().replaceAll("-", "");
+					for (int i=0; i < gateNames.length; i++) {
+						writer.println(specimen + "\t" + accession + "\t" + panelName + "\t" + 
+								metainfo[0] + "\t" + metainfo[1] + "\t" + metainfo[2] + "\t" + metainfo[3] + "\t" + gateNames[i] + "\t" + gateValues[i]);
+					}
 					break;
 				}
 			}
 			reader.close();
+			writer.close();
 			
         } catch (FileNotFoundException e) {
                 e.printStackTrace();
         } catch (IOException e) {
                 e.printStackTrace();
         }
+        return 1;
         
 	}
 	
@@ -115,7 +123,7 @@ public class FileConversion {
 
 	private static String[] parsePanelField(String string) {
 		String[] tmp = string.split("-");
-		return Arrays.copyOfRange(tmp, 0, 2);
+		return Arrays.copyOfRange(tmp, 0, 3);
 	}
 	
 

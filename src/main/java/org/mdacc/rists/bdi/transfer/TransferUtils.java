@@ -73,6 +73,26 @@ public class TransferUtils {
 				return true;
 			}
 		}
+		if (type.equalsIgnoreCase("cnv")) {
+			if (filename.contains(".segList") && filename.endsWith(".tsv")) {
+				return true;
+			}
+		}
+		if (type.equalsIgnoreCase("gene")) {
+			if (filename.contains(".gene.") && filename.endsWith(".tsv")) {
+				return true;
+			}
+		}
+		if (type.equalsIgnoreCase("exon")) {
+			if (filename.contains(".exon.") && filename.endsWith(".tsv")) {
+				return true;
+			}
+		}
+		if (type.equalsIgnoreCase("junctions")) {
+			if (filename.contains(".junctions.") && filename.endsWith(".txt")) {
+				return true;
+			}
+		}
 		if (type.equalsIgnoreCase("immunopath")) {
 			if (filename.endsWith(".xls") || filename.endsWith(".xlsx")) {
 				return true;

@@ -13,14 +13,14 @@ public class DBConnection
 	public static Connection getConnection() 
 	{
 		// TEST DB
-//		String connectionURL = "jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu";
-//		String user = "ristore_owner_stg";
-//		String pass = "ristore987s";
+		String connectionURL = "jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu";
+		String user = "ristore_owner_stg";
+		String pass = "ristore987s";
 		
 		// Production DB
-		String connectionURL = "jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risstg3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu";
-		String user = "ristore_owner";
-		String pass = "ristore4pgodzilla";
+//		String connectionURL = "jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risstg3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu";
+//		String user = "ristore_owner";
+//		String pass = "ristore4pgodzilla";
 
 		Connection connection = null;
 		try {
