@@ -21,7 +21,11 @@ public class FileProcess {
 			arr[0] = "Y";
 		if (type.equals("cnv"))
 			arr[1] = "Y";
-		if (type.equals("rna"))
+		if (type.equals("gene"))
+			arr[2] = "Y";
+		if (type.equals("exon"))
+			arr[2] = "Y";
+		if (type.equals("junctions"))
 			arr[2] = "Y";
 		if (type.equals("flowcyto"))
 			arr[3] = "Y";
