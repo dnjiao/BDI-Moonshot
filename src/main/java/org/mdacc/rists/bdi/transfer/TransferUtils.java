@@ -88,7 +88,7 @@ public class TransferUtils {
 				return true;
 			}
 		}
-		if (type.equalsIgnoreCase("junctions")) {
+		if (type.equalsIgnoreCase("junction")) {
 			if (filename.contains(".junctions.") && filename.endsWith(".txt")) {
 				return true;
 			}
