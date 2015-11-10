@@ -22,7 +22,6 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.mdacc.rists.bdi.datafiles.FileConversion;
-import org.mdacc.rists.bdi.datafiles.FlowSample;
 import org.mdacc.rists.bdi.dbops.FileLocationUtil;
 import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 import org.mdacc.rists.bdi.dbops.FileTransferAuditUtil;
@@ -250,7 +249,7 @@ public class PullFiles {
 					   String srcPath = file.getParent();
 					   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath);
 					   if (lastDt == null || (lastDt != null && lastDt.isBefore(file.lastModified()))) {
-						   String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(CURRENT) + "." + fileName.split("\\.")[1];
+						   String newName = fileName.substring(0, fileName.lastIndexOf(".")) + "_" + FORMAT.print(CURRENT) + fileName.substring(fileName.lastIndexOf("."));
 						   Path fromPath = filePath;
 						   Path toPath = Paths.get(DEST, newName);
 						   Path oldPath = toPath;
