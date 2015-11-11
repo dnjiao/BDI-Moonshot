@@ -55,7 +55,7 @@ public class TransferUtils {
 			case "exon":
 				return "RNASeq Exon Counts";
 			case "junction":
-				return "RNASeq Junctions Counts";
+				return "RNASeq Junction Counts";
 			default:
 				System.err.println("Invalid file type: " + type);
 				return null;

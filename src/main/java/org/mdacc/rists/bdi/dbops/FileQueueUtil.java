@@ -19,7 +19,7 @@ public class FileQueueUtil {
 		DateTime dt = new DateTime();
 		
 		Connection con = DBConnection.getConnection();
-		updateSendStatus(con, 2162, dt);
+		getUnsent(con, "junction");
 		
 	}
 	public static ResultSet getUnsent (Connection con, String type) {

@@ -15,8 +15,8 @@ public class FileLocationUtil {
 	final static DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	
 	public static void main (String[] args) {
-		String type = args[0];
-		String path = args[1];
+		String type = "junction";
+		String path = "/rsrch1/ipct/krshaw_project/FIRE_Dropbox/Moonshots /rsrch1/rists/moonshot/data/stg";
 		DateTime dt = null;
 		Connection con = DBConnection.getConnection();
 		dt = getLastTimeStamp(con, type, path);

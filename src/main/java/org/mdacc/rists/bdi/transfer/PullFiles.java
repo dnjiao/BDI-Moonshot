@@ -244,8 +244,10 @@ public class PullFiles {
 			   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
 			   {
 				   File file = filePath.toFile();
-				   String fileName = filePath.getFileName().toString();				   
+				   String fileName = filePath.getFileName().toString();		
+				   
 				   if (TransferUtils.isType(fileName, TYPE)) {	
+					   System.out.println(fileName + " " + TYPE);
 					   String srcPath = file.getParent();
 					   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath);
 					   if (lastDt == null || (lastDt != null && lastDt.isBefore(file.lastModified()))) {
