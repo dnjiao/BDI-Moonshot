@@ -16,24 +16,23 @@ import org.mdacc.rists.bdi.dbops.DBConnection;
 import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 
 public class PushFiles {
-//	final static String URL_STRING = "http://10.113.241.42:8099/bdi/serviceingestion?domain=";
 	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
 	
 	public static void main(String[] args) {
-		if (args.length != 2) {
-			System.err.println("Invalid arguments.Usage: PushFiles [bool] [type]");
+		if (args.length != 1) {
+			System.err.println("Invalid arguments.Usage: PushFiles [bool]");
 			System.exit(1);
 		}
 		boolean pushFlag = Boolean.parseBoolean(args[0]);
-		final String TYPE = args[1].toLowerCase();
-		String prefix = URL_STRING  + TYPE + "&fileName=";
+		String type = System.getenv("TYPE");
+		String prefix = URL_STRING  + type + "&fileName=";
 		
 		
 		Connection conn = DBConnection.getConnection();
 		try {
 			
 	        // call stored procedure to get unsent files by type
-			ResultSet rs = FileQueueUtil.getUnsent(conn, TYPE);
+			ResultSet rs = FileQueueUtil.getUnsent(conn, type);
 			
 			// counter of successfully pushed files
 			int rowcount = 0;

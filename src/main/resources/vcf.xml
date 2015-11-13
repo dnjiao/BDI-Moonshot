@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<flowconf>
+	<devenv>stg</devenv>
+	<datatype>vcf</datatype>
+	<source>/rsrch1/ipct/krshaw_project/FIRE_Dropbox/Moonshots</source>
+	<source>/rsrch1/ipct/krshaw_project/FIRE_Dropbox/Moonshots1</source>
+</flowconf>
+	

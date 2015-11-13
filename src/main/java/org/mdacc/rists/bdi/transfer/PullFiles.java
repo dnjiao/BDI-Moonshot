@@ -36,20 +36,27 @@ public class PullFiles {
 	static int fileCounter = 0;
 	static List<String> dirs = new ArrayList<String>();
 	final static Connection CONN = DBConnection.getConnection();
+	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
 	
 	public static void main(String[] args) {
-		if (args.length != 3) {
-			System.err.println("Invalid arguments. Usage: PullFiles [type] [source] [dest]");
-			System.exit(1);
-		}
-		final String TYPE = args[0].toLowerCase();
-		final String SOURCE = args[1];
-		final String DEST = args[2] + "/" + TYPE;
-	    if (TYPE == null) {
+		String type = System.getenv("TYPE");
+		String env = System.getenv("DEV_ENV");
+		String source = args[0];
+		String dest = DESTROOT + "/" + env + "/" + type;
+		
+	    if (type == null) {
 	    	System.out.println("ERROR: Environment variable TYPE not set correctly.");
 	    	System.exit(1);
 	    }
-	    executeTransfer(TYPE, SOURCE, DEST);
+	    if (env == null) {
+	    	System.out.println("ERROR: Dev environment not specified.");
+	    	System.exit(1);
+	    }
+	    if (source == null) {
+	    	System.out.println("ERROR: Source path missing.");
+	    	System.exit(1);
+	    }
+	    executeTransfer(type, source, dest);
 		
 	}
 	

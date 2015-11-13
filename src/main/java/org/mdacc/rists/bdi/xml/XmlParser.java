@@ -3,6 +3,7 @@ package org.mdacc.rists.bdi.xml;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class XmlParser {
 			SAXParserFactory parserFactor = SAXParserFactory.newInstance();
 			SAXParser parser = parserFactor.newSAXParser();
 			SAXHandler handler = new SAXHandler();
-			parser.parse(ClassLoader.getSystemResourceAsStream(args[0]),handler);
+			parser.parse(args[0], handler);
 			
 			// check if fields are correct in xml
 			if (handler.flow.devEnv == null) {
@@ -39,6 +40,7 @@ public class XmlParser {
 			System.out.println(handler.flow.type);
 			// write source dirs to file source_list
 			String cwd = System.getProperty("user.dir");
+			System.out.println(cwd);
 			File sourceList = new File(cwd, "source_list");
 			PrintWriter writer = new PrintWriter(sourceList);
 			
@@ -49,9 +51,9 @@ public class XmlParser {
 			writer.close();
 			
 			// set PPM environment variables
-			Runtime.getRuntime().exec("ppmsetvar -f DEVENV=" + handler.flow.devEnv);
-			Runtime.getRuntime().exec("ppmsetvar -f TYPE=" + handler.flow.type);
-			Runtime.getRuntime().exec("ppmsetvar -f SOURCES=source_list");
+//			Runtime.getRuntime().exec("ppmsetvar -f DEV_ENV=" + handler.flow.devEnv);
+//			Runtime.getRuntime().exec("ppmsetvar -f TYPE=" + handler.flow.type);
+//			Runtime.getRuntime().exec("ppmsetvar -f SOURCES=source_list");
 			
 			
 		} catch (SAXException e) {
@@ -68,7 +70,8 @@ public class XmlParser {
 class SAXHandler extends DefaultHandler {
 
 	  List<String> dirs = new ArrayList<String>();
-	  Flow flow = new Flow();
+	  List<WorkFlow> flows = new ArrayList<WorkFlow>();
+	  WorkFlow flow = null;
 	  String content;
 	  boolean benv = false;
 	  boolean btype = false;
@@ -83,8 +86,9 @@ class SAXHandler extends DefaultHandler {
 		  }
 		  if (qName.equalsIgnoreCase("datatype")) {
 			  btype = true;
+			  flow = new WorkFlow();
 		  }
-		  if (qName.equalsIgnoreCase("sourcedir")) {
+		  if (qName.equalsIgnoreCase("source")) {
 			  bsource = true;
 		  }
 	  }
@@ -97,7 +101,7 @@ class SAXHandler extends DefaultHandler {
 		  if (qName.equalsIgnoreCase("datatype")) {
 			  flow.type = content;
 		  }
-		  if (qName.equalsIgnoreCase("sourcedir")) {
+		  if (qName.equalsIgnoreCase("source")) {
 			  flow.sources.add(content);
 		  }
 	  }
@@ -110,13 +114,4 @@ class SAXHandler extends DefaultHandler {
 
 	}
 	
-class Flow {
-	String devEnv;
-	String type;
-	List<String> sources;
-	public Flow() {
-		super();
-		sources = new ArrayList<String>();
-	}
-	
-}
+
