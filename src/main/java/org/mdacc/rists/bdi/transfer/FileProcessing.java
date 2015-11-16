@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.datafiles;
+package org.mdacc.rists.bdi.transfer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,7 +24,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class FileConversion {
+public class FileProcessing {
 	public static void main(String[] args) {
 		if (args.length != 2) {
 			System.err.println("Usage: FileConvert [input_file_path] [type]");

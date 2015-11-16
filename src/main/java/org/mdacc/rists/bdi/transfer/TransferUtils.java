@@ -131,46 +131,25 @@ public class TransferUtils {
 		return base + "." + ext;
 	}
 
-	/**
-	 * remove "\r" in each line of a file
-	 * @param filepath - path of the input file
-	 */
-	public static void removeReturnChar(String filepath) {
-		File inFile = new File(filepath);
-		File tmpFile = new File(filepath + ".tmp");
-		BufferedReader br = null;
-		boolean replace = false;
-	    try
-	    {
-	    	PrintWriter writer = new PrintWriter(tmpFile);
-			br = new BufferedReader(new FileReader(inFile));
-			String line, outline;
-			while ((line = br.readLine()) != null) {
-				if (line.endsWith("\r\n")) {
-					outline = line.replaceAll("\r\n", "\n");
-					writer.print(outline);
-					replace = true;
+	
+	public static void removeReturnChar(File oldfile, File newfile) {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(oldfile));
+			PrintWriter writer = new PrintWriter(newfile);
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.contains("\r")) {
+					line = line.replaceAll("\r\n", "\n");
+					line = line.replaceAll("\r", "");
 				}
-				else {
-					writer.print(line);
-				}
-			}
-			br.close();
-			
-			// if files are different, overwrite old with new
-			if (replace) {
-				inFile.delete();
-				tmpFile.renameTo(inFile);
-			}
-			// if files are the same, delete new one
-			else {
-				tmpFile.delete();
+				writer.println(line);
 			}
 			writer.close();
-	    } catch (FileNotFoundException e) {
-	        e.printStackTrace();
-	    } catch (IOException e) {
-	            e.printStackTrace();
-	    }
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
