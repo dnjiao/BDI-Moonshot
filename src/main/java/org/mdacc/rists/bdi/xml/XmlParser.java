@@ -29,10 +29,6 @@ public class XmlParser {
 			int flowIndex = 0;
 			for (WorkFlow flow : handler.flowList) {
 				// check if fields are correct in xml
-				if (flow.devEnv == null) {
-					System.err.println("Development Environment not specified in " + xml);
-					System.exit(1);
-				}
 				if (flow.type == null) {
 					System.err.println("Data type not specified in flow " + Integer.toString(flowIndex));
 					break;

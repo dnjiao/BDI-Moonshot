@@ -17,8 +17,20 @@ public class DBConnection
 		String pass = null;
 		String env = System.getenv("DEV_ENV");
 		
-		// TEST DB
-		if (env.equalsIgnoreCase("stg")) {
+		// DEV DB
+		if (env.equalsIgnoreCase("dev")) {
+			connectionURL = "jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu";
+			user = "ristore_owner";
+			pass = "ristoreowner987";
+		}
+		// QA DB
+		else if (env.equalsIgnoreCase("qa")) {
+			connectionURL = "jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu";
+			user = "ristore_owner_qa";
+			pass = "ristore987q";
+		}
+		// Staging DB
+		else if (env.equalsIgnoreCase("stg")) {
 			connectionURL = "jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu";
 			user = "ristore_owner_stg";
 			pass = "ristore987s";

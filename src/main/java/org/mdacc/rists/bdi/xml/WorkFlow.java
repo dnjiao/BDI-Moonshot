@@ -4,21 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WorkFlow {
-	String devEnv;
 	String type;
 	List<String> sources;
 	
-	
-	public String getDevEnv() {
-		return devEnv;
-	}
-
-
-	public void setDevEnv(String devEnv) {
-		this.devEnv = devEnv;
-	}
-
-
 	public String getType() {
 		return type;
 	}

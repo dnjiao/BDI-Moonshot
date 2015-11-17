@@ -24,7 +24,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class FileProcessing {
+public class PreProcessing {
 	public static void main(String[] args) {
 		if (args.length != 2) {
 			System.err.println("Usage: FileConvert [input_file_path] [type]");
@@ -104,8 +104,10 @@ public class FileProcessing {
 			
         } catch (FileNotFoundException e) {
                 e.printStackTrace();
+                return 0;
         } catch (IOException e) {
                 e.printStackTrace();
+                return 0;
         }
         return 1;
         

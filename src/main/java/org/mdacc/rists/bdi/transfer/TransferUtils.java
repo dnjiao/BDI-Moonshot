@@ -98,6 +98,11 @@ public class TransferUtils {
 				return true;
 			}
 		}
+		if (type.equalsIgnoreCase("flowcyto")) {
+			if (filename.endsWith(".csv") && filename.contains("moonshot")) {
+				return true;
+			}
+		}
 		return false;
 	}
 	

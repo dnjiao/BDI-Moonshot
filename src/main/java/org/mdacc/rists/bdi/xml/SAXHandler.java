@@ -12,8 +12,6 @@ class SAXHandler extends DefaultHandler {
 	List<String> sourceList = null;
 	List<WorkFlow> flowList = null;
 	WorkFlow flow = null;
-	String env;
-	boolean benv = false;
 	boolean btype = false;
 	boolean bsource = false;
 	 
@@ -27,8 +25,6 @@ class SAXHandler extends DefaultHandler {
 			if (flowList == null) {
 				flowList = new ArrayList<WorkFlow>();
 			}
-		} else if (qName.equalsIgnoreCase("devenv")) {
-			benv = true;
 		} else if (qName.equalsIgnoreCase("datatype")) {
 			btype = true;
 		} else if (qName.equalsIgnoreCase("source")) {
@@ -39,7 +35,6 @@ class SAXHandler extends DefaultHandler {
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
 		if (qName.equalsIgnoreCase("Flow")) {
-			flow.setDevEnv(env);
 			flow.setSources(sourceList);
 			flowList.add(flow);
 		}
@@ -48,10 +43,7 @@ class SAXHandler extends DefaultHandler {
 	@Override
 	public void characters(char[] ch, int start, int length) 
 	        throws SAXException {
-		if (benv) {
-			env = new String(ch, start, length);
-			benv = false;
-		} else if (btype) {
+		if (btype) {
 			flow.setType(new String(ch, start, length));
 			btype = false;
 		} else if (bsource) {

@@ -30,7 +30,9 @@ public class PullFiles {
 	static int fileCounter = 0;
 	static List<String> dirs = new ArrayList<String>();
 	final static Connection CONN = DBConnection.getConnection();
-	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
+//	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
+	final static String DESTROOT = "/Users/djiao/Work/moonshot/data";
+	final static String ENV = System.getenv("DEV_ENV");
 	
 	public static void main(String[] args) {
 		if (args.length != 1) {
@@ -47,7 +49,7 @@ public class PullFiles {
 			System.exit(1);
 		} else {
 			for (WorkFlow flow : flowList) {
-				String dest = DESTROOT + "/" + flow.getDevEnv() + "/" + flow.getType();
+				String dest = DESTROOT + "/" + ENV + "/" + flow.getType();
 				String type = flow.getType();
 				if (flow.getType().equalsIgnoreCase("mapping")) {
 					PullMappingFiles(dest);
@@ -59,10 +61,6 @@ public class PullFiles {
 						if (!new File(src).isDirectory()) {
 							System.err.println("Source Dir " + src + " is not a directory.");
 						}
-						if (type.equalsIgnoreCase("flowcyto")) {
-							walkFlowFiles(src, dest, current);
-							FileLocationUtil.setLastTimeStamp(CONN, "mapping", "Informat server", current);
-						}	
 						else {
 							walkFiles(src, dest, type, current);
 							for (String d : dirs) {
@@ -160,9 +158,6 @@ public class PullFiles {
 		return fileCounter;
 	}
 	
-
-
-
 	public static void counterMethod(){
 		fileCounter++;
 	}
@@ -170,38 +165,6 @@ public class PullFiles {
 	private static void addDirs(String dirPath) {
 		if (! dirs.contains(dirPath)) 
 			dirs.add(dirPath);
-	}
-	
-	
-	private static void walkFlowFiles(String source, String dest, DateTime current) {
-		Path top = Paths.get(source);
-    	final String DEST = dest;    	
-    	try {
-    		Files.walkFileTree(top, new SimpleFileVisitor<Path>()
-			{  
-			   @Override
-			   public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException
-			   {
-				   File file = filePath.toFile();
-				   if (!file.isDirectory()) {
-					   String fileName = file.getName();
-					   if (fileName.endsWith(".csv") && fileName.contains("moonshot")) {
-						   DateTime now = new DateTime();
-						   String newName = fileName.split(".csv")[0] + "_" + FORMAT.print(now) + ".tsv";
-						   File outFile = new File(DEST + "/" + newName);
-						   if (FileProcessing.flowTsv(file, outFile) == 1) {
-							   counterMethod();
-							   FileTransferAuditUtil.insertRecord(CONN, file.toString(), outFile.getAbsolutePath(), "cp");
-						   }
-					   }
-				   }
-				   return FileVisitResult.CONTINUE;
-			   }
-			});
-				
-    	} catch (IOException e) {
-    		e.printStackTrace();
-    	} 
 	}
 
 
@@ -234,15 +197,23 @@ public class PullFiles {
 						   Runtime.getRuntime().exec(cmd);
 						   addDirs(srcPath);
 						   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
+						   int imtSuccess = 1;
 						   if (TYPE.equals("immunopath")) {
 							   newName = TransferUtils.switchExt(newName, "tsv");
 							   toPath = Paths.get(DEST, newName);
-							   FileProcessing.immunoTsv(oldPath.toFile(), toPath.toFile());
+							   PreProcessing.immunoTsv(oldPath.toFile(), toPath.toFile());
 						   }
-						   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
-						   counterMethod();
-						   files.add(toPath.toString());
-						   FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
+						   if (TYPE.equals("flowcyto")) {
+							   newName = TransferUtils.switchExt(newName, "tsv");
+							   toPath = Paths.get(DEST, newName);
+							   imtSuccess = PreProcessing.flowTsv(file, toPath.toFile());
+						   }
+						   if (imtSuccess == 1) {
+							   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
+							   counterMethod();
+							   files.add(toPath.toString());
+							   FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
+						   }
 							   
 					   }
 				   }
