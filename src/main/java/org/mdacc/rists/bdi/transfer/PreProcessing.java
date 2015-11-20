@@ -73,7 +73,6 @@ public class PreProcessing {
 			String[] gateNames =new String[0];
 			String[] gateValues = new String[0];
 			String[] metainfo = new String[0];
-			String accession = "";
 			String panelName = "";
 			String specimen = "";
 			while ((line = reader.readLine()) != null) {
@@ -88,13 +87,13 @@ public class PreProcessing {
 				}
 				if (lineno == 2) {
 					metainfo = parseSampleField(items[1]);
-					accession = parsePanelField(items[2])[0];
 					panelName = parsePanelField(items[2])[2];
 					gateValues = Arrays.copyOfRange(items, 4, items.length);
 					specimen = "RIS" + UUID.randomUUID().toString().replaceAll("-", "");
+					writer.println("Specimen\tAccession\tPanelName\tProtocol\tTumor\tDate\tGateName\tGateValue");
 					for (int i=0; i < gateNames.length; i++) {
-						writer.println(specimen + "\t" + accession + "\t" + panelName + "\t" + 
-								metainfo[0] + "\t" + metainfo[1] + "\t" + metainfo[2] + "\t" + metainfo[3] + "\t" + gateNames[i] + "\t" + gateValues[i]);
+						writer.println(specimen + "\t" + metainfo[1] + "\t" + panelName + "\t" + 
+								metainfo[0] + "\t" + metainfo[2] + "\t" + metainfo[3] + "\t" + gateNames[i] + "\t" + gateValues[i]);
 					}
 					break;
 				}

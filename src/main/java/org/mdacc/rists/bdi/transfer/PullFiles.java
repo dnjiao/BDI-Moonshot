@@ -12,6 +12,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -79,8 +81,12 @@ public class PullFiles {
 	private static void PullMappingFiles(String dest) {
 		// call bash script to transfer mapping files by sftp
 		try {
-			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp.sh", dest};
-			String source = "Informat";
+			if (!new File(dest, "archive").exists()) {
+				System.out.println("/archive  does not exist in " + dest);
+				System.exit(1);;
+			}
+			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp.sh", dest + "/archive"};
+			String source = "prodinformat";
 			
 			Process p = Runtime.getRuntime().exec(cmd);
 			String line;
@@ -119,40 +125,75 @@ public class PullFiles {
 		DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "mapping", source);
 		System.out.print("last_ts for mapping: ");
 		System.out.println(lastTS);
-		File destDir = new File(dest);
+		File destDir = new File(dest + "/archive");
 		int fileCounter = 0;
-		List<String> files;
-		
-		for (File file : destDir.listFiles()) {
-			if (file.isDirectory() == false) { // ignore directories
-				System.out.println(file.getName());
-				if (TransferUtils.isMapping(file)) {
-					System.out.println(file.getName() + " last modified ts: " + FORMAT.print(file.lastModified()));
-					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
-						files = new ArrayList<String>();
-						String fileName = file.getName();
-						String newName = fileName.split("\\.")[0] + "_" + FORMAT.print(current) + "." + fileName.split("\\.")[1];
-						File newfile = new File(file.getParent(), newName);
-						TransferUtils.removeReturnChar(file, newfile);
-						System.out.println(newfile.getName());
-						FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newfile.getAbsolutePath(), "sftp");
-						file.delete();
-						int fileQueueId = FileQueueUtil.insertRecord(CONN, newfile.getAbsolutePath(), "mapping");
-						fileCounter ++;
-						files.add(newfile.getAbsolutePath());
-						FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
-						DateTime ts = new DateTime();
-						FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, ts);
-					}
+		File[] files = destDir.listFiles();
+		List<File> fileList = new ArrayList<File>();
+		// delete older files and non mapping files
+		for (File file : files) {
+			if (TransferUtils.isMapping(file)) {
+				if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
+					fileList.add(file);
 				}
 				else {
 					file.delete();
-					System.out.println(file.getName() + " is not a mapping file. Deleted.");
+					System.out.println(file.getAbsolutePath() + " is old.");
 				}
 			}
 			else {
 				file.delete();
+				System.out.println(file.getAbsolutePath() + " is not a valid mapping file.");
 			}
+				
+		}
+		
+		// sort files based on original timestamp
+		Collections.sort(fileList, new Comparator<File>() {
+			@Override
+			public int compare(File f1, File f2) {
+				String fileName1 = f1.getName();
+				String fileName2 = f2.getName();
+				int year1 = Integer.parseInt(fileName1.substring(12, 16));
+				int year2 = Integer.parseInt(fileName2.substring(12, 16));
+				int month1 = Integer.parseInt(fileName1.substring(16, 18));
+				int month2 = Integer.parseInt(fileName2.substring(16, 18));
+				int day1 = Integer.parseInt(fileName1.substring(18, 20));
+				int day2 = Integer.parseInt(fileName2.substring(18, 20));
+				if (year1 != year2) {
+					return year1 - year2;
+				}
+				else {
+					if (month1 != month2) {
+						return month1 - month2;
+					}
+					else {
+							return day1 - day2;
+					}
+				}
+			}
+
+		});
+		
+		// keep distinct ones
+		
+		for (int i = 0; i < fileList.size() - 1; i++) {
+			File first = fileList.get(i);
+			File second = fileList.get(i+1);
+			if (!TransferUtils.isSameFile(first, second)) {
+				List<String> auditFileList = new ArrayList<String>();
+				String newName = first.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";
+				File newFile = new File(dest, newName);
+				TransferUtils.removeReturnChar(first, newFile);
+				System.out.println(newName);
+				FileTransferAuditUtil.insertRecord(CONN, source + "/" + first.getName(), newFile.getAbsolutePath(), "sftp");
+				int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "mapping");
+				fileCounter ++;
+				auditFileList.add(newFile.getAbsolutePath());
+				FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
+				DateTime ts = new DateTime();
+				FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, ts);
+			}
+			first.delete();
 		}
 		
 		return fileCounter;
@@ -184,7 +225,7 @@ public class PullFiles {
 				   String fileName = filePath.getFileName().toString();		
 				   
 				   if (TransferUtils.isType(fileName, TYPE)) {	
-					   System.out.println(fileName + " " + TYPE);
+//					   System.out.println(fileName + " " + TYPE);
 					   String srcPath = file.getParent();
 					   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath);
 					   if (lastDt == null || (lastDt != null && lastDt.isBefore(file.lastModified()))) {

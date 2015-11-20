@@ -157,4 +157,29 @@ public class TransferUtils {
 			e.printStackTrace();
 		}
 	}
+
+	public static boolean isSameFile(File f1, File f2) {
+		String line = null;
+		try {
+			BufferedReader reader1 = new BufferedReader(new FileReader(f1));
+			StringBuilder builder1 = new StringBuilder();
+			while((line = reader1.readLine()) != null) {
+				builder1.append(line);
+			}
+			BufferedReader reader2 = new BufferedReader(new FileReader(f2));
+			StringBuilder builder2 = new StringBuilder();
+			while((line = reader2.readLine()) != null) {
+				builder2.append(line);
+			}
+			
+			reader1.close();
+			reader2.close();
+			if (builder1.equals(builder2)) {
+				return true;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }

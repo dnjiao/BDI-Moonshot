@@ -17,7 +17,6 @@ public class FileQueueUtil {
 	
 	public static void main(String[] args) {
 		DateTime dt = new DateTime();
-		
 		Connection con = DBConnection.getConnection();
 		getUnsent(con, "junction");
 		
