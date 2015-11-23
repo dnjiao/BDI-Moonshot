@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -32,8 +33,8 @@ public class PullFiles {
 	static int fileCounter = 0;
 	static List<String> dirs = new ArrayList<String>();
 	final static Connection CONN = DBConnection.getConnection();
-//	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
-	final static String DESTROOT = "/Users/djiao/Work/moonshot/data";
+	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
+//	final static String DESTROOT = "/Users/djiao/Work/moonshot/data";
 	final static String ENV = System.getenv("DEV_ENV");
 	
 	public static void main(String[] args) {
@@ -81,9 +82,10 @@ public class PullFiles {
 	private static void PullMappingFiles(String dest) {
 		// call bash script to transfer mapping files by sftp
 		try {
-			if (!new File(dest, "archive").exists()) {
-				System.out.println("/archive  does not exist in " + dest);
-				System.exit(1);;
+			File archive = new File(dest, "archive");
+			if (!archive.exists()) {
+				System.out.println("Creating folder " + archive.getAbsolutePath());
+				archive.mkdir();
 			}
 			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp.sh", dest + "/archive"};
 			String source = "prodinformat";
@@ -179,21 +181,43 @@ public class PullFiles {
 		for (int i = 0; i < fileList.size() - 1; i++) {
 			File first = fileList.get(i);
 			File second = fileList.get(i+1);
-			if (!TransferUtils.isSameFile(first, second)) {
-				List<String> auditFileList = new ArrayList<String>();
-				String newName = first.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";
-				File newFile = new File(dest, newName);
-				TransferUtils.removeReturnChar(first, newFile);
-				System.out.println(newName);
-				FileTransferAuditUtil.insertRecord(CONN, source + "/" + first.getName(), newFile.getAbsolutePath(), "sftp");
-				int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "mapping");
-				fileCounter ++;
-				auditFileList.add(newFile.getAbsolutePath());
-				FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
-				DateTime ts = new DateTime();
-				FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, ts);
+			try {
+				if (!FileUtils.contentEquals(first, second)) {
+					List<String> auditFileList = new ArrayList<String>();
+					String newName = first.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";
+					File newFile = new File(dest, newName);
+					TransferUtils.removeReturnChar(first, newFile);
+					System.out.println(newName);
+					FileTransferAuditUtil.insertRecord(CONN, source + "/" + first.getName(), newFile.getAbsolutePath(), "sftp");
+					int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "mapping");
+					fileCounter ++;
+					auditFileList.add(newFile.getAbsolutePath());
+					FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
+					DateTime ts = new DateTime();
+					FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, ts);
+					// if last two files differ, record both
+					if (i == fileList.size() - 2) {
+						auditFileList = new ArrayList<String>();
+						newName = second.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";
+						newFile = new File(dest, newName);
+						TransferUtils.removeReturnChar(second, newFile);
+						System.out.println(newName);
+						FileTransferAuditUtil.insertRecord(CONN, source + "/" + first.getName(), newFile.getAbsolutePath(), "sftp");
+						fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "mapping");
+						fileCounter ++;
+						auditFileList.add(newFile.getAbsolutePath());
+						FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
+						ts = new DateTime();
+						FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, ts);
+						second.delete();
+					}
+					first.delete();
+					
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-			first.delete();
+			
 		}
 		
 		return fileCounter;

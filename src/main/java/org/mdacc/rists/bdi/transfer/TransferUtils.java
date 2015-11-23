@@ -7,10 +7,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.apache.commons.io.FileUtils;
+
 public class TransferUtils {
-	public static void main(String[] args) {
-		File file = new File("/Users/djiao/Work/moonshot/mapping/MS-03-Batch1-7-16-2015.txt");
-		System.out.println(isMapping(file));
+	public static void main(String[] args) throws IOException {
+		File file1 = new File("/Users/djiao/Work/moonshot/data/dev/mapping/MSBIO_SPCMN_20150812_11232015162155.txt");
+		File file2 = new File("/Users/djiao/Work/moonshot/data/dev/mapping/MSBIO_SPCMN_20150813_11232015162155.txt");
+		
+		System.out.println(FileUtils.contentEquals(file1, file2));
 	}
 	
 	/**
@@ -156,30 +160,5 @@ public class TransferUtils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static boolean isSameFile(File f1, File f2) {
-		String line = null;
-		try {
-			BufferedReader reader1 = new BufferedReader(new FileReader(f1));
-			StringBuilder builder1 = new StringBuilder();
-			while((line = reader1.readLine()) != null) {
-				builder1.append(line);
-			}
-			BufferedReader reader2 = new BufferedReader(new FileReader(f2));
-			StringBuilder builder2 = new StringBuilder();
-			while((line = reader2.readLine()) != null) {
-				builder2.append(line);
-			}
-			
-			reader1.close();
-			reader2.close();
-			if (builder1.equals(builder2)) {
-				return true;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return false;
 	}
 }
