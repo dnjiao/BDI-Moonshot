@@ -52,7 +52,7 @@ public class FileLocationUtil {
 				System.out.println("Error description: " + stmt.getString(6));
 				System.out.println("Error trace: " + stmt.getString(7));
 			}
-			System.out.println("Return code: " + ret);
+			//System.out.println("Return code: " + ret);
 			stmt.close();
 		}
 		catch (SQLException e) {

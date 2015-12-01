@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
@@ -17,16 +19,21 @@ import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 
 public class PushFiles {
 	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
+	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction");
 	
 	public static void main(String[] args) {
-		if (args.length != 1) {
-			System.err.println("Invalid arguments.Usage: PushFiles [bool]");
+		if (args.length != 2) {
+			System.err.println("Invalid arguments.Usage: PushFiles [type] [bool]");
+			System.exit(1);
+		}
+		String type = args[0];
+		if (!TYPES.contains(type)) {
+			System.err.println("Invalid type to push: " + type);
 			System.exit(1);
 		}
 		boolean pushFlag = Boolean.parseBoolean(args[0]);
-		String type = System.getenv("TYPE");
-		String prefix = URL_STRING  + type + "&fileName=";
 		
+		String prefix = URL_STRING  + type + "&fileName=";
 		
 		Connection conn = DBConnection.getConnection();
 		try {

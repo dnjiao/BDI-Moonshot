@@ -12,6 +12,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -32,49 +33,52 @@ public class PullFiles {
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	static int fileCounter = 0;
 	static List<String> dirs = new ArrayList<String>();
+	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction", "mapping", "flowcyto", "immunopath");
 	final static Connection CONN = DBConnection.getConnection();
 	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
-//	final static String DESTROOT = "/Users/djiao/Work/moonshot/data";
 	final static String ENV = System.getenv("DEV_ENV");
 	
 	public static void main(String[] args) {
-		if (args.length != 1) {
-			System.err.println("Usage: PullFiles [xml_file]");
+		if (args.length != 2) {
+			System.err.println("Usage: PullFiles [xml_path] [type]");
 			System.exit(1);
 		}
 		if (!new File(args[0]).exists()) {
 			System.err.println("File " + args[0] + " does not exist.");
 			System.exit(1);
 		}
-		List<WorkFlow> flowList = XmlParser.readXML(args[0]);
-		if (flowList == null) {
-			System.err.println("No flow definition found in " + args[0]);
+		String type = args[1].toLowerCase();
+		if (!TYPES.contains(type)) {
+			System.err.println("Invalid type.");
+			System.exit(1);
+		}
+		
+		List<String> sourceList = XmlParser.readXML(args[0], args[1]);
+		if (sourceList == null) {
+			System.err.println("No sources for " + args[1] + " in " + args[0]);
 			System.exit(1);
 		} else {
-			for (WorkFlow flow : flowList) {
-				String dest = DESTROOT + "/" + ENV + "/" + flow.getType();
-				String type = flow.getType();
-				if (flow.getType().equalsIgnoreCase("mapping")) {
-					PullMappingFiles(dest);
-				}
-				else {
-					DateTime current = new DateTime();
-					
-					for (String src : flow.getSources()) {
-						if (!new File(src).isDirectory()) {
-							System.err.println("Source Dir " + src + " is not a directory.");
-						}
-						else {
-							walkFiles(src, dest, type, current);
-							for (String d : dirs) {
-								System.out.println("Dir: " + d);
-								FileLocationUtil.setLastTimeStamp(CONN, type, d, current);
-							}
+			String dest = DESTROOT + "/" + ENV + "/" + type;
+			if (type.equalsIgnoreCase("mapping")) {
+				PullMappingFiles(dest);
+			}
+			else {
+				DateTime current = new DateTime();
+				
+				for (String src : sourceList) {
+					if (!new File(src).isDirectory()) {
+						System.err.println("Source Dir " + src + " is not a directory.");
+					}
+					else {
+						walkFiles(src, dest, type, current);
+						for (String d : dirs) {
+							System.out.println("Dir: " + d);
+							FileLocationUtil.setLastTimeStamp(CONN, type, d, current);
 						}
 					}
 				}
-				System.out.println("Total " + Integer.toString(fileCounter) + " " + type + " files pulled successfully.");
 			}
+			System.out.println("Total " + Integer.toString(fileCounter) + " " + type + " files pulled successfully.");
 		}
 	}
 	
@@ -177,49 +181,30 @@ public class PullFiles {
 		});
 		
 		// keep distinct ones
-		
-		for (int i = 0; i < fileList.size() - 1; i++) {
-			File first = fileList.get(i);
-			File second = fileList.get(i+1);
-			try {
-				if (!FileUtils.contentEquals(first, second)) {
+		List<File> uniqueFiles = new ArrayList<File>();
+		try {
+			for (File file : fileList) {		
+				int count = uniqueFiles.size();
+				if (count == 0 || (count > 0 && !FileUtils.contentEquals(file, uniqueFiles.get(count - 1)))) {
+					DateTime ts = new DateTime();
 					List<String> auditFileList = new ArrayList<String>();
-					String newName = first.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";
+					String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";;
 					File newFile = new File(dest, newName);
-					TransferUtils.removeReturnChar(first, newFile);
-					System.out.println(newName);
-					FileTransferAuditUtil.insertRecord(CONN, source + "/" + first.getName(), newFile.getAbsolutePath(), "sftp");
+					TransferUtils.removeReturnChar(file, newFile);
+					FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newFile.getAbsolutePath(), "sftp");
 					int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "mapping");
 					fileCounter ++;
 					auditFileList.add(newFile.getAbsolutePath());
 					FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
-					DateTime ts = new DateTime();
 					FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, ts);
-					// if last two files differ, record both
-					if (i == fileList.size() - 2) {
-						auditFileList = new ArrayList<String>();
-						newName = second.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";
-						newFile = new File(dest, newName);
-						TransferUtils.removeReturnChar(second, newFile);
-						System.out.println(newName);
-						FileTransferAuditUtil.insertRecord(CONN, source + "/" + first.getName(), newFile.getAbsolutePath(), "sftp");
-						fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "mapping");
-						fileCounter ++;
-						auditFileList.add(newFile.getAbsolutePath());
-						FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
-						ts = new DateTime();
-						FileLocationUtil.setLastTimeStamp(CONN, "mapping", source, ts);
-						second.delete();
-					}
-					first.delete();
-					
+					uniqueFiles.add(newFile);
+					System.out.println(newFile.getAbsolutePath());
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
+				file.delete();
 			}
-			
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		
 		return fileCounter;
 	}
 	
