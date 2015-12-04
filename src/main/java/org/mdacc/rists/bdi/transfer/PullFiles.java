@@ -25,7 +25,6 @@ import org.mdacc.rists.bdi.dbops.FileLocationUtil;
 import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 import org.mdacc.rists.bdi.dbops.FileTransferAuditUtil;
 import org.mdacc.rists.bdi.dbops.DBConnection;
-import org.mdacc.rists.bdi.xml.WorkFlow;
 import org.mdacc.rists.bdi.xml.XmlParser;
 
 public class PullFiles {
@@ -190,7 +189,7 @@ public class PullFiles {
 					List<String> auditFileList = new ArrayList<String>();
 					String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";;
 					File newFile = new File(dest, newName);
-					TransferUtils.removeReturnChar(file, newFile);
+					TransferUtils.fixMappingFile(file, newFile);
 					FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newFile.getAbsolutePath(), "sftp");
 					int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "mapping");
 					fileCounter ++;
@@ -251,12 +250,12 @@ public class PullFiles {
 						   if (TYPE.equals("immunopath")) {
 							   newName = TransferUtils.switchExt(newName, "tsv");
 							   toPath = Paths.get(DEST, newName);
-							   PreProcessing.immunoTsv(oldPath.toFile(), toPath.toFile());
+							   TransferUtils.immunoTsv(oldPath.toFile(), toPath.toFile());
 						   }
 						   if (TYPE.equals("flowcyto")) {
 							   newName = TransferUtils.switchExt(newName, "tsv");
 							   toPath = Paths.get(DEST, newName);
-							   imtSuccess = PreProcessing.flowTsv(file, toPath.toFile());
+							   imtSuccess = TransferUtils.flowTsv(file, toPath.toFile());
 						   }
 						   if (imtSuccess == 1) {
 							   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
