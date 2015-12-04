@@ -182,9 +182,9 @@ public class PullFiles {
 		// keep distinct ones
 		List<File> uniqueFiles = new ArrayList<File>();
 		try {
-			for (File file : fileList) {		
-				int count = uniqueFiles.size();
-				if (count == 0 || (count > 0 && !FileUtils.contentEquals(file, uniqueFiles.get(count - 1)))) {
+			for (int i = 0; i < fileList.size(); i++) {		
+				File file = fileList.get(i);
+				if (i == 0 || (i > 0 && !FileUtils.contentEquals(file, fileList.get(i - 1)))) {
 					DateTime ts = new DateTime();
 					List<String> auditFileList = new ArrayList<String>();
 					String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";;
@@ -199,7 +199,11 @@ public class PullFiles {
 					uniqueFiles.add(newFile);
 					System.out.println(newFile.getAbsolutePath());
 				}
-				file.delete();
+			}
+			
+			//delete files in archive directory
+			for (File f : fileList) {
+				f.delete();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
