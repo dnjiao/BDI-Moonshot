@@ -8,17 +8,20 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.FileRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.http.HttpException;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreConnectionPNames;
 import org.joda.time.DateTime;
 import org.mdacc.rists.bdi.dbops.DBConnection;
 import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 
 public class PushFiles {
-	final static String URL_STRING = "http://10.111.100.207:8098/bdi/serviceingestion?domain=";
+	final static String URL_STRING = "http://10.113.241.55:8099/bdi/serviceingestion?domain=";
+	final static String USERNAME = "ristsvc";
+	final static String PASSWORD = "CH!M@321";
 	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction");
 	
 	public static void main(String[] args) {
@@ -50,7 +53,7 @@ public class PushFiles {
 				int rowId = rs.getInt("ROW_ID");
 				String filepath = rs.getString("FILE_URI");
 				dt = new DateTime();
-				if (pushSingle(prefix, filepath, pushFlag) == 1) {
+				if (pushSingle(prefix, USERNAME, PASSWORD, filepath, pushFlag) == 1) {
 					FileQueueUtil.updateSendStatus(conn, rowId, dt);
 					rowcount ++;
 				}
@@ -70,38 +73,48 @@ public class PushFiles {
 	/**
 	 * call Restful service and push single file
 	 * @param url - RestFul URL (destination)
+	 * @param username - username of post service
+	 * @param password - password for posting
 	 * @param filepath - Path of local file to be uploaded
 	 * @param ifReal - boolean flag for real/fake push
 	 */
-	public static int pushSingle(String prefix, String filepath, boolean ifReal) {
+	public static int pushSingle(String prefix, String username, String password, String filepath, boolean ifReal) {
 		// fake push for testing purpose
 		if (ifReal == false) {
 			System.out.println(filepath + " pushed (mock).");
 			return 1;
 		}
 		int status = 500;
-		PostMethod filePost = null;
+		HttpPost post = null;
 		try {
 			//From Directory or File we need to pick files
 			File f = new File(filepath);
 			String fileName = f.getName();
 			//Need to validate the file name from the file name
-			String url = prefix + fileName.substring(0,fileName.lastIndexOf("."));
+//			String url = prefix + fileName.substring(0,fileName.lastIndexOf("."));
+			String url = prefix + fileName;
 			System.out.println("PostMethod URL: " + url);
-			filePost = new PostMethod(url);
-			RequestEntity re = new FileRequestEntity(f,	"application/octet-stream");
-			filePost.setRequestEntity(re);
-			
+			post = new HttpPost(url);
+			// set username/password and content-type for posting
+			post.setHeader("username", username);
+			post.setHeader("password", password);
+			post.setHeader("Content-Type", "application/octet-stream");
+
 			// hard timeout after 15 sec
 			int timeout = 15;
-			HttpClient client = new HttpClient();
-			client.getHttpConnectionManager().getParams().setConnectionTimeout(timeout * 1000); 
-			client.getHttpConnectionManager().getParams().setSoTimeout(timeout * 1000);
-			status = client.executeMethod(filePost);
+			HttpClient client = new DefaultHttpClient();
+			client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout * 1000);
+		    client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, timeout * 1000);
+			HttpResponse response = client.execute(post);
+			status = response.getStatusLine().getStatusCode();
 			
 			if (status == 201) {
 				System.out.println(filepath + " uploaded to " + url + ". Status=" + Integer.toString(status));
 				return 1;
+			}
+			else if (status == 401) {
+				System.out.println("AUTHORIZATION FAILED, Check the credentials. Status= " + status);
+				return 0;
 			}
 			else if (status == 404) {
 				System.out.println("RESOURCE NOT FOUND,Check the request path. Status= " + status);
@@ -123,9 +136,6 @@ public class PushFiles {
 				System.out.println("Status=" + status);
 				return 0;
 			}
-		} catch (HttpException e) {
-			e.printStackTrace();
-			return 0;
 		} catch (IOException e) {
 			e.printStackTrace();
 			return 0;
@@ -133,9 +143,6 @@ public class PushFiles {
 			e.printStackTrace();
 			return 0;
 		} 
-		finally {
-			filePost.releaseConnection();
-		}
 
 	}
 	

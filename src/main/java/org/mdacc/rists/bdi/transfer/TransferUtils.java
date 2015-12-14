@@ -303,7 +303,7 @@ public class TransferUtils {
 	        	type = sheet.getSheetName();
 	        	
 	        	Iterator<Row> rowIterator = sheet.iterator();
-	        	int rowIndex;
+	        	int rowIndex = 0;
 	        	while (rowIterator.hasNext()) 
 	        	{
 	        		Map<String, Integer> markerMap = null;
@@ -320,9 +320,9 @@ public class TransferUtils {
 		        				readFlag = 1;
 		        				// start indexing rows - identify the second row with attribute information
 		        				rowIndex = 0;
-		        				int mrnIndex;
-		        				int tissueAccIndex;
-		        				int protocolAccIndex;
+		        				int mrnIndex = 0;
+		        				int tissueAccIndex = 0;
+		        				int protocolAccIndex = 0;
 		        				markerMap = new LinkedHashMap<String, Integer>();
 		        				Iterator<Cell> cellIterator = row.cellIterator();
 		        		        // get the list of biomarker names from first row of first sheet
@@ -396,7 +396,7 @@ public class TransferUtils {
 		        				}
 		        				
 			        			// loop thru biomarkers		        		
-			        			for (int j = 0; j < markers.size(); j ++) {
+			        			for (int j = 0; j < markerMap.size(); j ++) {
 			        				
 		    	        			cellIm = row.getCell(5 + j * 3);
 		    	        			if (cellIm != null) {
@@ -419,7 +419,7 @@ public class TransferUtils {
 		    	        			else {
 		    	        				norm = "";
 		    	        			}
-		    	        			writer.println(specimen + "\t" + mrn + "\t" + accession + "\t" + markers.get(j) + "\t" + type + "\t" + im + "\t" + ct + "\t" + norm);
+		    	        			writer.println(specimen + "\t" + mrn + "\t" + accession + "\t" + markerMap.get(j) + "\t" + type + "\t" + im + "\t" + ct + "\t" + norm);
 			    	        	}
 			        			rowIndex ++;
 		        			}
