@@ -245,7 +245,7 @@ public class PullFiles {
 						   Path fromPath = filePath;
 						   Path toPath = Paths.get(DEST, newName);
 						   Path oldPath = toPath;
-						   String cmd = "cp " + fromPath.toString() + " " + toPath.toString();				  
+						   String cmd = "cp --no-preserve=all " + fromPath.toString() + " " + toPath.toString();				  
 						   List<String> files = new ArrayList<String>();
 						   Runtime.getRuntime().exec(cmd);
 						   addDirs(srcPath);
