@@ -21,20 +21,19 @@ public class PushFiles {
 	final static String URL_STRING = "http://10.113.241.55:8099/bdi/serviceingestion?domain=";
 	final static String USERNAME = "ristsvc";
 	final static String PASSWORD = "CH!M@321";
-	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction");
+	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "splice");
 	
 	public static void main(String[] args) {
 		if (args.length != 2) {
 			System.err.println("Invalid arguments.Usage: PushFiles [type] [bool]");
 			System.exit(1);
 		}
-		String type = args[0];
+		String type = args[0].toLowerCase();
 		if (!TYPES.contains(type)) {
 			System.err.println("Invalid type to push: " + type);
 			System.exit(1);
 		}
 		boolean pushFlag = Boolean.parseBoolean(args[0]);
-		
 		String prefix = URL_STRING  + type + "&fileName=";
 		
 		Connection conn = DBConnection.getConnection();
@@ -89,10 +88,9 @@ public class PushFiles {
 			//From Directory or File we need to pick files
 			File f = new File(filepath);
 			String fileName = f.getName();
-			//Need to validate the file name from the file name
-//			String url = prefix + fileName.substring(0,fileName.lastIndexOf("."));
+
 			String url = prefix + fileName;
-			System.out.println("PostMethod URL: " + url);
+			
 			post = new HttpPost(url);
 			// set username/password and content-type for posting
 			post.setHeader("username", username);

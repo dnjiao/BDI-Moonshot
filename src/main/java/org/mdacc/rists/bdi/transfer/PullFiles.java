@@ -247,7 +247,15 @@ public class PullFiles {
 						   Path oldPath = toPath;
 						   String cmd = "cp --no-preserve=all " + fromPath.toString() + " " + toPath.toString();				  
 						   List<String> files = new ArrayList<String>();
+						   Process p = Runtime.getRuntime().exec(cmd);
+						   try {
+							   p.waitFor();
+						   } catch (InterruptedException e) {
+								e.printStackTrace();
+						   }
+						   cmd = "chmod 750 " + toPath.toString();
 						   Runtime.getRuntime().exec(cmd);
+						  
 						   addDirs(srcPath);
 						   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
 						   int imtSuccess = 1;
@@ -270,11 +278,13 @@ public class PullFiles {
 							   
 					   }
 				   }
-			      return FileVisitResult.CONTINUE;
+			   	
+				   return FileVisitResult.CONTINUE;
 			   }
 			});
 			
-    	} catch (IOException e) {
+    	}
+    	catch (IOException e) {
     		e.printStackTrace();
     	} 
     	

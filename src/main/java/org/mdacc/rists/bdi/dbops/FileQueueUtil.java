@@ -3,6 +3,7 @@ package org.mdacc.rists.bdi.dbops;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 
@@ -18,14 +19,16 @@ public class FileQueueUtil {
 	public static void main(String[] args) {
 		DateTime dt = new DateTime();
 		Connection con = DBConnection.getConnection();
-		getUnsent(con, "junction");
+		getUnsent(con, "splice");
 		
 	}
 	public static ResultSet getUnsent (Connection con, String type) {
 		CallableStatement stmt;
 		ResultSet rs = null;
+		int size=0;
 		try {
 			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unsent_file_by_type(?,?,?,?,?)}");
+			String t = TransferUtils.convertTypeStr(type);
 			stmt.setString(1, TransferUtils.convertTypeStr(type));
 			stmt.registerOutParameter(2, OracleTypes.CURSOR);
 			stmt.registerOutParameter(3, Types.VARCHAR);
@@ -35,6 +38,17 @@ public class FileQueueUtil {
 			
 			// get cursor and cast it to ResultSet
 			rs = (ResultSet) stmt.getObject(2);
+			ResultSetMetaData rsmd = rs.getMetaData();
+		    int columnsNumber = rsmd.getColumnCount();
+		    while (rs.next()) {
+		        for (int i = 1; i <= columnsNumber; i++) {
+		            if (i > 1) System.out.print(",  ");
+		            String columnValue = rs.getString(i);
+		            System.out.print(columnValue + " " + rsmd.getColumnName(i));
+		        }
+		        System.out.println("");
+		    }
+			
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -49,7 +63,7 @@ public class FileQueueUtil {
 		try {
 			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.insert_record(?,?,?,?,?,?,?)}");
 			stmt.setString(1, filepath);
-			if (type.equals("vcf") || type.equals("cnv") || type.equals("rna")) {
+			if (type.equals("vcf") || type.equals("cnv") || type.equals("gene") || type.equals("exon") || type.equals("junction")) {
 				stmt.setString(2, null);
 			}
 			else {
