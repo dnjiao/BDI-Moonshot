@@ -25,7 +25,6 @@ public class FileQueueUtil {
 	public static ResultSet getUnsent (Connection con, String type) {
 		CallableStatement stmt;
 		ResultSet rs = null;
-		int size=0;
 		try {
 			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unsent_file_by_type(?,?,?,?,?)}");
 //			String t = TransferUtils.convertTypeStr(type);
@@ -39,17 +38,17 @@ public class FileQueueUtil {
 			// get cursor and cast it to ResultSet
 			rs = (ResultSet) stmt.getObject(2);
 			
-			//DEBUG: print out ResultSet content.
-			ResultSetMetaData rsmd = rs.getMetaData();
-		    int columnsNumber = rsmd.getColumnCount();
-		    while (rs.next()) {
-		        for (int i = 1; i <= columnsNumber; i++) {
-		            if (i > 1) System.out.print(",  ");
-		            String columnValue = rs.getString(i);
-		            System.out.print(columnValue + " " + rsmd.getColumnName(i));
-		        }
-		        System.out.println("");
-		    }
+//			//DEBUG: print out ResultSet content.
+//			ResultSetMetaData rsmd = rs.getMetaData();
+//		    int columnsNumber = rsmd.getColumnCount();
+//		    while (rs.next()) {
+//		        for (int i = 1; i <= columnsNumber; i++) {
+//		            if (i > 1) System.out.print(",  ");
+//		            String columnValue = rs.getString(i);
+//		            System.out.print(columnValue + " " + rsmd.getColumnName(i));
+//		        }
+//		        System.out.println("");
+//		    }
 			
 			
 		} catch (SQLException e) {
