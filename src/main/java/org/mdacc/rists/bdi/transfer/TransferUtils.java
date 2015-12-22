@@ -7,6 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,9 +30,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class TransferUtils {
-	public static void main(String[] args) throws IOException {
-		File file1 = new File("/Users/djiao/Work/moonshot/flowcyto/2014-1031 Summary.xlsx");
-		File file2 = new File("/Users/djiao/Work/moonshot/flowcyto/2014-1031 Summary.txt");
+	public static void main(String[] args) throws IOException, URISyntaxException {
+		String path1 = "/Users/djiao/Work/moonshot/flowcyto/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx";
+		String path2 = "/Users/djiao/Work/moonshot/flowcyto/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.txt";
+		File file1 = new File(new URI("file:///"+ path1.replaceAll(" ", "%20")));
+		File file2 = new File(new URI("file:///"+ path2.replaceAll(" ", "%20")));
+		file2.createNewFile();
 		immunoTsv(file1, file2);
 	}
 	
@@ -302,14 +308,14 @@ public class TransferUtils {
 	        	int mrnIndex = -1;
 				int tissueAccIndex = -1;
 				int protocolAccIndex = -1;
+				// map of marker names (CD3, CD4, ..)
+        		Map<String, Integer> markerMap = null;
+        		// map of attributes (IM, CT, N, TZ)
+        		Map<Integer, String> attributeMap = null;
+        		
 	        	while (rowIterator.hasNext()) 
-	        	{
-	        		// map of marker names (CD3, CD4, ..)
-	        		Map<String, Integer> markerMap = null;
-	        		// map of attributes (IM, CT, N, TZ)
-	        		Map<Integer, String> attributeMap = null;
-		        	row = rowIterator.next();
-		       
+	        	{        		
+		        	row = rowIterator.next();		       
 		        	cell = row.getCell(0);
 		        	if (cell != null) {
 		        		int celltype = cell.getCellType();
@@ -374,6 +380,7 @@ public class TransferUtils {
 		        		        	colIndex ++;
 		        	            }
 			        		}
+		        			continue;
 		        		}
 		        		// read block begins
 		        		if (readFlag == 1) {
@@ -382,8 +389,6 @@ public class TransferUtils {
 		        				readFlag = 0;
 		        			}
 		        			else {
-		        				attributeMap = new LinkedHashMap<Integer, String>();
-    				
 		        				// read data rows and write out to text file		        				
 	        					// generate RIS specimen ID
 	        					specimen = "RIS" + UUID.randomUUID().toString().replaceAll("-", "");
@@ -391,7 +396,7 @@ public class TransferUtils {
 		        					cell = row.getCell(mrnIndex);
 		        					if (cell != null) {
 			        					if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
-			        						mrn = Double.toString(cell.getNumericCellValue());
+			        						mrn = Integer.toString((int)cell.getNumericCellValue());
 			        					}
 		        					}
 		        				}
@@ -400,20 +405,14 @@ public class TransferUtils {
 		        					if (cell != null) {
 		        						if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
 		        							accession = cell.getStringCellValue();
-		    		        				if (accession.lastIndexOf(' ') != (accession.length() - 1) && accession.lastIndexOf(' ') != -1) {
-		    		        					accession = accession.substring(0, accession.lastIndexOf(' '));
-		    		        				}
-		    		        				if (StringUtils.countMatches(accession, "-") == 2) {
-		    		        					accession = accession.substring(0, accession.lastIndexOf('-'));
-		    		        				}
+		    		        				
 		        						}
 		        					}
 		        					
 		        				}
 		        				
 		        				// iterate markermap, get column range for each biomarker		        				
-		        				Set markerSet = markerMap.entrySet();
-		        				Iterator<String> entryItr = markerSet.iterator();
+		        				Iterator<String> entryItr = markerMap.keySet().iterator();
 		        				String marker = entryItr.next();
 		        				int start = markerMap.get(marker);
 		        				int end = 0;
@@ -432,6 +431,8 @@ public class TransferUtils {
 		        				List<Integer> keys = new ArrayList<Integer>(attributeMap.keySet());
 		        				end = keys.get(keys.size() - 1);
 		        				dataArray =	getCellValue(row, start, end, attributeMap);
+		        				writer.println(specimen + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
+        								dataArray[0] + "\t" + dataArray[1] + "\t" + dataArray[2] + "\t" + dataArray[3]);
 		        			}
 		        		}
 		        	

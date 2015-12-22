@@ -33,7 +33,7 @@ public class PushFiles {
 			System.err.println("Invalid type to push: " + type);
 			System.exit(1);
 		}
-		boolean pushFlag = Boolean.parseBoolean(args[0]);
+		boolean pushFlag = Boolean.parseBoolean(args[1]);
 		String prefix = URL_STRING  + type + "&fileName=";
 		
 		Connection conn = DBConnection.getConnection();
