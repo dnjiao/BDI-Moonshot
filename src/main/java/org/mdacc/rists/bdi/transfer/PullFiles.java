@@ -253,7 +253,7 @@ public class PullFiles {
 						   } catch (InterruptedException e) {
 								e.printStackTrace();
 						   }
-						   cmd = "chmod 750 " + toPath.toString();
+						   cmd = "chmod 664 " + toPath.toString();
 						   Runtime.getRuntime().exec(cmd);
 						  
 						   addDirs(srcPath);

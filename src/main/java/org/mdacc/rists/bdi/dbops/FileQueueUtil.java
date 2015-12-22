@@ -19,7 +19,7 @@ public class FileQueueUtil {
 	public static void main(String[] args) {
 		DateTime dt = new DateTime();
 		Connection con = DBConnection.getConnection();
-		getUnsent(con, "cnv");
+		getUnsent(con, "exon");
 		
 	}
 	public static ResultSet getUnsent (Connection con, String type) {
@@ -39,17 +39,17 @@ public class FileQueueUtil {
 			// get cursor and cast it to ResultSet
 			rs = (ResultSet) stmt.getObject(2);
 			
-//			//DEBUG: print out ResultSet content.
-//			ResultSetMetaData rsmd = rs.getMetaData();
-//		    int columnsNumber = rsmd.getColumnCount();
-//		    while (rs.next()) {
-//		        for (int i = 1; i <= columnsNumber; i++) {
-//		            if (i > 1) System.out.print(",  ");
-//		            String columnValue = rs.getString(i);
-//		            System.out.print(columnValue + " " + rsmd.getColumnName(i));
-//		        }
-//		        System.out.println("");
-//		    }
+			//DEBUG: print out ResultSet content.
+			ResultSetMetaData rsmd = rs.getMetaData();
+		    int columnsNumber = rsmd.getColumnCount();
+		    while (rs.next()) {
+		        for (int i = 1; i <= columnsNumber; i++) {
+		            if (i > 1) System.out.print(",  ");
+		            String columnValue = rs.getString(i);
+		            System.out.print(columnValue + " " + rsmd.getColumnName(i));
+		        }
+		        System.out.println("");
+		    }
 			
 			
 		} catch (SQLException e) {

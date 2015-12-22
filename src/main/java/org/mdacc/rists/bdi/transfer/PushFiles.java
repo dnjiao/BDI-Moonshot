@@ -57,7 +57,7 @@ public class PushFiles {
 				}
 			}
 			
-			System.out.println("Total of " + Integer.toString(rowcount) + " files pushed.");
+			System.out.println("Total of " + Integer.toString(rowcount) + " " + type + " files pushed.");
 			conn.close();
 		}
 		catch (SQLException e) {
@@ -125,7 +125,7 @@ public class PushFiles {
 				System.out.println("INTERNAL SERVER ERROR. Status= " + status);
 				return 0;
 			}
-			else if (status == 504 || status == 404) {
+			else if (status == 504) {
 				System.out.println("Time out. Status= " + status);
 				return 0;
 			}
