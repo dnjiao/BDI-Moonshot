@@ -37,7 +37,8 @@ public class PullFiles {
 	static List<String> dirs = new ArrayList<String>();
 	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction", "mapping", "flowcyto", "immunopath");
 	final static Connection CONN = DBConnection.getConnection();
-	final static String DESTROOT = "/Users/djiao/Work/moonshot/data";
+//	final static String DESTROOT = "/Users/djiao/Work/moonshot/data";
+	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
 	final static String ENV = System.getenv("DEV_ENV");
 	
 	public static void main(String[] args) {

@@ -35,8 +35,8 @@ public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		//LAB02-152 Summary.xlsx
 		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
-		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2014-0862 Summary.xlsx");
-		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2014-0862 Summary.txt");
+		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx");
+		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.txt");
 		immunoTsv(file1, file2);
 	}
 	
@@ -97,6 +97,9 @@ public class TransferUtils {
 	 * @return true if a file is the type, false otherwise
 	 */
 	public static boolean isType(String filename, String type) {
+		if (filename.startsWith(".")) {
+			return false;
+		}
 		if (type.equalsIgnoreCase("vcf")) {
 			if(filename.endsWith(".vcf")) {
 				return true;
@@ -322,18 +325,16 @@ public class TransferUtils {
         		Map<String, Integer> markerMap = null;
         		// map of attributes (IM, CT, N, TZ)
         		Map<Integer, String> attributeMap = null;
- 
-        		for (int rowIndex = 0; rowIndex < sheet.getLastRowNum(); rowIndex++)
+        		for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++)
 	        	{
         			Row row = sheet.getRow(rowIndex);
-        			if (row == null) {
-        				continue;
-        			}
-		        	Cell cell = row.getCell(0);
-		        	if (cell != null) {
-		        		int celltype = cell.getCellType();
-		        		
-		        		if (readFlag == 0) {
+        			if (readFlag == 0) {
+	        			if (row == null) {
+	        				continue;
+	        			}
+			        	Cell cell = row.getCell(0);
+			        	if (cell != null) {
+			        		int celltype = cell.getCellType();
 		        			// read block starts with "ID", parse 1st row to get column names
 		        			if (celltype == Cell.CELL_TYPE_STRING && cell.getStringCellValue().equalsIgnoreCase("ID")) {
 		        				// get protocol # from 2 rows before
@@ -364,7 +365,7 @@ public class TransferUtils {
 		        				mrnIndex = -1;
 		        				tissueAccIndex = -1;
 		        				protocolAccIndex = -1;
-
+	
 		        				markerMap = new LinkedHashMap<String, Integer>();
 		        				attributeMap = new LinkedHashMap<Integer, String>();
 		        		        // get the list of biomarker names from first row
@@ -413,61 +414,79 @@ public class TransferUtils {
 		        				continue;
 		        			}
 		        		}
+        			}
+        			
 		        	
-		        		// read block begins
-		        		if (readFlag == 1) {
-		        			// read block stops at "Average"
-		        			if (celltype == Cell.CELL_TYPE_STRING && cell.getStringCellValue().equalsIgnoreCase("Average")) {
-		        				readFlag = 0;
-		        			}
-		        			else {
-		        				// read data rows and write out to text file		        				
-		        				if (mrnIndex != -1 ) {
-		        					cell = row.getCell(mrnIndex);
-		        					if (cell != null) {
-			        					if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
-			        						mrn = Integer.toString((int)cell.getNumericCellValue());
+	        		// read block begins
+	        		if (readFlag == 1) {
+	        			
+	        			// read block stops at empty row
+	        			if (row == null) {
+	        				readFlag = 0;
+	        			} 
+	        			else {
+	        				Cell cell = row.getCell(0);
+	        				// read block stops if the first cell is null
+	        				if (cell == null) {
+	        					readFlag = 0;
+	        				}
+	        				else {
+		        				int celltype = cell.getCellType();
+		        				//read block stops if the first cell is "Average"
+			        			if (celltype == Cell.CELL_TYPE_STRING && cell.getStringCellValue().equalsIgnoreCase("Average")) {
+			        				readFlag = 0;
+			        			}
+			        			else {
+			        				// read data rows and write out to text file		        				
+			        				if (mrnIndex != -1 ) {
+			        					cell = row.getCell(mrnIndex);
+			        					if (cell != null) {
+				        					if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+				        						mrn = Integer.toString((int)cell.getNumericCellValue());
+				        					}
 			        					}
-		        					}
-		        				}
-		        				if (tissueAccIndex != -1) {
-		        					cell = row.getCell(tissueAccIndex);
-		        					if (cell != null) {
-		        						if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
-		        							accession = cell.getStringCellValue();
-		    		        				
-		        						}
-		        					}
-		        					
-		        				}
-		        				
-		        				// iterate markermap, get column range for each biomarker		        				
-		        				Iterator<String> entryItr = markerMap.keySet().iterator();
-		        				String marker = entryItr.next();
-		        				int start = markerMap.get(marker);
-		        				int end = 0;
-		        				double[] dataArray = new double[4];
-		        				while (entryItr.hasNext()) {
-		        					String nextMarker = entryItr.next();
-		        					end = markerMap.get(nextMarker);
-		        					dataArray =	getCellValue(row, start, end, attributeMap);
-		        					writer.println(protocol + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
-		        								dataArray[0] + "\t" + dataArray[1] + "\t" + dataArray[2] + "\t" + dataArray[3]);
-		        					dataArray = new double[4];
-		        					marker = nextMarker;
-		        					start = markerMap.get(marker);
-		        				}
-		        				// handle the last marker
-		        				List<Integer> keys = new ArrayList<Integer>(attributeMap.keySet());
-		        				end = keys.get(keys.size() - 1) + 1;
-		        				dataArray =	getCellValue(row, start, end, attributeMap);
-		        				writer.println(protocol + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
-        								dataArray[0] + "\t" + dataArray[1] + "\t" + dataArray[2] + "\t" + dataArray[3]);
-		        			}
-		        		}
-		        	
-		        	}
-		        }
+			        				}
+			        				if (tissueAccIndex != -1) {
+			        					cell = row.getCell(tissueAccIndex);
+			        					if (cell != null) {
+			        						if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+			        							accession = cell.getStringCellValue();
+			    		        				
+			        						}
+			        					}
+			        					
+			        				}
+			        				
+			        				// iterate markermap, get column range for each biomarker		        				
+			        				Iterator<String> entryItr = markerMap.keySet().iterator();
+			        				String marker = entryItr.next();
+			        				int start = markerMap.get(marker);
+			        				int end = 0;
+			        				double[] dataArray = new double[4];
+			        				while (entryItr.hasNext()) {
+			        					String nextMarker = entryItr.next();
+			        					end = markerMap.get(nextMarker);
+			        					dataArray =	getCellValue(row, start, end, attributeMap);
+			        					writer.println(protocol + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
+			        								dataArray[0] + "\t" + dataArray[1] + "\t" + dataArray[2] + "\t" + dataArray[3]);
+			        					dataArray = new double[4];
+			        					marker = nextMarker;
+			        					start = markerMap.get(marker);
+			        				}
+			        				// handle the last marker
+			        				List<Integer> keys = new ArrayList<Integer>(attributeMap.keySet());
+			        				end = keys.get(keys.size() - 1) + 1;
+			        				dataArray =	getCellValue(row, start, end, attributeMap);
+			        				writer.println(protocol + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
+		    								dataArray[0] + "\t" + dataArray[1] + "\t" + dataArray[2] + "\t" + dataArray[3]);
+			        			}
+	        				}
+	        			
+		        			
+	        			}
+	        		}
+	        	
+	        	}
 	        
 	        }
 	        writer.close();
