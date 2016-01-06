@@ -30,14 +30,18 @@ import org.mdacc.rists.bdi.xml.XmlParser;
 public class PullFiles {
 	
 	final static DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyyHHmmss");
+	// Counter for file copied
 	static int fileCounter = 0;
+	// Counter for file converted successfully
+	static int convertCounter = 0;
 	static List<String> dirs = new ArrayList<String>();
 	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction", "mapping", "flowcyto", "immunopath");
 	final static Connection CONN = DBConnection.getConnection();
-	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
+	final static String DESTROOT = "/Users/djiao/Work/moonshot/data";
 	final static String ENV = System.getenv("DEV_ENV");
 	
 	public static void main(String[] args) {
+
 		if (args.length != 2) {
 			System.err.println("Usage: PullFiles [xml_path] [type]");
 			System.exit(1);
@@ -63,7 +67,7 @@ public class PullFiles {
 			}
 			else {
 				DateTime current = new DateTime();
-				
+			
 				for (String src : sourceList) {
 					if (!new File(src).isDirectory()) {
 						System.err.println("Source Dir " + src + " is not a directory.");
@@ -71,13 +75,13 @@ public class PullFiles {
 					else {
 						walkFiles(src, dest, type, current);
 						for (String d : dirs) {
-							System.out.println("Dir: " + d);
 							FileLocationUtil.setLastTimeStamp(CONN, type, d, current);
 						}
 					}
 				}
 			}
-			System.out.println("Total " + Integer.toString(fileCounter) + " " + type + " files pulled successfully.");
+			System.out.println(Integer.toString(fileCounter) + " " + type + " files transferred.");
+			System.out.println(Integer.toString(convertCounter) + " files preprocessed.");
 		}
 	}
 	
@@ -211,8 +215,12 @@ public class PullFiles {
 		return fileCounter;
 	}
 	
-	public static void counterMethod(){
+	public static void fileCounterMethod(){
 		fileCounter++;
+	}
+	
+	public static void convertCounterMethod(){
+		convertCounter++;
 	}
 	
 	private static void addDirs(String dirPath) {
@@ -241,41 +249,56 @@ public class PullFiles {
 					   String srcPath = file.getParent();
 					   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath);
 					   if (lastDt == null || (lastDt != null && lastDt.isBefore(file.lastModified()))) {
+						   List<String> files = new ArrayList<String>();
 						   String newName = fileName.substring(0, fileName.lastIndexOf(".")) + "_" + FORMAT.print(CURRENT) + fileName.substring(fileName.lastIndexOf("."));
 						   Path fromPath = filePath;
 						   Path toPath = Paths.get(DEST, newName);
-						   Path oldPath = toPath;
-						   String cmd = "cp --no-preserve=all " + fromPath.toString() + " " + toPath.toString();				  
-						   List<String> files = new ArrayList<String>();
-						   Process p = Runtime.getRuntime().exec(cmd);
+						   Path oldPath = toPath;						   
+						   Process p = Runtime.getRuntime().exec(new String[]{"cp", fromPath.toString(), toPath.toString()});
 						   try {
 							   p.waitFor();
 						   } catch (InterruptedException e) {
 								e.printStackTrace();
 						   }
-						   cmd = "chmod 664 " + toPath.toString();
-						   Runtime.getRuntime().exec(cmd);
-						  
-						   addDirs(srcPath);
-						   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
-						   int imtSuccess = 1;
-						   if (TYPE.equals("immunopath")) {
-							   newName = TransferUtils.switchExt(newName, "tsv");
-							   toPath = Paths.get(DEST, newName);
-							   TransferUtils.immunoTsv(oldPath.toFile(), toPath.toFile());
+						   // print out output and error running the commmand
+						   BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+						   BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+						   String outStr = null;
+						   while ((outStr = stdInput.readLine()) != null) {
+							   System.out.println(outStr);
 						   }
-						   if (TYPE.equals("flowcyto")) {
-							   newName = TransferUtils.switchExt(newName, "tsv");
-							   toPath = Paths.get(DEST, newName);
-							   imtSuccess = TransferUtils.flowTsv(file, toPath.toFile());
+						   String errStr = null;
+						   while ((errStr = stdError.readLine()) != null) {
+							   System.out.println(errStr);
 						   }
-						   if (imtSuccess == 1) {
-							   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
-							   counterMethod();
-							   files.add(toPath.toString());
-							   FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
-						   }
-							   
+						   if (toPath.toFile().exists()) {							   
+							   System.out.println("Transfer completed from " + fromPath.toString() + " to " + toPath.toString());
+							   fileCounterMethod();
+							   String cmd = "chmod 664 " + toPath.toString();
+							   Runtime.getRuntime().exec(cmd);
+							  
+							   addDirs(srcPath);
+							   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
+							   int imtSuccess = 1;
+							   if (TYPE.equals("immunopath")) {
+								   newName = TransferUtils.switchExt(newName, "tsv");
+								   toPath = Paths.get(DEST, newName);
+								   imtSuccess = TransferUtils.immunoTsv(oldPath.toFile(), toPath.toFile());
+							   }
+							   if (TYPE.equals("flowcyto")) {
+								   newName = TransferUtils.switchExt(newName, "tsv");
+								   toPath = Paths.get(DEST, newName);
+								   imtSuccess = TransferUtils.flowTsv(file, toPath.toFile());
+							   }
+							   if (imtSuccess == 1) {
+								   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
+								   convertCounterMethod();
+								   files.add(toPath.toString());
+								   FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
+							   }
+						   } else {
+							   System.out.println("Transfer not successful: " + fromPath.toString());
+						   }					   
 					   }
 				   }
 			   	

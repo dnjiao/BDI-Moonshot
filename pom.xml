@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.mda.rists</groupId>
   <artifactId>RIStore_Flow</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
   <!-- JBoss repository for Hibernate -->
   <repositories>
 	<repository>

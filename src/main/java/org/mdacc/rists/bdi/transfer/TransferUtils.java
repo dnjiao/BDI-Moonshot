@@ -35,8 +35,8 @@ public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		//LAB02-152 Summary.xlsx
 		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
-		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2014-1031 blando slide tracking- 10.30.2015.xlsx");
-		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2014-1031 blando slide tracking- 10.30.2015.txt");
+		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2014-0862 Summary.xlsx");
+		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2014-0862 Summary.txt");
 		immunoTsv(file1, file2);
 	}
 	
@@ -198,7 +198,6 @@ public class TransferUtils {
 	 * @return 0 means failure, 1 means success
 	 */
 	public static int flowTsv(File in, File out) {
-	    StringBuffer buffer = new StringBuffer();
 	    try
 	    {
 	    	BufferedReader reader = new BufferedReader(new FileReader(in));
@@ -268,7 +267,7 @@ public class TransferUtils {
 	 * @param in - immunopath result file in xls or xlsx
 	 * @param out - converted/transposed file in tsv
 	 */
-	public static void immunoTsv (File in, File out) {
+	public static int immunoTsv (File in, File out) {
 		try {
 			// flag for deletion of output file: 0 delete, 1 keep.
 			int deleteFlag = 0;
@@ -289,15 +288,15 @@ public class TransferUtils {
 					System.exit(1);
 				}
 			} catch (OutOfMemoryError e) {
-				System.err.println(in.getAbsolutePath() + " Out of memory loading spreadsheet.");
+				System.out.println(in.getAbsolutePath() + " Out of memory loading spreadsheet.");
 				out.delete();
-				return;
+				return 0;
 			}
 	        // Get the workbook object for XLS file
 			if (workbook.getNumberOfSheets() < 3) {
-				System.err.println(in.getAbsolutePath() + " Invalid number of sheets.");
+				System.out.println(in.getAbsolutePath() + " Invalid number of sheets.");
 				out.delete();
-				return;
+				return 0;
 			}
 	        // print title row
 	        writer.println("Protocol\t" + "MRN\t" + "Tissue_Acc\t" + "biomarker\t" + "type\t" + "IM\t" + "CT\t" + "N\t" + "TZ");
@@ -340,19 +339,21 @@ public class TransferUtils {
 		        				// get protocol # from 2 rows before
 		        				if (rowIndex > 2) {
 		        					Row protocolRow = sheet.getRow(rowIndex - 2);
-		        					Cell protocolCell = protocolRow.getCell(0);
-		        					// extract protocol number
-		        					if (protocolCell != null)
-		        					{
-		        						String protocolStr = protocolRow.getCell(0).getStringCellValue();
-		        						String[] splits = protocolStr.split(" ");
-		        						for (String split : splits) {
-		        							if (split.contains("-") && StringUtils.countMatches(split, "-") == 1) {
-		        								protocol = split;
-		        								break;
-		        							}
-		        						}
-
+		        					if (protocolRow != null) {
+			        					Cell protocolCell = protocolRow.getCell(0);
+			        					// extract protocol number
+			        					if (protocolCell != null)
+			        					{
+			        						String protocolStr = protocolRow.getCell(0).getStringCellValue();
+			        						String[] splits = protocolStr.split(" ");
+			        						for (String split : splits) {
+			        							if (split.contains("-") && StringUtils.countMatches(split, "-") == 1) {
+			        								protocol = split;
+			        								break;
+			        							}
+			        						}
+	
+			        					}
 		        					}
 		        				}
 		        				Row firstRow = row;
@@ -473,9 +474,11 @@ public class TransferUtils {
 	        if (deleteFlag == 0) {
 	        	System.out.println("Nothing read from " + in.getAbsolutePath());
 	        	out.delete();
+	        	return 0;
 	        }
 	        else{
-	        	System.out.println("File conversion complete. " + out.getAbsolutePath());
+	        	System.out.println("File conversion complete. " + out.getName());
+	        	return 1;
 	        }
 	        
 		} catch (FileNotFoundException e) {
@@ -483,6 +486,7 @@ public class TransferUtils {
 		} catch (IOException e) {
 	        e.printStackTrace();
 		}
+		return 1;
 	}
 
 	/** get cell value from excel row for corresponding attributes
