@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -16,6 +17,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -31,11 +33,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
-		String path1 = "/Users/djiao/Work/moonshot/flowcyto/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx";
-		String path2 = "/Users/djiao/Work/moonshot/flowcyto/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.txt";
-		File file1 = new File(new URI("file:///"+ path1.replaceAll(" ", "%20")));
-		File file2 = new File(new URI("file:///"+ path2.replaceAll(" ", "%20")));
-		file2.createNewFile();
+		//LAB02-152 Summary.xlsx
+		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
+		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2014-1031 blando slide tracking- 10.30.2015.xlsx");
+		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2014-1031 blando slide tracking- 10.30.2015.txt");
 		immunoTsv(file1, file2);
 	}
 	
@@ -269,42 +270,52 @@ public class TransferUtils {
 	 */
 	public static void immunoTsv (File in, File out) {
 		try {
+			// flag for deletion of output file: 0 delete, 1 keep.
+			int deleteFlag = 0;
 			//FileOutputStream fos = new FileOutputStream(out);
 			PrintWriter writer = new PrintWriter(out);
 			Workbook workbook = null;
 			Sheet sheet;
 			// if xls format, use HSSF, if xlsx, use XSSF
-			if (in.getName().endsWith(".xls")) {
-				workbook = new HSSFWorkbook(new FileInputStream(in));
-			}
-			else if (in.getName().endsWith(".xlsx")) {
-				workbook = new XSSFWorkbook(new FileInputStream(in));
-			}
-			else {
-				System.err.println("ERROR: " + in.getName() + " is not in xls/xlsx format.");
-				System.exit(1);
+			try {
+				if (in.getName().endsWith(".xls")) {
+					workbook = new HSSFWorkbook(new FileInputStream(in));
+				}
+				else if (in.getName().endsWith(".xlsx")) {
+					workbook = new XSSFWorkbook(new FileInputStream(in));
+				}
+				else {
+					System.err.println("ERROR: " + in.getName() + " is not in xls/xlsx format.");
+					System.exit(1);
+				}
+			} catch (OutOfMemoryError e) {
+				System.err.println(in.getAbsolutePath() + " Out of memory loading spreadsheet.");
+				out.delete();
+				return;
 			}
 	        // Get the workbook object for XLS file
-	        Cell cell;
-	        Row row;
- 
+			if (workbook.getNumberOfSheets() < 3) {
+				System.err.println(in.getAbsolutePath() + " Invalid number of sheets.");
+				out.delete();
+				return;
+			}
 	        // print title row
-	        writer.println("Specimen_ID\t" + "MRN\t" + "Tissue_Acc\t" + "biomarker\t" + "type\t" + "IM\t" + "CT\t" + "N\t" + "TZ");
+	        writer.println("Protocol\t" + "MRN\t" + "Tissue_Acc\t" + "biomarker\t" + "type\t" + "IM\t" + "CT\t" + "N\t" + "TZ");
 	        // loop thru sheets (type: Density, Percent, H-Score)
 	        for (int i = 0; i < 3; i ++) {
-	        	int readFlag = 0;
-		        String specimen = null;
+	        	// flag for reading block: 0 no read; 1 first row of title row; 2 start reading values
+	        	int readFlag = 0;	        	
+	        	String protocol = null;
 		        String mrn = null;
 		        String accession = null;
 	        	sheet = workbook.getSheetAt(i);
-	        	for(int r=0; r < sheet.getNumMergedRegions(); r++)
+	        	// remove merged cells (only backward works)
+	        	for(int r=sheet.getNumMergedRegions() - 1; r >= 0; r--)
 	        	{
-	        	    // remove merged cells
-	        	    sheet.removeMergedRegion(r);
+	        	    sheet.removeMergedRegion(r);	        	    
 	        	}
 	        	String type = sheet.getSheetName();
 	        	
-	        	Iterator<Row> rowIterator = sheet.iterator();
 	        	int mrnIndex = -1;
 				int tissueAccIndex = -1;
 				int protocolAccIndex = -1;
@@ -312,36 +323,56 @@ public class TransferUtils {
         		Map<String, Integer> markerMap = null;
         		// map of attributes (IM, CT, N, TZ)
         		Map<Integer, String> attributeMap = null;
-        		
-	        	while (rowIterator.hasNext()) 
-	        	{        		
-		        	row = rowIterator.next();		       
-		        	cell = row.getCell(0);
+ 
+        		for (int rowIndex = 0; rowIndex < sheet.getLastRowNum(); rowIndex++)
+	        	{
+        			Row row = sheet.getRow(rowIndex);
+        			if (row == null) {
+        				continue;
+        			}
+		        	Cell cell = row.getCell(0);
 		        	if (cell != null) {
 		        		int celltype = cell.getCellType();
+		        		
 		        		if (readFlag == 0) {
 		        			// read block starts with "ID", parse 1st row to get column names
 		        			if (celltype == Cell.CELL_TYPE_STRING && cell.getStringCellValue().equalsIgnoreCase("ID")) {
-		        				Row secondRow = rowIterator.next();
-		        				String[] first = rowToArray(row);
-		        				String[] second = rowToArray(secondRow);
+		        				// get protocol # from 2 rows before
+		        				if (rowIndex > 2) {
+		        					Row protocolRow = sheet.getRow(rowIndex - 2);
+		        					Cell protocolCell = protocolRow.getCell(0);
+		        					// extract protocol number
+		        					if (protocolCell != null)
+		        					{
+		        						String protocolStr = protocolRow.getCell(0).getStringCellValue();
+		        						String[] splits = protocolStr.split(" ");
+		        						for (String split : splits) {
+		        							if (split.contains("-") && StringUtils.countMatches(split, "-") == 1) {
+		        								protocol = split;
+		        								break;
+		        							}
+		        						}
+
+		        					}
+		        				}
+		        				Row firstRow = row;
+		        				rowIndex ++;
+		        				Row secondRow = sheet.getRow(rowIndex);
 		        				readFlag = 1;
+		        				deleteFlag = 1;
 		        				mrnIndex = -1;
 		        				tissueAccIndex = -1;
 		        				protocolAccIndex = -1;
 
 		        				markerMap = new LinkedHashMap<String, Integer>();
 		        				attributeMap = new LinkedHashMap<Integer, String>();
-		        				Iterator<Cell> cellIterator = row.cellIterator();
-		        		        // get the list of biomarker names from first row of first sheet
+		        		        // get the list of biomarker names from first row
 		        		        int colIndex = 0;
-		        		        while (cellIterator.hasNext()) 
+		        		        for (Cell ce : firstRow)
 		        	            {
-		        		        	cell = cellIterator.next();
 		        		        	// if cell is not empty
-		        		        	if (cell != null) {
-		        		        		
-		        		        		String cellStr = cell.getStringCellValue().toLowerCase();
+		        		        	if (ce != null) {	        		        		
+		        		        		String cellStr = ce.getStringCellValue().toLowerCase();
 		        		        		if (cellStr.startsWith("tissue acc")) {
 		        		        			tissueAccIndex = colIndex;
 		        		        		}
@@ -364,24 +395,24 @@ public class TransferUtils {
 		        		        	}
 		        		        	colIndex ++;		        		    	
 		        	            }
+		        		        
 		        		        // parse second row in each read block and retrieve attributes and their column positions.
-	        					cellIterator = secondRow.cellIterator();
 		        		        colIndex = 0;
-		        		        while (cellIterator.hasNext()) 
+		        		        for (Cell ce : secondRow)
 		        	            {
-		        		        	cell = cellIterator.next();
-		        		        	if(cell != null) {
-		        		        		if (!cell.getStringCellValue().equals("")) {
-		        		        			String cellStr = cell.getStringCellValue();
-		        		        			String str = attributeType(cellStr);
+		        		        	if(ce != null) {
+		        		        		if (!ce.getStringCellValue().equals("")) {
+		        		        			String cellStr = ce.getStringCellValue();
 			        		        		attributeMap.put(colIndex, new String(attributeType(cellStr)));	
 		        		        		}
 		        		        	}
 		        		        	colIndex ++;
 		        	            }
-			        		}
-		        			continue;
+		        		        // go to the next iteration
+		        				continue;
+		        			}
 		        		}
+		        	
 		        		// read block begins
 		        		if (readFlag == 1) {
 		        			// read block stops at "Average"
@@ -390,8 +421,6 @@ public class TransferUtils {
 		        			}
 		        			else {
 		        				// read data rows and write out to text file		        				
-	        					// generate RIS specimen ID
-	        					specimen = "RIS" + UUID.randomUUID().toString().replaceAll("-", "");
 		        				if (mrnIndex != -1 ) {
 		        					cell = row.getCell(mrnIndex);
 		        					if (cell != null) {
@@ -421,7 +450,7 @@ public class TransferUtils {
 		        					String nextMarker = entryItr.next();
 		        					end = markerMap.get(nextMarker);
 		        					dataArray =	getCellValue(row, start, end, attributeMap);
-		        					writer.println(specimen + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
+		        					writer.println(protocol + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
 		        								dataArray[0] + "\t" + dataArray[1] + "\t" + dataArray[2] + "\t" + dataArray[3]);
 		        					dataArray = new double[4];
 		        					marker = nextMarker;
@@ -429,9 +458,9 @@ public class TransferUtils {
 		        				}
 		        				// handle the last marker
 		        				List<Integer> keys = new ArrayList<Integer>(attributeMap.keySet());
-		        				end = keys.get(keys.size() - 1);
+		        				end = keys.get(keys.size() - 1) + 1;
 		        				dataArray =	getCellValue(row, start, end, attributeMap);
-		        				writer.println(specimen + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
+		        				writer.println(protocol + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
         								dataArray[0] + "\t" + dataArray[1] + "\t" + dataArray[2] + "\t" + dataArray[3]);
 		        			}
 		        		}
@@ -441,27 +470,19 @@ public class TransferUtils {
 	        
 	        }
 	        writer.close();
-	        System.out.println("File conversion complete. " + out.getAbsolutePath());
+	        if (deleteFlag == 0) {
+	        	System.out.println("Nothing read from " + in.getAbsolutePath());
+	        	out.delete();
+	        }
+	        else{
+	        	System.out.println("File conversion complete. " + out.getAbsolutePath());
+	        }
 	        
 		} catch (FileNotFoundException e) {
 	        e.printStackTrace();
 		} catch (IOException e) {
 	        e.printStackTrace();
 		}
-	}
-
-	private static String[] rowToArray(Row row) {
-		String[] array = new String[100];
-		Iterator<Cell> cellIterator = row.cellIterator();
-        int colIndex = 0;
-        Cell cell;
-        while (cellIterator.hasNext()) {
-        	cell = cellIterator.next();
-        	if (cell != null)
-        		array[colIndex] = cell.getStringCellValue();
-        	colIndex++;
-        }
-        return array;
 	}
 
 	/** get cell value from excel row for corresponding attributes
