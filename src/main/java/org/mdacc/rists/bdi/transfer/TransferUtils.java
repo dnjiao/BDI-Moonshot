@@ -4,25 +4,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -35,8 +27,8 @@ public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		//LAB02-152 Summary.xlsx
 		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
-		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx");
-		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.txt");
+		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/Melanoma_test.xlsx");
+		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/Melanoma_test.txt");
 		immunoTsv(file1, file2);
 	}
 	
@@ -227,10 +219,10 @@ public class TransferUtils {
 					metainfo = parseSampleField(items[1]);
 					panelName = parsePanelField(items[2])[2];
 					gateValues = Arrays.copyOfRange(items, 4, items.length);
-					specimen = "RIS" + UUID.randomUUID().toString().replaceAll("-", "");
-					writer.println("Specimen\tAccession\tPanelName\tProtocol\tTumor\tDate\tGateName\tGateValue");
+					
+					writer.println("Accession\tPanelName\tProtocol\tTumor\tDate\tGateName\tGateValue");
 					for (int i=0; i < gateNames.length; i++) {
-						writer.println(specimen + "\t" + metainfo[1] + "\t" + panelName + "\t" + 
+						writer.println(metainfo[1] + "\t" + panelName + "\t" + 
 								metainfo[0] + "\t" + metainfo[2] + "\t" + metainfo[3] + "\t" + gateNames[i] + "\t" + gateValues[i]);
 					}
 					break;
@@ -441,18 +433,20 @@ public class TransferUtils {
 			        				if (mrnIndex != -1 ) {
 			        					cell = row.getCell(mrnIndex);
 			        					if (cell != null) {
-				        					if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
-				        						mrn = Integer.toString((int)cell.getNumericCellValue());
-				        					}
+			        						// force cell type to string
+			        						cell.setCellType(Cell.CELL_TYPE_STRING);
+			        						mrn = cell.getStringCellValue();
+//				        					if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+//				        						mrn = Integer.toString((int)cell.getNumericCellValue());
+//				        					}
 			        					}
 			        				}
 			        				if (tissueAccIndex != -1) {
 			        					cell = row.getCell(tissueAccIndex);
 			        					if (cell != null) {
-			        						if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
-			        							accession = cell.getStringCellValue();
-			    		        				
-			        						}
+			        						// force cell type to string
+			        						cell.setCellType(Cell.CELL_TYPE_STRING);
+			        						accession = cell.getStringCellValue();
 			        					}
 			        					
 			        				}

@@ -11,6 +11,7 @@ import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.joda.time.DateTime;
@@ -86,8 +87,8 @@ public class PushFiles {
 		HttpPost post = null;
 		try {
 			//From Directory or File we need to pick files
-			File f = new File(filepath);
-			String fileName = f.getName();
+			File file = new File(filepath);
+			String fileName = file.getName();
 
 			String url = prefix + fileName;
 			
@@ -95,7 +96,9 @@ public class PushFiles {
 			// set username/password and content-type for posting
 			post.setHeader("username", username);
 			post.setHeader("password", password);
-			post.setHeader("Content-Type", "application/octet-stream");
+		
+			FileEntity entity = new FileEntity(file, "application/octet-stream");   
+			post.setEntity(entity);
 
 			// hard timeout after 15 sec
 			int timeout = 15;
