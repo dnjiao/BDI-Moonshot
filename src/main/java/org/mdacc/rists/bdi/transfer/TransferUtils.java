@@ -27,8 +27,8 @@ public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		//LAB02-152 Summary.xlsx
 		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
-		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/Melanoma_test.xlsx");
-		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/Melanoma_test.txt");
+		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/Melanoma FRZ Summary.xlsx");
+		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/Melanoma FRZ Summary.txt");
 		immunoTsv(file1, file2);
 	}
 	
@@ -220,10 +220,10 @@ public class TransferUtils {
 					panelName = parsePanelField(items[2])[2];
 					gateValues = Arrays.copyOfRange(items, 4, items.length);
 					
-					writer.println("Accession\tPanelName\tProtocol\tTumor\tDate\tGateName\tGateValue");
+					writer.println("Accession|PanelName|Protocol|Tumor|Date|GateName|GateValue");
 					for (int i=0; i < gateNames.length; i++) {
-						writer.println(metainfo[1] + "\t" + panelName + "\t" + 
-								metainfo[0] + "\t" + metainfo[2] + "\t" + metainfo[3] + "\t" + gateNames[i] + "\t" + gateValues[i]);
+						writer.println(metainfo[1] + "|" + panelName + "|" + 
+								metainfo[0] + "|" + metainfo[2] + "|" + metainfo[3] + "|" + gateNames[i] + "|" + gateValues[i]);
 					}
 					break;
 				}
@@ -294,14 +294,14 @@ public class TransferUtils {
 				return 0;
 			}
 	        // print title row
-	        writer.println("Protocol\t" + "MRN\t" + "Tissue_Acc\t" + "biomarker\t" + "type\t" + "IM\t" + "CT\t" + "N\t" + "TZ");
+	        writer.println("Protocol|MRN|Tissue_Acc|biomarker|type|IM|CT|N|TZ");
 	        // loop thru sheets (type: Density, Percent, H-Score)
 	        for (int i = 0; i < 3; i ++) {
 	        	// flag for reading block: 0 no read; 1 first row of title row; 2 start reading values
 	        	int readFlag = 0;	        	
-	        	String protocol = null;
-		        String mrn = null;
-		        String accession = null;
+	        	String protocol = "";
+		        String mrn = "";
+		        String accession = "";
 	        	sheet = workbook.getSheetAt(i);
 	        	// remove merged cells (only backward works)
 	        	for(int r=sheet.getNumMergedRegions() - 1; r >= 0; r--)
@@ -436,9 +436,7 @@ public class TransferUtils {
 			        						// force cell type to string
 			        						cell.setCellType(Cell.CELL_TYPE_STRING);
 			        						mrn = cell.getStringCellValue();
-//				        					if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
-//				        						mrn = Integer.toString((int)cell.getNumericCellValue());
-//				        					}
+
 			        					}
 			        				}
 			        				if (tissueAccIndex != -1) {
@@ -461,8 +459,8 @@ public class TransferUtils {
 			        					String nextMarker = entryItr.next();
 			        					end = markerMap.get(nextMarker);
 			        					dataArray =	getCellValue(row, start, end, attributeMap);
-			        					writer.println(protocol + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
-			        								dataArray[0] + "\t" + dataArray[1] + "\t" + dataArray[2] + "\t" + dataArray[3]);
+			        					writer.println(protocol + "|" + mrn + "|" + accession + "|" + marker + "|" + type + "|" + 
+			        								dataArray[0] + "|" + dataArray[1] + "|" + dataArray[2] + "|" + dataArray[3]);
 			        					dataArray = new double[4];
 			        					marker = nextMarker;
 			        					start = markerMap.get(marker);
@@ -471,8 +469,8 @@ public class TransferUtils {
 			        				List<Integer> keys = new ArrayList<Integer>(attributeMap.keySet());
 			        				end = keys.get(keys.size() - 1) + 1;
 			        				dataArray =	getCellValue(row, start, end, attributeMap);
-			        				writer.println(protocol + "\t" + mrn + "\t" + accession + "\t" + marker + "\t" + type + "\t" + 
-		    								dataArray[0] + "\t" + dataArray[1] + "\t" + dataArray[2] + "\t" + dataArray[3]);
+			        				writer.println(protocol + "|" + mrn + "|" + accession + "|" + marker + "|" + type + "|" + 
+		    								dataArray[0] + "|" + dataArray[1] + "|" + dataArray[2] + "|" + dataArray[3]);
 			        			}
 	        				}
 	        			

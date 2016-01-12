@@ -252,8 +252,9 @@ public class PullFiles {
 					   if (lastDt == null || (lastDt != null && lastDt.isBefore(file.lastModified()))) {
 						   List<String> files = new ArrayList<String>();
 						   String newName = fileName.substring(0, fileName.lastIndexOf(".")) + "_" + FORMAT.print(CURRENT) + fileName.substring(fileName.lastIndexOf("."));
+						   
 						   Path fromPath = filePath;
-						   Path toPath = Paths.get(DEST, newName);
+						   Path toPath = Paths.get(DEST, newName.replaceAll("'", ""));
 						   Path oldPath = toPath;						   
 						   Process p = Runtime.getRuntime().exec(new String[]{"cp", fromPath.toString(), toPath.toString()});
 						   try {
