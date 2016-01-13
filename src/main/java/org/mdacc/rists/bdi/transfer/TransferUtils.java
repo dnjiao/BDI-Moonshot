@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -27,8 +28,8 @@ public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		//LAB02-152 Summary.xlsx
 		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
-		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/Melanoma FRZ Summary.xlsx");
-		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/Melanoma FRZ Summary.txt");
+		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary_20160112.xlsx");
+		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary_20160112.txt");
 		immunoTsv(file1, file2);
 	}
 	
@@ -264,6 +265,8 @@ public class TransferUtils {
 	 */
 	public static int immunoTsv (File in, File out) {
 		try {
+			// original filename as first half of specimenID
+			String fname = out.getName().substring(0, out.getName().lastIndexOf("_"));
 			// flag for deletion of output file: 0 delete, 1 keep.
 			int deleteFlag = 0;
 			//FileOutputStream fos = new FileOutputStream(out);
@@ -294,12 +297,15 @@ public class TransferUtils {
 				return 0;
 			}
 	        // print title row
-	        writer.println("Protocol|MRN|Tissue_Acc|biomarker|type|IM|CT|N|TZ");
+	        writer.println("SpecimenID|Protocol|MRN|Tissue_Acc|biomarker|type|IM|CT|N|TZ");
 	        // loop thru sheets (type: Density, Percent, H-Score)
 	        for (int i = 0; i < 3; i ++) {
 	        	// flag for reading block: 0 no read; 1 first row of title row; 2 start reading values
-	        	int readFlag = 0;	        	
+	        	int readFlag = 0;	
 	        	String protocol = "";
+	        	if (isProtocolStr(fname.split(" ")[0])) {
+	        		protocol = fname.split(" ")[0];
+	        	}
 		        String mrn = "";
 		        String accession = "";
 	        	sheet = workbook.getSheetAt(i);
@@ -320,6 +326,7 @@ public class TransferUtils {
         		for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++)
 	        	{
         			Row row = sheet.getRow(rowIndex);
+        			String specimen = fname;
         			if (readFlag == 0) {
 	        			if (row == null) {
 	        				continue;
@@ -340,7 +347,7 @@ public class TransferUtils {
 			        						String protocolStr = protocolRow.getCell(0).getStringCellValue();
 			        						String[] splits = protocolStr.split(" ");
 			        						for (String split : splits) {
-			        							if (split.contains("-") && StringUtils.countMatches(split, "-") == 1) {
+			        							if (isProtocolStr(split)) {
 			        								protocol = split;
 			        								break;
 			        							}
@@ -429,7 +436,16 @@ public class TransferUtils {
 			        				readFlag = 0;
 			        			}
 			        			else {
-			        				// read data rows and write out to text file		        				
+			        				
+			        				// read data rows and write out to text file
+			        				// get ID, second half of specimen ID
+			        				String id = "";
+			        				cell = row.getCell(0);
+			        				if (cell != null) {
+			        					cell.setCellType(Cell.CELL_TYPE_STRING);
+			        					id = cell.getStringCellValue();
+			        					specimen = fname + "_" + id;
+			        				}
 			        				if (mrnIndex != -1 ) {
 			        					cell = row.getCell(mrnIndex);
 			        					if (cell != null) {
@@ -459,7 +475,7 @@ public class TransferUtils {
 			        					String nextMarker = entryItr.next();
 			        					end = markerMap.get(nextMarker);
 			        					dataArray =	getCellValue(row, start, end, attributeMap);
-			        					writer.println(protocol + "|" + mrn + "|" + accession + "|" + marker + "|" + type + "|" + 
+			        					writer.println(specimen + "|" + protocol + "|" + mrn + "|" + accession + "|" + marker + "|" + type + "|" + 
 			        								dataArray[0] + "|" + dataArray[1] + "|" + dataArray[2] + "|" + dataArray[3]);
 			        					dataArray = new double[4];
 			        					marker = nextMarker;
@@ -469,7 +485,7 @@ public class TransferUtils {
 			        				List<Integer> keys = new ArrayList<Integer>(attributeMap.keySet());
 			        				end = keys.get(keys.size() - 1) + 1;
 			        				dataArray =	getCellValue(row, start, end, attributeMap);
-			        				writer.println(protocol + "|" + mrn + "|" + accession + "|" + marker + "|" + type + "|" + 
+			        				writer.println(specimen + "|" + protocol + "|" + mrn + "|" + accession + "|" + marker + "|" + type + "|" + 
 		    								dataArray[0] + "|" + dataArray[1] + "|" + dataArray[2] + "|" + dataArray[3]);
 			        			}
 	        				}
@@ -498,6 +514,13 @@ public class TransferUtils {
 	        e.printStackTrace();
 		}
 		return 1;
+	}
+
+	private static boolean isProtocolStr(String str) {
+		if (str.length() < 15 && str.contains("-") && StringUtils.countMatches(str, "-") == 1) {
+			return true;
+		}
+		return false;
 	}
 
 	/** get cell value from excel row for corresponding attributes
