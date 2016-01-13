@@ -30,7 +30,7 @@ public class TransferUtils {
 		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
 		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary_20160112.xlsx");
 		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary_20160112.txt");
-		immunoTsv(file1, file2);
+		immunoPsv(file1, file2);
 	}
 	
 	/**
@@ -193,7 +193,7 @@ public class TransferUtils {
 	 * @param out - converted file in tsv
 	 * @return 0 means failure, 1 means success
 	 */
-	public static int flowTsv(File in, File out) {
+	public static int flowPsv(File in, File out) {
 	    try
 	    {
 	    	BufferedReader reader = new BufferedReader(new FileReader(in));
@@ -263,7 +263,7 @@ public class TransferUtils {
 	 * @param in - immunopath result file in xls or xlsx
 	 * @param out - converted/transposed file in tsv
 	 */
-	public static int immunoTsv (File in, File out) {
+	public static int immunoPsv (File in, File out) {
 		try {
 			// original filename as first half of specimenID
 			String fname = out.getName().substring(0, out.getName().lastIndexOf("_"));

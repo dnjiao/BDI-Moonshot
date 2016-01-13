@@ -283,14 +283,14 @@ public class PullFiles {
 							   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
 							   int imtSuccess = 1;
 							   if (TYPE.equals("immunopath")) {
-								   newName = TransferUtils.switchExt(newName, "tsv");
+								   newName = TransferUtils.switchExt(newName, "psv");
 								   toPath = Paths.get(DEST, newName);
-								   imtSuccess = TransferUtils.immunoTsv(oldPath.toFile(), toPath.toFile());
+								   imtSuccess = TransferUtils.immunoPsv(oldPath.toFile(), toPath.toFile());
 							   }
 							   if (TYPE.equals("flowcyto")) {
-								   newName = TransferUtils.switchExt(newName, "tsv");
+								   newName = TransferUtils.switchExt(newName, "psv");
 								   toPath = Paths.get(DEST, newName);
-								   imtSuccess = TransferUtils.flowTsv(file, toPath.toFile());
+								   imtSuccess = TransferUtils.flowPsv(file, toPath.toFile());
 							   }
 							   if (imtSuccess == 1) {
 								   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
