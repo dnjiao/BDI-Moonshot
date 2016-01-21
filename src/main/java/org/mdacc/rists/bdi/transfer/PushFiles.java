@@ -46,7 +46,10 @@ public class PushFiles {
 			// counter of successfully pushed files
 			int rowcount = 0;
 			DateTime dt;
-			
+			if (rs == null) {
+				System.out.println("No " + type + " files to push.");
+				return;
+			}
 			// loop thru results
 			while (rs.next()) {
 				int rowId = rs.getInt("ROW_ID");
