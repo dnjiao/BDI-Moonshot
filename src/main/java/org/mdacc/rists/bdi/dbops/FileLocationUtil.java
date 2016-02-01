@@ -45,7 +45,7 @@ public class FileLocationUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.registerOutParameter(7, Types.VARCHAR);
 			stmt.executeUpdate();
-			
+			System.out.println("Calling procedure FILE_LOCATION_UTIL.upsert_last_copy_ts.");
 			int ret = stmt.getInt(4);
 			// if update/insert is not success, print out error description
 			if (ret == 0) {
@@ -75,6 +75,7 @@ public class FileLocationUtil {
 			stmt.registerOutParameter(5, Types.VARCHAR);
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.executeUpdate();
+			System.out.println("Calling procedure FILE_LOCATION_UTIL.get_last_copy_ts.");
 			dtStr = stmt.getString(3);
 			if (dtStr != null) {
 				dt = FORMATTER.parseDateTime(dtStr);

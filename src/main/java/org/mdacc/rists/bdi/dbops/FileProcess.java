@@ -42,6 +42,7 @@ public class FileProcess {
 			stmt.registerOutParameter(8, Types.VARCHAR);
 			stmt.registerOutParameter(9, Types.VARCHAR);
 			stmt.executeUpdate();
+			System.out.println("Calling procedure FILE_PROCESS.load_file.");
 //			System.out.println("Error code: " + stmt.getString(7));
 //			System.out.println("Error description: " + stmt.getString(8));
 //			System.out.println("Error trace: " + stmt.getString(9));

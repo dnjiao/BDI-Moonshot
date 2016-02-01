@@ -36,6 +36,7 @@ public class FileTransferAuditUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.registerOutParameter(7, Types.VARCHAR);
 			stmt.executeUpdate();
+			System.out.println("Calling procedure FILE_TRANSFER_AUDIT_UTIL.insert_record.");
 			ret = stmt.getInt(4);
 			if (ret == 0) {
 				System.out.println(stmt.getString(6));
@@ -64,6 +65,7 @@ public class FileTransferAuditUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			
 			stmt.execute();
+			System.out.println("Calling procedure FILE_TRANSFER_AUDIT_UTIL.update_file_queue_id with queueID " + fileQueueId);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);

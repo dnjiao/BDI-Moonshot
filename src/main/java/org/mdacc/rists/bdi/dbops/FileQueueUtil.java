@@ -34,6 +34,7 @@ public class FileQueueUtil {
 			stmt.registerOutParameter(4, Types.VARCHAR);
 			stmt.registerOutParameter(5, Types.VARCHAR);
 			stmt.executeUpdate();
+			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_unsent_file_by_type for type " + type);
 			
 			// get cursor and cast it to ResultSet
 			rs = (ResultSet) stmt.getObject(2);
@@ -76,7 +77,7 @@ public class FileQueueUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.registerOutParameter(7, Types.VARCHAR);
 			stmt.executeUpdate();
-			
+			System.out.println("Calling procedure FILE_QUEUE_UTIL.insert_record for type " + type);
 			queueId = stmt.getInt(4);
 			// if update/insert is not success, print out error description
 			if (queueId == 0) {
@@ -91,6 +92,7 @@ public class FileQueueUtil {
 		}
 		return queueId;
 	}
+	
 	public static void updateSendStatus (Connection con, int rowId, DateTime dt) {
 		DateTimeFormatter formatter = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 		String dtStr = formatter.print(dt);
@@ -104,6 +106,7 @@ public class FileQueueUtil {
 			stmt.registerOutParameter(5, Types.VARCHAR);
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.executeUpdate();
+			System.out.println("Calling procedure FILE_QUEUE_UTIL.update_send_status.");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);
