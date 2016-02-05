@@ -143,7 +143,20 @@ public class PullFiles {
 		for (File file : files) {
 			if (TransferUtils.isMapping(file)) {
 				if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
-					fileList.add(file);
+					String lastFilePath = FileQueueUtil.getLatestFile(CONN, dest);
+					if (lastFilePath != null) {
+						File lastFile = new File(lastFilePath);
+						try {
+							if (!FileUtils.contentEquals(file, lastFile)) {
+								fileList.add(file);
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+					else {
+						fileList.add(file);
+					}
 				}
 				else {
 					file.delete();
@@ -290,12 +303,13 @@ public class PullFiles {
 							   if (TYPE.equals("flowcyto")) {
 								   newName = TransferUtils.switchExt(newName, "psv");
 								   toPath = Paths.get(DEST, newName);
-								   imtSuccess = TransferUtils.flowPsv(file, toPath.toFile());
+								   imtSuccess = TransferUtils.flowPsv(oldPath.toFile(), toPath.toFile());
 							   }
+							   
 							   if (imtSuccess == 1) {
 								   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
 								   convertCounterMethod();
-								   files.add(toPath.toString());
+								   files.add(oldPath.toString());
 								   FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
 							   }
 						   } else {

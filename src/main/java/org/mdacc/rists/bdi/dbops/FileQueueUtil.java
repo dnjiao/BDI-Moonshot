@@ -19,8 +19,7 @@ public class FileQueueUtil {
 	public static void main(String[] args) {
 		DateTime dt = new DateTime();
 		Connection con = DBConnection.getConnection();
-		getUnsent(con, "exon");
-		
+		System.out.println(getLatestFile(con, "/rsrch1/rists/moonshot/data/dev/mapping"));
 	}
 	public static ResultSet getUnsent (Connection con, String type) {
 		CallableStatement stmt;
@@ -111,5 +110,26 @@ public class FileQueueUtil {
 			e.printStackTrace();
 			System.exit(1);
 		}
+	}
+	
+	public static String getLatestFile (Connection con, String path) {
+		CallableStatement stmt;
+		String fileuri = null;
+		try {
+			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_latest_file_by_location(?,?,?,?,?)}");
+			stmt.setString(1, path);
+			stmt.registerOutParameter(2, Types.VARCHAR);
+			stmt.registerOutParameter(3, Types.VARCHAR);
+			stmt.registerOutParameter(4, Types.VARCHAR);
+			stmt.registerOutParameter(5, Types.VARCHAR);
+			
+			stmt.executeUpdate();
+			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_latest_file_by_location.");
+			fileuri = stmt.getString(2);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		return fileuri;
 	}
 }

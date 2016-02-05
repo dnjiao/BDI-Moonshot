@@ -28,8 +28,8 @@ public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		//LAB02-152 Summary.xlsx
 		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
-		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary_20160112.xlsx");
-		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary_20160112.txt");
+		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2013-0252 Summary.xlsx");
+		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2013-0252 Summary.txt");
 		immunoPsv(file1, file2);
 	}
 	
@@ -205,7 +205,7 @@ public class TransferUtils {
 			String[] gateValues = new String[0];
 			String[] metainfo = new String[0];
 			String panelName = "";
-			String specimen = "";
+			String sampleId = "";
 			while ((line = reader.readLine()) != null) {
 				lineno++;
 				String[] items = line.split(",");
@@ -218,12 +218,13 @@ public class TransferUtils {
 				}
 				if (lineno == 2) {
 					metainfo = parseSampleField(items[1]);
+					sampleId = StringUtils.join(metainfo, "-"); 
 					panelName = parsePanelField(items[2])[2];
 					gateValues = Arrays.copyOfRange(items, 4, items.length);
 					
-					writer.println("Accession|PanelName|Protocol|Tumor|Date|GateName|GateValue");
+					writer.println("SampleID|Accession|PanelName|Protocol|TumorCollection|CollectionDate|GateName|GateValue");
 					for (int i=0; i < gateNames.length; i++) {
-						writer.println(metainfo[1] + "|" + panelName + "|" + 
+						writer.println(sampleId + "|" + metainfo[1] + "|" + panelName + "|" + 
 								metainfo[0] + "|" + metainfo[2] + "|" + metainfo[3] + "|" + gateNames[i] + "|" + gateValues[i]);
 					}
 					break;
@@ -265,7 +266,9 @@ public class TransferUtils {
 	 */
 	public static int immunoPsv (File in, File out) {
 		try {
-			// original filename as first half of specimenID
+			// original filename as first half of specimenID 
+			// "_" is added to the filename after the transfer 
+			// for testing purpose, change "_" to "."
 			String fname = out.getName().substring(0, out.getName().lastIndexOf("_"));
 			// flag for deletion of output file: 0 delete, 1 keep.
 			int deleteFlag = 0;
