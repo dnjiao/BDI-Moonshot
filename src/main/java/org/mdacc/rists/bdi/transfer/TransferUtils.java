@@ -99,7 +99,7 @@ public class TransferUtils {
 			}
 		}
 		if (type.equalsIgnoreCase("cnv")) {
-			if (filename.contains(".segList") && filename.endsWith(".tsv")) {
+			if (filename.contains("segList") && filename.endsWith(".tsv")) {
 				return true;
 			}
 		}

@@ -37,7 +37,6 @@ public class PullFiles {
 	static List<String> dirs = new ArrayList<String>();
 	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction", "mapping", "flowcyto", "immunopath");
 	final static Connection CONN = DBConnection.getConnection();
-//	final static String DESTROOT = "/Users/djiao/Work/moonshot/data";
 	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
 	final static String ENV = System.getenv("DEV_ENV");
 	
@@ -143,20 +142,7 @@ public class PullFiles {
 		for (File file : files) {
 			if (TransferUtils.isMapping(file)) {
 				if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
-					String lastFilePath = FileQueueUtil.getLatestFile(CONN, dest);
-					if (lastFilePath != null) {
-						File lastFile = new File(lastFilePath);
-						try {
-							if (!FileUtils.contentEquals(file, lastFile)) {
-								fileList.add(file);
-							}
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-					else {
-						fileList.add(file);
-					}
+					fileList.add(file);
 				}
 				else {
 					file.delete();
@@ -166,8 +152,7 @@ public class PullFiles {
 			else {
 				file.delete();
 				System.out.println(file.getAbsolutePath() + " is not a valid mapping file.");
-			}
-				
+			}	
 		}
 		
 		// sort files based on original timestamp
@@ -197,12 +182,22 @@ public class PullFiles {
 
 		});
 		
-		// keep distinct ones
-		List<File> uniqueFiles = new ArrayList<File>();
 		try {
+			// get path of last mapping file transferred
+			String latestFilePath = FileTransferAuditUtil.getLatestFile(CONN, "mapping");
+			Boolean latestBool = false;
+			if (latestFilePath != null) {
+				File latestFile = new File(latestFilePath);
+				latestBool = FileUtils.contentEquals(fileList.get(0), latestFile);
+			}
+			
+			// keep distinct ones
+			List<File> uniqueFiles = new ArrayList<File>();
+		
 			for (int i = 0; i < fileList.size(); i++) {		
 				File file = fileList.get(i);
-				if (i == 0 || (i > 0 && !FileUtils.contentEquals(file, fileList.get(i - 1)))) {
+				// compare content of first file with last file from last batch; compare adjacent two files for the current batch
+				if (i == 0 && !latestBool || i > 0 && !FileUtils.contentEquals(file, fileList.get(i - 1))) {
 					DateTime ts = new DateTime();
 					List<String> auditFileList = new ArrayList<String>();
 					String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";;
