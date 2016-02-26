@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.POIXMLException;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -278,18 +279,29 @@ public class TransferUtils {
 			Sheet sheet;
 			// if xls format, use HSSF, if xlsx, use XSSF
 			try {
-				if (in.getName().endsWith(".xls")) {
-					workbook = new HSSFWorkbook(new FileInputStream(in));
-				}
-				else if (in.getName().endsWith(".xlsx")) {
-					workbook = new XSSFWorkbook(new FileInputStream(in));
+				String iFileName = in.getName();
+				if (Character.isLetterOrDigit(iFileName.charAt(0))) {
+					if (in.getName().endsWith(".xls")) {
+						workbook = new HSSFWorkbook(new FileInputStream(in));
+					}
+					else if (in.getName().endsWith(".xlsx")) {
+						workbook = new XSSFWorkbook(new FileInputStream(in));
+					}
+					else {
+						System.err.println("ERROR: " + in.getName() + " is not in xls/xlsx format.");
+						System.exit(1);
+					}
 				}
 				else {
-					System.err.println("ERROR: " + in.getName() + " is not in xls/xlsx format.");
-					System.exit(1);
+					System.out.println("Invalid filename " + in.getName());
 				}
+				
 			} catch (OutOfMemoryError e) {
 				System.out.println(in.getAbsolutePath() + " Out of memory loading spreadsheet.");
+				out.delete();
+				return 0;
+			} catch (POIXMLException e) {
+				System.out.println(in.getAbsolutePath() + " cannot be loaded due to invalid format.");
 				out.delete();
 				return 0;
 			}
@@ -571,13 +583,10 @@ public class TransferUtils {
 							array[3] = cell.getNumericCellValue();
 						}
 					}
-				}
-				
+				}	
 			}
-			
 		}
 		return array;
-		
 	}
 
 	private static String attributeType(String cellStr) {

@@ -19,6 +19,7 @@ public class FileQueueUtil {
 	public static void main(String[] args) {
 		DateTime dt = new DateTime();
 		Connection con = DBConnection.getConnection();
+		getUnsent(con, "vcf");
 		
 	}
 	public static ResultSet getUnsent (Connection con, String type) {
@@ -49,7 +50,7 @@ public class FileQueueUtil {
 //		        }
 //		        System.out.println("");
 //		    }
-			
+//			
 			
 		} catch (SQLException e) {
 			e.printStackTrace();

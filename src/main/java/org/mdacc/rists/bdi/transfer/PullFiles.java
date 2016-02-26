@@ -155,6 +155,13 @@ public class PullFiles {
 			}	
 		}
 		
+		// if no new files found, return 0
+		if (fileList.size() == 0) {
+			System.out.println("No new files found since last transfer.");
+			return 0;
+		}
+		
+		
 		// sort files based on original timestamp
 		Collections.sort(fileList, new Comparator<File>() {
 			@Override
@@ -187,18 +194,21 @@ public class PullFiles {
 			String latestFilePath = FileTransferAuditUtil.getLatestFile(CONN, "mapping");
 			Boolean latestBool = false;
 			if (latestFilePath != null) {
+				System.out.println("The last file pulled: " + latestFilePath);
+				System.out.println(fileList.get(0).getAbsolutePath());
 				File latestFile = new File(latestFilePath);
 				latestBool = FileUtils.contentEquals(fileList.get(0), latestFile);
 			}
 			
+			
 			// keep distinct ones
 			List<File> uniqueFiles = new ArrayList<File>();
-		
+			DateTime ts = null;
 			for (int i = 0; i < fileList.size(); i++) {		
 				File file = fileList.get(i);
 				// compare content of first file with last file from last batch; compare adjacent two files for the current batch
 				if (i == 0 && !latestBool || i > 0 && !FileUtils.contentEquals(file, fileList.get(i - 1))) {
-					DateTime ts = new DateTime();
+					ts = new DateTime();
 					List<String> auditFileList = new ArrayList<String>();
 					String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";;
 					File newFile = new File(dest, newName);
@@ -213,6 +223,7 @@ public class PullFiles {
 					System.out.println(newFile.getAbsolutePath());
 				}
 			}
+			
 			
 			//delete files in archive directory
 			for (File f : fileList) {
@@ -284,8 +295,8 @@ public class PullFiles {
 						   if (toPath.toFile().exists()) {							   
 							   System.out.println("Transfer completed from " + fromPath.toString() + " to " + toPath.toString());
 							   fileCounterMethod();
-							   String cmd = "chmod 664 " + toPath.toString();
-							   Runtime.getRuntime().exec(cmd);
+							   System.out.println("Changing permission for " + toPath.toString());
+							   Runtime.getRuntime().exec(new String[]{"chmod", "664", toPath.toString()});			
 							  
 							   addDirs(srcPath);
 							   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");

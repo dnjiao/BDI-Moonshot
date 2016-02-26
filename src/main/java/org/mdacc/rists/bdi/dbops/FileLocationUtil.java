@@ -75,8 +75,9 @@ public class FileLocationUtil {
 			stmt.registerOutParameter(5, Types.VARCHAR);
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.executeUpdate();
-			System.out.println("Calling procedure FILE_LOCATION_UTIL.get_last_copy_ts.");
+			
 			dtStr = stmt.getString(3);
+			System.out.println("Last timestamp for " + type + " from " + path + ": " + dtStr);
 			if (dtStr != null) {
 				dt = FORMATTER.parseDateTime(dtStr);
 			}
