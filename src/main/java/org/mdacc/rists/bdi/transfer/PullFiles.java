@@ -263,64 +263,65 @@ public class PullFiles {
 			   {
 				   File file = filePath.toFile();
 				   String fileName = filePath.getFileName().toString();		
-				   
-				   if (TransferUtils.isType(fileName, TYPE)) {	
-//					   System.out.println(fileName + " " + TYPE);
-					   String srcPath = file.getParent();
-					   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath);
-					   if (lastDt == null || (lastDt != null && lastDt.isBefore(file.lastModified()))) {
-						   List<String> files = new ArrayList<String>();
-						   String newName = fileName.substring(0, fileName.lastIndexOf(".")) + "_" + FORMAT.print(CURRENT) + fileName.substring(fileName.lastIndexOf("."));
-						   newName=newName.replaceAll("'", "");
-						   Path fromPath = filePath;
-						   Path toPath = Paths.get(DEST, newName);
-						   Path oldPath = toPath;						   
-						   Process p = Runtime.getRuntime().exec(new String[]{"cp", fromPath.toString(), toPath.toString()});
-						   try {
-							   p.waitFor();
-						   } catch (InterruptedException e) {
-								e.printStackTrace();
-						   }
-						   // print out output and error running the commmand
-						   BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-						   BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-						   String outStr = null;
-						   while ((outStr = stdInput.readLine()) != null) {
-							   System.out.println(outStr);
-						   }
-						   String errStr = null;
-						   while ((errStr = stdError.readLine()) != null) {
-							   System.out.println(errStr);
-						   }
-						   if (toPath.toFile().exists()) {							   
-							   System.out.println("Transfer completed from " + fromPath.toString() + " to " + toPath.toString());
-							   fileCounterMethod();
-							   System.out.println("Changing permission for " + toPath.toString());
-							   Runtime.getRuntime().exec(new String[]{"chmod", "664", toPath.toString()});			
-							  
-							   addDirs(srcPath);
-							   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
-							   int imtSuccess = 1;
-							   if (TYPE.equals("immunopath")) {
-								   newName = TransferUtils.switchExt(newName, "psv");
-								   toPath = Paths.get(DEST, newName);
-								   imtSuccess = TransferUtils.immunoPsv(oldPath.toFile(), toPath.toFile());
+				   if(!file.isHidden()) {  // exclude hidden files
+					   if (TransferUtils.isType(fileName, TYPE)) {	
+	//					   System.out.println(fileName + " " + TYPE);
+						   String srcPath = file.getParent();
+						   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath);
+						   if (lastDt == null || (lastDt != null && lastDt.isBefore(file.lastModified()))) {
+							   List<String> files = new ArrayList<String>();
+							   String newName = fileName.substring(0, fileName.lastIndexOf(".")) + "_" + FORMAT.print(CURRENT) + fileName.substring(fileName.lastIndexOf("."));
+							   newName=newName.replaceAll("'", "");
+							   Path fromPath = filePath;
+							   Path toPath = Paths.get(DEST, newName);
+							   Path oldPath = toPath;						   
+							   Process p = Runtime.getRuntime().exec(new String[]{"cp", fromPath.toString(), toPath.toString()});
+							   try {
+								   p.waitFor();
+							   } catch (InterruptedException e) {
+									e.printStackTrace();
 							   }
-							   if (TYPE.equals("flowcyto")) {
-								   newName = TransferUtils.switchExt(newName, "psv");
-								   toPath = Paths.get(DEST, newName);
-								   imtSuccess = TransferUtils.flowPsv(oldPath.toFile(), toPath.toFile());
+							   // print out output and error running the commmand
+							   BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+							   BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+							   String outStr = null;
+							   while ((outStr = stdInput.readLine()) != null) {
+								   System.out.println(outStr);
 							   }
-							   
-							   if (imtSuccess == 1) {
-								   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
-								   convertCounterMethod();
-								   files.add(oldPath.toString());
-								   FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
+							   String errStr = null;
+							   while ((errStr = stdError.readLine()) != null) {
+								   System.out.println(errStr);
 							   }
-						   } else {
-							   System.out.println("Transfer not successful: " + fromPath.toString());
-						   }					   
+							   if (toPath.toFile().exists()) {							   
+								   System.out.println("Transfer completed from " + fromPath.toString() + " to " + toPath.toString());
+								   fileCounterMethod();
+								   System.out.println("Changing permission for " + toPath.toString());
+								   Runtime.getRuntime().exec(new String[]{"chmod", "664", toPath.toString()});			
+								  
+								   addDirs(srcPath);
+								   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
+								   int imtSuccess = 1;
+								   if (TYPE.equals("immunopath")) {
+									   newName = TransferUtils.switchExt(newName, "psv");
+									   toPath = Paths.get(DEST, newName);
+									   imtSuccess = TransferUtils.immunoPsv(oldPath.toFile(), toPath.toFile());
+								   }
+								   if (TYPE.equals("flowcyto")) {
+									   newName = TransferUtils.switchExt(newName, "psv");
+									   toPath = Paths.get(DEST, newName);
+									   imtSuccess = TransferUtils.flowPsv(oldPath.toFile(), toPath.toFile());
+								   }
+								   
+								   if (imtSuccess == 1) {
+									   int fileQueueId = FileQueueUtil.insertRecord(CONN, toPath.toString(), TYPE);
+									   convertCounterMethod();
+									   files.add(oldPath.toString());
+									   FileTransferAuditUtil.updateFileQueueId(CONN, files, fileQueueId);
+								   }
+							   } else {
+								   System.out.println("Transfer not successful: " + fromPath.toString());
+							   }					   
+						   }
 					   }
 				   }
 			   	

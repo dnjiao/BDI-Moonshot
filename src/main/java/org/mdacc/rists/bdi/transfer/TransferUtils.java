@@ -29,9 +29,8 @@ public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		//LAB02-152 Summary.xlsx
 		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
-		File file1 = new File("/Users/djiao/Work/moonshot/immunopath/2013-0252 Summary.xlsx");
-		File file2 = new File("/Users/djiao/Work/moonshot/immunopath/2013-0252 Summary.txt");
-		immunoPsv(file1, file2);
+		String filename = "IMT048 - 0004.xlsx";
+		System.out.println(isType(filename, "immunopath"));
 	}
 	
 	/**
@@ -91,7 +90,7 @@ public class TransferUtils {
 	 * @return true if a file is the type, false otherwise
 	 */
 	public static boolean isType(String filename, String type) {
-		if (filename.startsWith(".")) {
+		if (!filename.matches("^[a-zA-Z0-9](.*)")) {
 			return false;
 		}
 		if (type.equalsIgnoreCase("vcf")) {
