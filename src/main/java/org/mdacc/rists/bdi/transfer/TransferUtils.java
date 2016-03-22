@@ -128,6 +128,16 @@ public class TransferUtils {
 				return true;
 			}
 		}
+		if (type.equalsIgnoreCase("foundation")) {
+			if (filename.startsWith("TRF") && filename.endsWith(".xml")) {
+				return true;
+			}
+		}
+		if (type.equalsIgnoreCase("validation")) {
+			if (filename.startsWith("TransmissionSummary") && filename.endsWith(".csv")) {
+				return true;
+			}
+		}
 		return false;
 	}
 	

@@ -2,13 +2,21 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.mda.rists</groupId>
   <artifactId>RIStore_Flow</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.4</version>
   <!-- JBoss repository for Hibernate -->
   <repositories>
 	<repository>
 		<id>JBoss repository</id>
 		<url>http://repository.jboss.org/nexus/content/groups/public/</url>
 	</repository>
+	<repository>
+  	  	<snapshots>
+        	<enabled>false</enabled>
+      	</snapshots>
+      	<id>central</id>
+      	<name>repo</name>
+      	<url>http://risdevtool01p.mdanderson.edu:8081/artifactory/repo</url>
+    </repository>
   </repositories>
   <dependencies>
   	<dependency>
@@ -71,8 +79,14 @@
 		<artifactId>hibernate-core</artifactId>
 		<version>5.0.1.Final</version>
 	</dependency>
-
+	<dependency>
+	  	<groupId>org.mdacc.ris.notificationclient</groupId>
+		<artifactId>notification_client</artifactId>
+		<version>1.1</version>
+		<scope>provided</scope>
+	</dependency>	
   </dependencies>
+
   <build>
   	<plugins>
   		<plugin>

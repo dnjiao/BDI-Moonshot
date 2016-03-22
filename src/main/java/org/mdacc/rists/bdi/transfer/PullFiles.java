@@ -2,6 +2,7 @@ package org.mdacc.rists.bdi.transfer;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.FileVisitResult;
@@ -17,6 +18,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -64,6 +66,10 @@ public class PullFiles {
 			String dest = DESTROOT + "/" + ENV + "/" + type;
 			if (type.equalsIgnoreCase("mapping")) {
 				PullMappingFiles(dest);
+			}
+			else if (type.equalsIgnoreCase("foundation")) {
+				PullValidationFiles(dest);
+				PullFoundationFiles(dest);
 			}
 			else {
 				DateTime current = new DateTime();
@@ -159,8 +165,7 @@ public class PullFiles {
 		if (fileList.size() == 0) {
 			System.out.println("No new files found since last transfer.");
 			return 0;
-		}
-		
+		}		
 		
 		// sort files based on original timestamp
 		Collections.sort(fileList, new Comparator<File>() {
@@ -186,7 +191,6 @@ public class PullFiles {
 					}
 				}
 			}
-
 		});
 		
 		try {
@@ -199,7 +203,6 @@ public class PullFiles {
 				File latestFile = new File(latestFilePath);
 				latestBool = FileUtils.contentEquals(fileList.get(0), latestFile);
 			}
-			
 			
 			// keep distinct ones
 			List<File> uniqueFiles = new ArrayList<File>();
@@ -223,8 +226,7 @@ public class PullFiles {
 					System.out.println(newFile.getAbsolutePath());
 				}
 			}
-			
-			
+		
 			//delete files in archive directory
 			for (File f : fileList) {
 				f.delete();
@@ -248,6 +250,173 @@ public class PullFiles {
 			dirs.add(dirPath);
 	}
 
+	/**
+	 * Download foundation medicine files from ftp server, validate.
+	 * @param dest - data directory for foundation medicine in RIStore
+	 */
+	private static void PullFoundationFiles(String dest) {
+		// call bash script to transfer mapping files by sftp
+		try {
+			File archive = new File(dest, "archive");
+			if (!archive.exists()) {
+				System.out.println("Creating folder " + archive.getAbsolutePath());
+				archive.mkdir();
+			}
+			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found.sh", dest + "/archive"};
+//			String[] cmd = new String[]{"rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine " + dest + "/archive"};
+			String source = "ftp.mdanderson.org";
+			
+			Process p = Runtime.getRuntime().exec(cmd);
+			String line;
+			
+			// stdout and stderr of bash script
+			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			while ((line = in.readLine()) != null) {
+				System.out.println(line);
+			}
+			BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			while ((line = err.readLine()) != null) {
+				System.out.println(line);
+			}
+			p.waitFor();
+			in.close();
+			err.close();
+			// process files and keep only the new ones since last pull
+			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "foundation", source);
+			System.out.println("last_ts for foundation: " + lastTS);
+			
+			File[] files = archive.listFiles();
+			List<File> fileList = new ArrayList<File>();
+			// delete older files
+			for (File file : files) {
+				if (TransferUtils.isType(file.getName(), "foundation")) {
+					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
+						fileList.add(file);
+						fileCounter ++;
+					}
+					else {
+						file.delete();
+					}
+				}
+				else {
+					file.delete();
+				}	
+			}
+			
+			DateTime current = new DateTime();
+			// process foundation files
+			for (File file : fileList) {
+				// generate md5 checksum
+				FileInputStream fis = new FileInputStream(file);
+				String md5 = DigestUtils.md5Hex(fis);
+				
+				// add validation code here
+				
+				
+				List<String> auditFileList = new ArrayList<String>();
+				String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".xml";;
+				File newFile = new File(dest, newName);
+				//copy file to out of archive folder
+				Files.copy(file.toPath(), newFile.toPath());
+				FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newFile.getAbsolutePath(), "sftp");
+				int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "foundation");
+				fileCounter ++;
+				auditFileList.add(newFile.getAbsolutePath());
+				FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
+				FileLocationUtil.setLastTimeStamp(CONN, "foundation", source, current);
+				System.out.println(newFile.getAbsolutePath());
+				// delete file from archive dir
+				file.delete();
+			}
+			
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	
+	/**
+	 *  Pull validation files for Foundation from ftp server
+	 * @param dest - data directory for foundation medicine in RIStore
+	 */
+	private static void PullValidationFiles(String dest) {
+		try {
+			int counter = 0;
+			// create directory 'validation' under foundation data dir if not exists
+			File valDir = new File(dest, "validation");
+			if (!valDir.exists()) {
+				System.out.println("Creating folder " + valDir.getAbsolutePath());
+				valDir.mkdir();
+			}
+			
+			// run bash script to download validation files from ftp server
+			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found-val.sh", dest + "/validation"};
+
+			// capture stdout and stderr from running bash script
+			Process p = Runtime.getRuntime().exec(cmd);
+			String line;
+			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			while ((line = in.readLine()) != null) {
+				System.out.println(line);
+			}
+			BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			while ((line = err.readLine()) != null) {
+				System.out.println(line);
+			}
+			p.waitFor();
+			in.close();
+			err.close();
+			
+			// process files and keep only the new ones since last pull
+			String source = "ftp.mdanderson.org";
+			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "validation", source);
+			System.out.println("last_ts for foundation validation: " + lastTS);
+			
+			File[] files = valDir.listFiles();
+			List<File> fileList = new ArrayList<File>();
+			// delete older files
+			for (File file : files) {
+				if (TransferUtils.isType(file.getName(), "validation")) {
+					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
+						fileList.add(file);
+						counter ++;
+					}
+					else {
+						file.delete();
+					}
+				}
+				else {
+					file.delete();
+				}	
+			}
+			
+			// process validation files
+			DateTime current = new DateTime();
+			for (File file : fileList) {
+				List<String> auditFileList = new ArrayList<String>();
+				String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".csv";;
+				File newFile = new File(dest, newName);
+				// mv (rename) old file to new file
+				file.renameTo(newFile);
+				FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newFile.getAbsolutePath(), "sftp");
+				int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "validation");
+				counter ++;
+				auditFileList.add(newFile.getAbsolutePath());
+				FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
+				FileLocationUtil.setLastTimeStamp(CONN, "validation", source, current);
+
+			}
+			System.out.println(Integer.toString(counter) + " foundation validation files transferred.");
+			
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 
 	public static void walkFiles(String source, String dest, String type, DateTime current) {		
     	Path top = Paths.get(source);
