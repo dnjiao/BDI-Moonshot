@@ -27,7 +27,7 @@ import org.mdacc.rists.bdi.dbops.FileLocationUtil;
 import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 import org.mdacc.rists.bdi.dbops.FileTransferAuditUtil;
 import org.mdacc.rists.bdi.dbops.DBConnection;
-import org.mdacc.rists.bdi.xml.XmlParser;
+import org.mdacc.rists.bdi.utils.ParseXMLFile;
 
 public class PullFiles {
 	
@@ -58,7 +58,7 @@ public class PullFiles {
 			System.exit(1);
 		}
 		
-		List<String> sourceList = XmlParser.readXML(args[0], args[1]);
+		List<String> sourceList = ParseXMLFile.readXML(args[0], args[1]);
 		if (sourceList == null) {
 			System.err.println("No sources for " + args[1] + " in " + args[0]);
 			System.exit(1);
@@ -311,7 +311,9 @@ public class PullFiles {
 				String md5 = DigestUtils.md5Hex(fis);
 				
 				// add validation code here
-				
+				// parse files pass validation
+				// load to database
+			
 				
 				List<String> auditFileList = new ArrayList<String>();
 				String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".xml";;

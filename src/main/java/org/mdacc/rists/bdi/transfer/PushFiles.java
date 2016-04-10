@@ -103,8 +103,8 @@ public class PushFiles {
 			FileEntity entity = new FileEntity(file, "application/octet-stream");   
 			post.setEntity(entity);
 
-			// hard timeout after 15 sec
-			int timeout = 15;
+			// hard timeout after 30 sec
+			int timeout = 30;
 			HttpClient client = new DefaultHttpClient();
 			client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout * 1000);
 		    client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, timeout * 1000);

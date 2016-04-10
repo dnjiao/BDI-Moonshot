@@ -282,7 +282,6 @@ public class TransferUtils {
 			String fname = out.getName().substring(0, out.getName().lastIndexOf("_"));
 			// flag for deletion of output file: 0 delete, 1 keep.
 			int deleteFlag = 0;
-			//FileOutputStream fos = new FileOutputStream(out);
 			PrintWriter writer = new PrintWriter(out);
 			Workbook workbook = null;
 			Sheet sheet;
@@ -379,6 +378,7 @@ public class TransferUtils {
 	
 			        					}
 		        					}
+		        					
 		        				}
 		        				Row firstRow = row;
 		        				rowIndex ++;
@@ -499,6 +499,9 @@ public class TransferUtils {
 			        					String nextMarker = entryItr.next();
 			        					end = markerMap.get(nextMarker);
 			        					dataArray =	getCellValue(row, start, end, attributeMap);
+			        					if (protocol == "") {
+			        						protocol = in.getName().split(" ")[0];
+			        					}
 			        					writer.println(specimen + "|" + protocol + "|" + mrn + "|" + accession + "|" + marker + "|" + type + "|" + 
 			        								dataArray[0] + "|" + dataArray[1] + "|" + dataArray[2] + "|" + dataArray[3]);
 			        					dataArray = new double[4];
