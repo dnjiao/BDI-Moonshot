@@ -8,6 +8,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.mdacc.rists.bdi.models.FoundationXML;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -18,16 +19,23 @@ public class ParseXMLFile {
 		File file = new File(args[0]);
 		FmXMLParser(file);
 	}
-	private static void FmXMLParser(File file) throws Exception {
-		
+	private static FoundationXML FmXMLParser(File file) throws Exception {
+		FoundationXML fmXml = new FoundationXML();
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		Document doc = builder.parse(file);
 		Node finalReport = getNode("FinalReport", doc.getDocumentElement().getChildNodes());
-		Node sample = getNode("Sample", finalReport.getChildNodes());
+		NodeList childNodes = finalReport.getChildNodes();
+		Node sample = getNode("Sample", childNodes);
 		NodeList sampleNodes = sample.getChildNodes();
-		System.out.println(getNodeValue("SampleId", sampleNodes));
-
+		fmXml.setSampleId(getNodeValue("SampleId", sampleNodes));
+		fmXml.setFmId(getNodeValue("FM_Id", sampleNodes));
+		Node pmi = getNode("PMI", childNodes);
+		NodeList pmiNodes = pmi.getChildNodes();
+		fmXml.setReportId(getNodeValue("ReportId", pmiNodes));
+		fmXml.setMrn(getNodeValue("MRN", pmiNodes));
+		fmXml.setDiagnosis(getNodeValue("SubmittedDiagnosis", pmiNodes));
+		return fmXml;
 	}
 	private static Node getNode(String tagName, NodeList nodes) {
 	    for ( int x = 0; x < nodes.getLength(); x++ ) {

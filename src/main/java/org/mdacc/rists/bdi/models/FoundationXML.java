@@ -15,6 +15,8 @@ public class FoundationXML {
 		this.mrn = mrn;
 		this.diagnosis = diagnosis;
 	}
+	public FoundationXML() {
+	}
 	public String getReportId() {
 		return reportId;
 	}
