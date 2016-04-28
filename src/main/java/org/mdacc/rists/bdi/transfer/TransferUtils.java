@@ -24,13 +24,14 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.mdacc.rists.bdi.models.FoundationXML;
+import org.mdacc.rists.bdi.utils.ParseXML;
 
 public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
-		//LAB02-152 Summary.xlsx
-		//2009-0135, 2009-0322, 2005-0027, 2006-0080 Summary.xlsx
-		String filename = "IMT048 - 0004.xlsx";
-		System.out.println(isType(filename, "immunopath"));
+		File in = new File("/Users/djiao/Box Sync/Work/Projects/RIStore/foundation/foundation_new/TRF133672_1455294493597.xml");
+		File out = new File("/Users/djiao/Box Sync/Work/Projects/RIStore/foundation/foundation_new/TRF133672_1455294493597.psv");
+		foundationPsv(in, out);
 	}
 	
 	/**
@@ -69,7 +70,7 @@ public class TransferUtils {
 			case "flowcyto":
 				return "Flow Cytometry";
 			case "mapping":
-				return "MRN Mapping";
+				return "CGL Specimen";
 			case "gene":
 				return "RNASeq Gene Counts";
 			case "exon":
@@ -78,6 +79,12 @@ public class TransferUtils {
 				return "RNASeq Junction Counts";
 			case "splice":
 				return "RNASeq Junction Counts";
+			case "fm-xml":
+				return "FM";
+			case "fm-val":
+				return "FM Validation";
+			case "fm-psv":
+				return "FM Specimen";
 			default:
 				System.err.println("Invalid file type: " + type);
 				return null;
@@ -128,13 +135,13 @@ public class TransferUtils {
 				return true;
 			}
 		}
-		if (type.equalsIgnoreCase("foundation")) {
+		if (type.equalsIgnoreCase("fm-xml")) {
 			if (filename.startsWith("TRF") && filename.endsWith(".xml")) {
 				return true;
 			}
 		}
-		if (type.equalsIgnoreCase("validation")) {
-			if (filename.startsWith("TransmissionSummary") && filename.endsWith(".csv")) {
+		if (type.equalsIgnoreCase("fm-val")) {
+			if (filename.startsWith("summary") && filename.endsWith(".csv")) {
 				return true;
 			}
 		}
@@ -195,6 +202,24 @@ public class TransferUtils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	/**
+	 * Extract a few sample info fields from xml and save as psv
+	 * @param in - XML file
+	 * @param out - psv file
+	 */
+	public static void foundationPsv(File in, File out) {
+		try {
+			FoundationXML xml = ParseXML.FmXMLParser(in);
+			PrintWriter writer = new PrintWriter(out);
+			writer.println("ReportId|SampleId|FmId|Mrn|Diagnosis");
+			writer.println(xml.getReportId() + "|" + xml.getSampleId() + "|" + xml.getFmId() + "|"
+					+ xml.getMrn() + "|" + xml.getDiagnosis());
+			writer.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	/**

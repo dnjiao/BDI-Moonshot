@@ -22,6 +22,30 @@ public class FileQueueUtil {
 		getUnsent(con, "vcf");
 		
 	}
+	
+	public static ResultSet getUnvalidated (Connection con, String type) {
+		CallableStatement stmt;
+		ResultSet rs = null;
+		try {
+			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_invalid_file_by_type(?,?,?,?,?)}");
+			stmt.setString(1, TransferUtils.convertTypeStr(type));
+			stmt.registerOutParameter(2, OracleTypes.CURSOR);
+			stmt.registerOutParameter(3, Types.VARCHAR);
+			stmt.registerOutParameter(4, Types.VARCHAR);
+			stmt.registerOutParameter(5, Types.VARCHAR);
+			stmt.executeUpdate();
+			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_invalid_file_by_type for type " + type);
+			
+			// get cursor and cast it to ResultSet
+			rs = (ResultSet) stmt.getObject(2);
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		return rs;
+	}
+	
 	public static ResultSet getUnsent (Connection con, String type) {
 		CallableStatement stmt;
 		ResultSet rs = null;

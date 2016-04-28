@@ -16,7 +16,7 @@ public class FileProcess {
 	}
 	public static void loader (String type) {
 		Connection conn = DBConnection.getConnection();
-		String[] arr = new String[6];
+		String[] arr = new String[9];
 		if (type.equals("vcf"))
 			arr[0] = "Y";
 		if (type.equals("cnv"))
@@ -33,14 +33,21 @@ public class FileProcess {
 			arr[4] = "Y";
 		if (type.equals("mapping"))
 			arr[5] = "Y";
+		if (type.equals("fm-xml"))
+			arr[6] = "Y";
+		if (type.equals("fm-val"))
+			arr[7] = "Y";
+		if (type.equals("fm-psv")) {
+			arr[8] = "Y";
+		}
 		try {
-			CallableStatement stmt = conn.prepareCall("{call FILE_PROCESS.load_file(?,?,?,?,?,?,?,?,?)}");
-			for (int i = 1; i < 7; i ++) {
+			CallableStatement stmt = conn.prepareCall("{call FILE_PROCESS.load_file(?,?,?,?,?,?,?,?,?,?,?,?)}");
+			for (int i = 1; i < 10; i ++) {
 				stmt.setString(i, arr[i - 1]);
 			}
-			stmt.registerOutParameter(7, Types.VARCHAR);
-			stmt.registerOutParameter(8, Types.VARCHAR);
-			stmt.registerOutParameter(9, Types.VARCHAR);
+			stmt.registerOutParameter(10, Types.VARCHAR);
+			stmt.registerOutParameter(11, Types.VARCHAR);
+			stmt.registerOutParameter(12, Types.VARCHAR);
 			stmt.executeUpdate();
 			System.out.println("Calling procedure FILE_PROCESS.load_file.");
 //			System.out.println("Error code: " + stmt.getString(7));

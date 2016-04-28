@@ -2,7 +2,6 @@ package org.mdacc.rists.bdi.transfer;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.FileVisitResult;
@@ -18,7 +17,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -27,7 +25,9 @@ import org.mdacc.rists.bdi.dbops.FileLocationUtil;
 import org.mdacc.rists.bdi.dbops.FileQueueUtil;
 import org.mdacc.rists.bdi.dbops.FileTransferAuditUtil;
 import org.mdacc.rists.bdi.dbops.DBConnection;
-import org.mdacc.rists.bdi.utils.ParseXMLFile;
+import org.mdacc.rists.bdi.dbops.FileChecksumUtil;
+import org.mdacc.rists.bdi.utils.GenChecksum;
+import org.mdacc.rists.bdi.utils.ParseXML;
 
 public class PullFiles {
 	
@@ -37,41 +37,51 @@ public class PullFiles {
 	// Counter for file converted successfully
 	static int convertCounter = 0;
 	static List<String> dirs = new ArrayList<String>();
-	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction", "mapping", "flowcyto", "immunopath");
+	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction", "mapping", "flowcyto", "immunopath", "fm-val", "fm-xml");
 	final static Connection CONN = DBConnection.getConnection();
 	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
 	final static String ENV = System.getenv("DEV_ENV");
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 
-		if (args.length != 2) {
-			System.err.println("Usage: PullFiles [xml_path] [type]");
+		if (args.length != 1 && args.length != 2) {
+			System.err.println("Usage: PullFiles [type] (optional: [xml_path])");
 			System.exit(1);
 		}
-		if (!new File(args[0]).exists()) {
-			System.err.println("File " + args[0] + " does not exist.");
-			System.exit(1);
-		}
-		String type = args[1].toLowerCase();
+		
+		String type = args[0].toLowerCase();
 		if (!TYPES.contains(type)) {
 			System.err.println("Invalid type.");
 			System.exit(1);
 		}
 		
-		List<String> sourceList = ParseXMLFile.readXML(args[0], args[1]);
-		if (sourceList == null) {
-			System.err.println("No sources for " + args[1] + " in " + args[0]);
-			System.exit(1);
-		} else {
-			String dest = DESTROOT + "/" + ENV + "/" + type;
-			if (type.equalsIgnoreCase("mapping")) {
-				PullMappingFiles(dest);
+		String dest = DESTROOT + "/" + ENV + "/" + type;
+		// no need for conf xml with sources for the following 3 types
+		if (type.equalsIgnoreCase("mapping")) {
+			PullMappingFiles(dest);
+		}
+		else if (type.equalsIgnoreCase("fm-val")) {
+			dest = DESTROOT + "/" + ENV + "/foundation/validation";
+			PullFMValFiles(dest);
+		}
+		else if (type.equalsIgnoreCase("fm-xml")) {
+			dest = DESTROOT + "/" + ENV + "/foundation/xml";
+			PullFMXmlFiles(dest);
+		}
+		else {
+			if (args.length != 2) {
+				System.err.println("Source xml file is missing.");
+				System.exit(1);
 			}
-			else if (type.equalsIgnoreCase("foundation")) {
-				PullValidationFiles(dest);
-				PullFoundationFiles(dest);
+			if (!new File(args[1]).exists()) {
+				System.err.println("File " + args[1] + " does not exist.");
+				System.exit(1);
 			}
-			else {
+			List<String> sourceList = ParseXML.readSourceXML(args[0], args[1]);
+			if (sourceList == null) {
+				System.err.println("No sources for " + args[0] + " in " + args[1]);
+				System.exit(1);
+			} else {
 				DateTime current = new DateTime();
 			
 				for (String src : sourceList) {
@@ -86,9 +96,9 @@ public class PullFiles {
 					}
 				}
 			}
-			System.out.println(Integer.toString(fileCounter) + " " + type + " files transferred.");
-			System.out.println(Integer.toString(convertCounter) + " files preprocessed.");
 		}
+		System.out.println(Integer.toString(fileCounter) + " " + type + " files transferred.");
+		System.out.println(Integer.toString(convertCounter) + " files preprocessed.");
 	}
 	
 	
@@ -254,7 +264,7 @@ public class PullFiles {
 	 * Download foundation medicine files from ftp server, validate.
 	 * @param dest - data directory for foundation medicine in RIStore
 	 */
-	private static void PullFoundationFiles(String dest) {
+	private static void PullFMXmlFiles(String dest) {
 		// call bash script to transfer mapping files by sftp
 		try {
 			File archive = new File(dest, "archive");
@@ -262,9 +272,10 @@ public class PullFiles {
 				System.out.println("Creating folder " + archive.getAbsolutePath());
 				archive.mkdir();
 			}
-			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found.sh", dest + "/archive"};
-//			String[] cmd = new String[]{"rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine " + dest + "/archive"};
+//			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found-xml.sh", dest + "/archive"};
+			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/*.xml " + archive.getAbsolutePath()};
 			String source = "ftp.mdanderson.org";
+			System.out.println(cmd);
 			
 			Process p = Runtime.getRuntime().exec(cmd);
 			String line;
@@ -276,23 +287,22 @@ public class PullFiles {
 			}
 			BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 			while ((line = err.readLine()) != null) {
-				System.out.println(line);
+				System.err.println(line);
 			}
 			p.waitFor();
 			in.close();
 			err.close();
 			// process files and keep only the new ones since last pull
-			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "foundation", source);
-			System.out.println("last_ts for foundation: " + lastTS);
+			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "fm-xml", source);
+			System.out.println("last_ts for foundation xml: " + lastTS);
 			
 			File[] files = archive.listFiles();
 			List<File> fileList = new ArrayList<File>();
 			// delete older files
 			for (File file : files) {
-				if (TransferUtils.isType(file.getName(), "foundation")) {
+				if (TransferUtils.isType(file.getName(), "fm-xml")) {
 					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
 						fileList.add(file);
-						fileCounter ++;
 					}
 					else {
 						file.delete();
@@ -300,33 +310,38 @@ public class PullFiles {
 				}
 				else {
 					file.delete();
-				}	
+				}
 			}
 			
 			DateTime current = new DateTime();
 			// process foundation files
 			for (File file : fileList) {
-				// generate md5 checksum
-				FileInputStream fis = new FileInputStream(file);
-				String md5 = DigestUtils.md5Hex(fis);
-				
-				// add validation code here
-				// parse files pass validation
-				// load to database
-			
 				
 				List<String> auditFileList = new ArrayList<String>();
-				String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".xml";;
-				File newFile = new File(dest, newName);
+				String newXMLName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".xml";
+				File newXMLFile = new File(dest, newXMLName);
 				//copy file to out of archive folder
-				Files.copy(file.toPath(), newFile.toPath());
-				FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newFile.getAbsolutePath(), "sftp");
-				int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "foundation");
-				fileCounter ++;
-				auditFileList.add(newFile.getAbsolutePath());
-				FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
-				FileLocationUtil.setLastTimeStamp(CONN, "foundation", source, current);
-				System.out.println(newFile.getAbsolutePath());
+				Files.copy(file.toPath(), newXMLFile.toPath());
+				FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newXMLFile.getAbsolutePath(), "sftp");
+				
+				//validation
+				String md5 = GenChecksum.getMd5(newXMLFile);
+				System.out.println("Validating " + newXMLFile.getAbsolutePath() + " with checksum " + md5);
+				int isValidated = FileChecksumUtil.ValidateChecksum(newXMLFile.getAbsolutePath(), md5, "FM");
+				System.out.println("validation return " + Integer.toString(isValidated));
+				if (isValidated > 0) {
+					auditFileList.clear();				
+					
+					// convert xml to psv with limited fields
+					String newPSVName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".psv";
+					File newPSVFile = new File(dest, newPSVName);
+					TransferUtils.foundationPsv(newXMLFile, newPSVFile);
+					int fileQueueId = FileQueueUtil.insertRecord(CONN, newPSVFile.getAbsolutePath(), "fm-xml");
+					fileCounter ++;
+					auditFileList.add(newPSVFile.getAbsolutePath());
+					FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
+					FileLocationUtil.setLastTimeStamp(CONN, "fm-xml", source, current);
+				}
 				// delete file from archive dir
 				file.delete();
 			}
@@ -343,18 +358,20 @@ public class PullFiles {
 	 *  Pull validation files for Foundation from ftp server
 	 * @param dest - data directory for foundation medicine in RIStore
 	 */
-	private static void PullValidationFiles(String dest) {
+	private static void PullFMValFiles(String dest) {
 		try {
 			int counter = 0;
-			// create directory 'validation' under foundation data dir if not exists
-			File valDir = new File(dest, "validation");
-			if (!valDir.exists()) {
-				System.out.println("Creating folder " + valDir.getAbsolutePath());
-				valDir.mkdir();
+			// create directory 'archive' under foundation-validation dir if not existed
+			File archive = new File(dest, "archive");
+			if (!archive.exists()) {
+				System.out.println("Creating folder " + archive.getAbsolutePath());
+				archive.mkdir();
 			}
 			
 			// run bash script to download validation files from ftp server
-			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found-val.sh", dest + "/validation"};
+//			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found-val.sh", dest};
+			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/*.csv " + archive.getAbsolutePath()};
+			System.out.println(cmd);
 
 			// capture stdout and stderr from running bash script
 			Process p = Runtime.getRuntime().exec(cmd);
@@ -365,7 +382,7 @@ public class PullFiles {
 			}
 			BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 			while ((line = err.readLine()) != null) {
-				System.out.println(line);
+				System.err.println(line);
 			}
 			p.waitFor();
 			in.close();
@@ -373,17 +390,16 @@ public class PullFiles {
 			
 			// process files and keep only the new ones since last pull
 			String source = "ftp.mdanderson.org";
-			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "validation", source);
+			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "fm-val", source);
 			System.out.println("last_ts for foundation validation: " + lastTS);
 			
-			File[] files = valDir.listFiles();
+			File[] files = archive.listFiles();
 			List<File> fileList = new ArrayList<File>();
 			// delete older files
 			for (File file : files) {
-				if (TransferUtils.isType(file.getName(), "validation")) {
+				if (TransferUtils.isType(file.getName(), "fm-val")) {
 					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
 						fileList.add(file);
-						counter ++;
 					}
 					else {
 						file.delete();
@@ -398,17 +414,18 @@ public class PullFiles {
 			DateTime current = new DateTime();
 			for (File file : fileList) {
 				List<String> auditFileList = new ArrayList<String>();
-				String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".csv";;
-				File newFile = new File(dest, newName);
-				// mv (rename) old file to new file
-				file.renameTo(newFile);
-				FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newFile.getAbsolutePath(), "sftp");
-				int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "validation");
+				String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".csv";
+				File newValFile = new File(dest, newName);
+				Files.copy(file.toPath(), newValFile.toPath());
+				System.out.println(file.getAbsolutePath() + " copied to " + newValFile.getAbsolutePath());
+				FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newValFile.getAbsolutePath(), "sftp");
+				
+				int fileQueueId = FileQueueUtil.insertRecord(CONN, newValFile.getAbsolutePath(), "fm-val");
 				counter ++;
-				auditFileList.add(newFile.getAbsolutePath());
+				auditFileList.add(newValFile.getAbsolutePath());
 				FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
-				FileLocationUtil.setLastTimeStamp(CONN, "validation", source, current);
-
+				FileLocationUtil.setLastTimeStamp(CONN, "fm-val", source, current);
+				file.delete();
 			}
 			System.out.println(Integer.toString(counter) + " foundation validation files transferred.");
 			

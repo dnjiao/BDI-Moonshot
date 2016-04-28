@@ -4,7 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class RunProcedure {
+public class RunReport {
 	
 	public static void main(String[] args) {
 		Connection con = DBConnection.getConnection();
