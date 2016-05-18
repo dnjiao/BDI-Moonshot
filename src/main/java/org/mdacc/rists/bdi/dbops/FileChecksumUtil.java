@@ -8,7 +8,8 @@ import java.sql.Types;
 public class FileChecksumUtil {
 	public static void main(String[] args) {
 		ValidateChecksum("/rsrch1/rists/moonshot/data/dev/foundation/xml/TRF092336_1460044637142.xml", 
-				"c8ea3cff5f9085e8705bbebca6374ced", "FM");
+				"20201ff2c3ba7465c3b72b6f6d7a3cc6", "FM");
+			//	c8ea3cff5f9085e8705bbebca6374ced
 	}
 	
 	public static int ValidateChecksum(String filepath, String checksum, String type) {
