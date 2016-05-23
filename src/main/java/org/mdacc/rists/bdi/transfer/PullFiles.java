@@ -272,7 +272,7 @@ public class PullFiles {
 				archive.mkdir();
 			}
 //			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found-xml.sh", dest + "/archive"};
-			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/*.xml " + archive.getAbsolutePath()};
+			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/test/*.xml " + archive.getAbsolutePath()};
 			String source = "ftp.mdanderson.org";
 			System.out.println(cmd);
 			
@@ -332,12 +332,12 @@ public class PullFiles {
 					auditFileList.clear();				
 					
 					// convert xml to psv with limited fields
-					String newPSVName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".psv";
-					File newPSVFile = new File(dest, newPSVName);
-					TransferUtils.foundationPsv(newXMLFile, newPSVFile);
-					int fileQueueId = FileQueueUtil.insertRecord(CONN, newPSVFile.getAbsolutePath(), "fm-xml");
+//					String newPSVName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".psv";
+//					File newPSVFile = new File(dest, newPSVName);
+//					TransferUtils.foundationPsv(newXMLFile, newPSVFile);
+					int fileQueueId = FileQueueUtil.insertRecord(CONN, newXMLFile.getAbsolutePath(), "fm-xml");
 					fileCounter ++;
-					auditFileList.add(newPSVFile.getAbsolutePath());
+					auditFileList.add(newXMLFile.getAbsolutePath());
 					FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
 					FileLocationUtil.setLastTimeStamp(CONN, "fm-xml", source, current);
 				}
@@ -369,7 +369,7 @@ public class PullFiles {
 			
 			// run bash script to download validation files from ftp server
 //			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found-val.sh", dest};
-			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/*.csv " + archive.getAbsolutePath()};
+			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/test/*.csv " + archive.getAbsolutePath()};
 			System.out.println(cmd);
 
 			// capture stdout and stderr from running bash script
