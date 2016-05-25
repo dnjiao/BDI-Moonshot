@@ -136,6 +136,4 @@ public class FileQueueUtil {
 			System.exit(1);
 		}
 	}
-	
-
 }

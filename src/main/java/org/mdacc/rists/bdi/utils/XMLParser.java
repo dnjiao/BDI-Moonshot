@@ -9,14 +9,14 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.mdacc.rists.bdi.models.FoundationXML;
+import org.mdacc.rists.bdi.fm.models.FoundationXML;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class ParseXML {
+public class XMLParser {
 	public static void main(String[] args) throws Exception{
 		File file = new File(args[0]);
 		System.out.println(getAltPropName(file));
@@ -80,7 +80,7 @@ public class ParseXML {
 		return fmXml;
 	}
 	
-	private static Node getNode(String tagName, NodeList nodes) {
+	public static Node getNode(String tagName, NodeList nodes) {
 	    for ( int x = 0; x < nodes.getLength(); x++ ) {
 	        Node node = nodes.item(x);
 	        if (node.getNodeName().equalsIgnoreCase(tagName)) {
@@ -89,7 +89,7 @@ public class ParseXML {
 	    }
 	    return null;
 	}
-	private static List<Node> getNodes(String tagName, NodeList nodes) {
+	public static List<Node> getNodes(String tagName, NodeList nodes) {
 		List<Node> nodeList = new ArrayList<Node>();
 	    for ( int i = 0; i < nodes.getLength(); i++ ) {
 	    	if (nodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
@@ -103,7 +103,7 @@ public class ParseXML {
 	    return nodeList;
 	}
 	 
-	private static String getNodeValue(Node node) {
+	public static String getNodeValue(Node node) {
 	    NodeList childNodes = node.getChildNodes();
 	    for (int x = 0; x < childNodes.getLength(); x++ ) {
 	        Node data = childNodes.item(x);
@@ -113,7 +113,7 @@ public class ParseXML {
 	    return "";
 	}
 	 
-	private static String getNodeValue(String tagName, NodeList nodes ) {
+	public static String getNodeValue(String tagName, NodeList nodes ) {
 	    for ( int x = 0; x < nodes.getLength(); x++ ) {
 	        Node node = nodes.item(x);
 	        if (node.getNodeName().equalsIgnoreCase(tagName)) {
@@ -127,7 +127,7 @@ public class ParseXML {
 	    }
 	    return "";
 	}
-	private static List<String> getNodeValues(String tagName, NodeList nodes ) {
+	public static List<String> getNodeValues(String tagName, NodeList nodes ) {
 		List<String> valueList = new ArrayList<String>();
 	    for ( int x = 0; x < nodes.getLength(); x++ ) {
 	        Node node = nodes.item(x);
@@ -143,7 +143,7 @@ public class ParseXML {
 	    return valueList;
 	}
 	 
-	private static String getNodeAttr(String attrName, Node node) {
+	public static String getNodeAttr(String attrName, Node node) {
 	    NamedNodeMap attrs = node.getAttributes();
 	    for (int y = 0; y < attrs.getLength(); y++ ) {
 	        Node attr = attrs.item(y);
@@ -154,7 +154,7 @@ public class ParseXML {
 	    return "";
 	}
 	 
-	private static String getNodeAttr(String tagName, String attrName, NodeList nodes) {
+	public static String getNodeAttr(String tagName, String attrName, NodeList nodes) {
 	    for ( int x = 0; x < nodes.getLength(); x++ ) {
 	        Node node = nodes.item(x);
 	        if (node.getNodeName().equalsIgnoreCase(tagName)) {

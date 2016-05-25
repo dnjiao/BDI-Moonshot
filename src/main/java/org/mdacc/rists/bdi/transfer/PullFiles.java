@@ -27,7 +27,7 @@ import org.mdacc.rists.bdi.dbops.FileTransferAuditUtil;
 import org.mdacc.rists.bdi.dbops.DBConnection;
 import org.mdacc.rists.bdi.dbops.FileChecksumUtil;
 import org.mdacc.rists.bdi.utils.GenChecksum;
-import org.mdacc.rists.bdi.utils.ParseXML;
+import org.mdacc.rists.bdi.utils.XMLParser;
 
 public class PullFiles {
 	
@@ -77,7 +77,7 @@ public class PullFiles {
 				System.err.println("File " + args[1] + " does not exist.");
 				System.exit(1);
 			}
-			List<String> sourceList = ParseXML.readSourceXML(args[0], args[1]);
+			List<String> sourceList = XMLParser.readSourceXML(args[0], args[1]);
 			if (sourceList == null) {
 				System.err.println("No sources for " + args[0] + " in " + args[1]);
 				System.exit(1);
@@ -330,11 +330,6 @@ public class PullFiles {
 				System.out.println("validation return " + Integer.toString(isValidated));
 				if (isValidated > 0) {
 					auditFileList.clear();				
-					
-					// convert xml to psv with limited fields
-//					String newPSVName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".psv";
-//					File newPSVFile = new File(dest, newPSVName);
-//					TransferUtils.foundationPsv(newXMLFile, newPSVFile);
 					int fileQueueId = FileQueueUtil.insertRecord(CONN, newXMLFile.getAbsolutePath(), "fm-xml");
 					fileCounter ++;
 					auditFileList.add(newXMLFile.getAbsolutePath());

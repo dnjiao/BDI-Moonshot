@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.models;
+package org.mdacc.rists.bdi.fm.models;
 
 public class FoundationXML {
 	private String reportId;

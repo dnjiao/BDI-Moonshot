@@ -24,8 +24,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.mdacc.rists.bdi.models.FoundationXML;
-import org.mdacc.rists.bdi.utils.ParseXML;
+import org.mdacc.rists.bdi.fm.models.FoundationXML;
+import org.mdacc.rists.bdi.utils.XMLParser;
 
 public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
@@ -210,7 +210,7 @@ public class TransferUtils {
 	 */
 	public static void foundationPsv(File in, File out) {
 		try {
-			FoundationXML xml = ParseXML.FmXMLParser(in);
+			FoundationXML xml = XMLParser.FmXMLParser(in);
 			PrintWriter writer = new PrintWriter(out);
 			writer.println("ReportId|SampleId|FmId|Mrn|Diagnosis");
 			writer.println(xml.getReportId() + "|" + xml.getSampleId() + "|" + xml.getFmId() + "|"

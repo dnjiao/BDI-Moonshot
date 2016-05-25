@@ -1,9 +1,10 @@
-package model;
+package org.mdacc.rists.bdi.fm.models;
 
 import java.io.Serializable;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -18,6 +19,8 @@ public class SpecimenTb implements Serializable {
 
 	@Id
 	@Column(name="ROW_ID")
+	@GeneratedValue(strategy=GenerationType.SEQUENCE,generator="SPECIMEN_TB_SEQ")
+	@SequenceGenerator(name="SPECIMEN_TB_SEQ",sequenceName="SPECIMEN_TB_SEQ",allocationSize=1)
 	private long rowId;
 
 	@Column(name="CNV_FILE")
@@ -26,6 +29,8 @@ public class SpecimenTb implements Serializable {
 	@Temporal(TemporalType.DATE)
 	@Column(name="COLLECTION_DATE")
 	private Date collectionDate;
+
+	private String comments;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="DELETE_TS")
@@ -114,6 +119,10 @@ public class SpecimenTb implements Serializable {
 	@Column(name="VCF_FILE")
 	private String vcfFile;
 
+	//bi-directional many-to-one association to FmReportTb
+	@OneToMany(mappedBy="specimenTb", cascade=CascadeType.ALL)
+	private List<FmReportTb> fmReportTbs;
+
 	public SpecimenTb() {
 	}
 
@@ -139,6 +148,14 @@ public class SpecimenTb implements Serializable {
 
 	public void setCollectionDate(Date collectionDate) {
 		this.collectionDate = collectionDate;
+	}
+
+	public String getComments() {
+		return this.comments;
+	}
+
+	public void setComments(String comments) {
+		this.comments = comments;
 	}
 
 	public Date getDeleteTs() {
@@ -379,6 +396,28 @@ public class SpecimenTb implements Serializable {
 
 	public void setVcfFile(String vcfFile) {
 		this.vcfFile = vcfFile;
+	}
+
+	public List<FmReportTb> getFmReportTbs() {
+		return this.fmReportTbs;
+	}
+
+	public void setFmReportTbs(List<FmReportTb> fmReportTbs) {
+		this.fmReportTbs = fmReportTbs;
+	}
+
+	public FmReportTb addFmReportTb(FmReportTb fmReportTb) {
+		getFmReportTbs().add(fmReportTb);
+		fmReportTb.setSpecimenTb(this);
+
+		return fmReportTb;
+	}
+
+	public FmReportTb removeFmReportTb(FmReportTb fmReportTb) {
+		getFmReportTbs().remove(fmReportTb);
+		fmReportTb.setSpecimenTb(null);
+
+		return fmReportTb;
 	}
 
 }
