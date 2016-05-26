@@ -36,6 +36,14 @@ public class InsertFmReport {
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
 		try {
+			// get etl_proc_id from sequence and set to all tables
+			EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
+			EntityManager em = emFactory.createEntityManager();
+			Query q = em.createNativeQuery("SELECT ETL_PROC_SEQ.nextval from DUAL");
+			BigDecimal etlProcId=(BigDecimal)q.getSingleResult();
+			// get current datetime for insert_ts and update_ts
+			Date date = new Date();
+			
 			builder = dbFactory.newDocumentBuilder();
 			Document doc;
 			doc = builder.parse(file);
@@ -125,10 +133,6 @@ public class InsertFmReport {
 			}
 			report.setFrSummary(XMLParser.getNodeAttr("ClinicalTrialSummary", summaries));
 			
-			// Trials node
-			Node trials = XMLParser.getNode("Trials", frNodes);
-			List<FmReportTrialTb> trialList = FmParseUtils.parseTrials(trials);
-			
 			//VariantReport begins
 			Node variantReport = XMLParser.getNode("variant-Report", childNodes);
 			if (variantReport != null) {
@@ -163,24 +167,22 @@ public class InsertFmReport {
 			Node reportPdf = XMLParser.getNode("ReportPDF", childNodes);
 			report.setReportPdf(XMLParser.getNodeValue(reportPdf));
 			
-			// Persist begins
-			EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
-			EntityManager em = emFactory.createEntityManager();
-			
-			// get etl_proc_id from sequence and set to all tables
-			Query q = em.createNativeQuery("SELECT ETL_PROC_SEQ.nextval from DUAL");
-			BigDecimal etlProcId=(BigDecimal)q.getSingleResult(); 
 			report.setEtlProcId(etlProcId);
 			specimenTb.setEtlProcId(etlProcId);
 			
 			// set insert_ts and update_ts for all tables
-			Date date = new Date();
 			report.setInsertTs(date);
 			report.setUpdateTs(date);
 			specimenTb.setInsertTs(date);
-			specimenTb.setUpdateTs(date);
-			
+			specimenTb.setUpdateTs(date);			
 			specimenTb.setSpecimenSource("FM");
+			
+			// persist begins
+			// fm_report_trial_tb
+			Node trials = XMLParser.getNode("Trials", frNodes);
+			List<FmReportTrialTb> trialList = FmParseUtils.parseTrials(trials, date, etlProcId, report);
+			
+			report.setFmReportTrialTbs(trialList);
 			report.setSpecimenTb(specimenTb);
 			List<FmReportTb> reports = new ArrayList<FmReportTb>();
 			reports.add(report);

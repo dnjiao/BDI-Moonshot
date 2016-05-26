@@ -7,16 +7,18 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the FM_REPORT_ALT_SAMPLE_TB database table.
+ * The persistent class for the FM_REPORT_REF_LK_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_ALT_SAMPLE_TB")
-@NamedQuery(name="FmReportAltSampleTb.findAll", query="SELECT f FROM FmReportAltSampleTb f")
-public class FmReportAltSampleTb implements Serializable {
+@Table(name="FM_REPORT_REF_LK_TB")
+@NamedQuery(name="FmReportRefLkTb.findAll", query="SELECT f FROM FmReportRefLkTb f")
+public class FmReportRefLkTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@SequenceGenerator(name="FM_REPORT_REF_LK_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_REF_LK_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_REF_LK_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
@@ -29,12 +31,15 @@ public class FmReportAltSampleTb implements Serializable {
 	@Column(name="ETL_PROC_ID")
 	private BigDecimal etlProcId;
 
+	@Column(name="\"INCLUDE\"")
+	private String include;
+
 	@Temporal(TemporalType.DATE)
 	@Column(name="INSERT_TS")
 	private Date insertTs;
 
-	@Column(name="SAMPLE_NAME")
-	private String sampleName;
+	@Column(name="REFERENCE_ID")
+	private String referenceId;
 
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
@@ -48,12 +53,22 @@ public class FmReportAltSampleTb implements Serializable {
 	@JoinColumn(name="FM_REPORT_ALT_ID")
 	private FmReportAltTb fmReportAltTb;
 
+	//bi-directional many-to-one association to FmReportAltTherapyTb
+	@ManyToOne
+	@JoinColumn(name="FM_REPORT_ALT_THERAPY_ID")
+	private FmReportAltTherapyTb fmReportAltTherapyTb;
+
+	//bi-directional many-to-one association to FmReportGeneTb
+	@ManyToOne
+	@JoinColumn(name="FM_REPORT_GENE_ID")
+	private FmReportGeneTb fmReportGeneTb;
+
 	//bi-directional many-to-one association to FmReportTb
 	@ManyToOne
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	public FmReportAltSampleTb() {
+	public FmReportRefLkTb() {
 	}
 
 	public long getRowId() {
@@ -88,6 +103,14 @@ public class FmReportAltSampleTb implements Serializable {
 		this.etlProcId = etlProcId;
 	}
 
+	public String getInclude() {
+		return this.include;
+	}
+
+	public void setInclude(String include) {
+		this.include = include;
+	}
+
 	public Date getInsertTs() {
 		return this.insertTs;
 	}
@@ -96,12 +119,12 @@ public class FmReportAltSampleTb implements Serializable {
 		this.insertTs = insertTs;
 	}
 
-	public String getSampleName() {
-		return this.sampleName;
+	public String getReferenceId() {
+		return this.referenceId;
 	}
 
-	public void setSampleName(String sampleName) {
-		this.sampleName = sampleName;
+	public void setReferenceId(String referenceId) {
+		this.referenceId = referenceId;
 	}
 
 	public String getSourceSystem() {
@@ -126,6 +149,22 @@ public class FmReportAltSampleTb implements Serializable {
 
 	public void setFmReportAltTb(FmReportAltTb fmReportAltTb) {
 		this.fmReportAltTb = fmReportAltTb;
+	}
+
+	public FmReportAltTherapyTb getFmReportAltTherapyTb() {
+		return this.fmReportAltTherapyTb;
+	}
+
+	public void setFmReportAltTherapyTb(FmReportAltTherapyTb fmReportAltTherapyTb) {
+		this.fmReportAltTherapyTb = fmReportAltTherapyTb;
+	}
+
+	public FmReportGeneTb getFmReportGeneTb() {
+		return this.fmReportGeneTb;
+	}
+
+	public void setFmReportGeneTb(FmReportGeneTb fmReportGeneTb) {
+		this.fmReportGeneTb = fmReportGeneTb;
 	}
 
 	public FmReportTb getFmReportTb() {

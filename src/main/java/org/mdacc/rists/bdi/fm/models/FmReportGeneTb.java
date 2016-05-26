@@ -4,19 +4,22 @@ import java.io.Serializable;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 
 /**
- * The persistent class for the FM_REPORT_ALT_REF_LK_TB database table.
+ * The persistent class for the FM_REPORT_GENE_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_ALT_REF_LK_TB")
-@NamedQuery(name="FmReportAltRefLkTb.findAll", query="SELECT f FROM FmReportAltRefLkTb f")
-public class FmReportAltRefLkTb implements Serializable {
+@Table(name="FM_REPORT_GENE_TB")
+@NamedQuery(name="FmReportGeneTb.findAll", query="SELECT f FROM FmReportGeneTb f")
+public class FmReportGeneTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@SequenceGenerator(name="FM_REPORT_GENE_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_GENE_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_GENE_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
@@ -36,8 +39,7 @@ public class FmReportAltRefLkTb implements Serializable {
 	@Column(name="INSERT_TS")
 	private Date insertTs;
 
-	@Column(name="REFERENCE_ID")
-	private String referenceId;
+	private String name;
 
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
@@ -47,21 +49,19 @@ public class FmReportAltRefLkTb implements Serializable {
 	private Date updateTs;
 
 	//bi-directional many-to-one association to FmReportAltTb
-	@ManyToOne
-	@JoinColumn(name="FM_REPORT_ALT_ID")
-	private FmReportAltTb fmReportAltTb;
-
-	//bi-directional many-to-one association to FmReportAltTherapyTb
-	@ManyToOne
-	@JoinColumn(name="FM_REPORT_ALT_THERAPY_ID")
-	private FmReportAltTherapyTb fmReportAltTherapyTb;
+	@OneToMany(mappedBy="fmReportGeneTb", cascade=CascadeType.ALL)
+	private List<FmReportAltTb> fmReportAltTbs;
 
 	//bi-directional many-to-one association to FmReportTb
 	@ManyToOne
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	public FmReportAltRefLkTb() {
+	//bi-directional many-to-one association to FmReportRefLkTb
+	@OneToMany(mappedBy="fmReportGeneTb", cascade=CascadeType.ALL)
+	private List<FmReportRefLkTb> fmReportRefLkTbs;
+
+	public FmReportGeneTb() {
 	}
 
 	public long getRowId() {
@@ -112,12 +112,12 @@ public class FmReportAltRefLkTb implements Serializable {
 		this.insertTs = insertTs;
 	}
 
-	public String getReferenceId() {
-		return this.referenceId;
+	public String getName() {
+		return this.name;
 	}
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getSourceSystem() {
@@ -136,20 +136,26 @@ public class FmReportAltRefLkTb implements Serializable {
 		this.updateTs = updateTs;
 	}
 
-	public FmReportAltTb getFmReportAltTb() {
-		return this.fmReportAltTb;
+	public List<FmReportAltTb> getFmReportAltTbs() {
+		return this.fmReportAltTbs;
 	}
 
-	public void setFmReportAltTb(FmReportAltTb fmReportAltTb) {
-		this.fmReportAltTb = fmReportAltTb;
+	public void setFmReportAltTbs(List<FmReportAltTb> fmReportAltTbs) {
+		this.fmReportAltTbs = fmReportAltTbs;
 	}
 
-	public FmReportAltTherapyTb getFmReportAltTherapyTb() {
-		return this.fmReportAltTherapyTb;
+	public FmReportAltTb addFmReportAltTb(FmReportAltTb fmReportAltTb) {
+		getFmReportAltTbs().add(fmReportAltTb);
+		fmReportAltTb.setFmReportGeneTb(this);
+
+		return fmReportAltTb;
 	}
 
-	public void setFmReportAltTherapyTb(FmReportAltTherapyTb fmReportAltTherapyTb) {
-		this.fmReportAltTherapyTb = fmReportAltTherapyTb;
+	public FmReportAltTb removeFmReportAltTb(FmReportAltTb fmReportAltTb) {
+		getFmReportAltTbs().remove(fmReportAltTb);
+		fmReportAltTb.setFmReportGeneTb(null);
+
+		return fmReportAltTb;
 	}
 
 	public FmReportTb getFmReportTb() {
@@ -158,6 +164,28 @@ public class FmReportAltRefLkTb implements Serializable {
 
 	public void setFmReportTb(FmReportTb fmReportTb) {
 		this.fmReportTb = fmReportTb;
+	}
+
+	public List<FmReportRefLkTb> getFmReportRefLkTbs() {
+		return this.fmReportRefLkTbs;
+	}
+
+	public void setFmReportRefLkTbs(List<FmReportRefLkTb> fmReportRefLkTbs) {
+		this.fmReportRefLkTbs = fmReportRefLkTbs;
+	}
+
+	public FmReportRefLkTb addFmReportRefLkTb(FmReportRefLkTb fmReportRefLkTb) {
+		getFmReportRefLkTbs().add(fmReportRefLkTb);
+		fmReportRefLkTb.setFmReportGeneTb(this);
+
+		return fmReportRefLkTb;
+	}
+
+	public FmReportRefLkTb removeFmReportRefLkTb(FmReportRefLkTb fmReportRefLkTb) {
+		getFmReportRefLkTbs().remove(fmReportRefLkTb);
+		fmReportRefLkTb.setFmReportGeneTb(null);
+
+		return fmReportRefLkTb;
 	}
 
 }

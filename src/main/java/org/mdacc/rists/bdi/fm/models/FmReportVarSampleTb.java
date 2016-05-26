@@ -7,18 +7,18 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the FM_REPORT_PERT_NEG_TB database table.
+ * The persistent class for the FM_REPORT_VAR_SAMPLE_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_PERT_NEG_TB")
-@NamedQuery(name="FmReportPertNegTb.findAll", query="SELECT f FROM FmReportPertNegTb f")
-public class FmReportPertNegTb implements Serializable {
+@Table(name="FM_REPORT_VAR_SAMPLE_TB")
+@NamedQuery(name="FmReportVarSampleTb.findAll", query="SELECT f FROM FmReportVarSampleTb f")
+public class FmReportVarSampleTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@SequenceGenerator(name="FM_REPORT_PERT_NEG_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_PERT_NEG_TB_SEQ", allocationSize=1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_PERT_NEG_TB_ROWID_GENERATOR")
+	@SequenceGenerator(name="FM_REPORT_VAR_SAMPLE_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_VAR_SAMPLE_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_VAR_SAMPLE_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
@@ -31,12 +31,12 @@ public class FmReportPertNegTb implements Serializable {
 	@Column(name="ETL_PROC_ID")
 	private BigDecimal etlProcId;
 
-	@Column(name="GENE_NAME")
-	private String geneName;
-
 	@Temporal(TemporalType.DATE)
 	@Column(name="INSERT_TS")
 	private Date insertTs;
+
+	@Column(name="SAMPLE_NAME")
+	private String sampleName;
 
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
@@ -50,7 +50,12 @@ public class FmReportPertNegTb implements Serializable {
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	public FmReportPertNegTb() {
+	//bi-directional many-to-one association to FmReportVarTb
+	@ManyToOne
+	@JoinColumn(name="FM_REPORT_VAR_ID")
+	private FmReportVarTb fmReportVarTb;
+
+	public FmReportVarSampleTb() {
 	}
 
 	public long getRowId() {
@@ -85,20 +90,20 @@ public class FmReportPertNegTb implements Serializable {
 		this.etlProcId = etlProcId;
 	}
 
-	public String getGeneName() {
-		return this.geneName;
-	}
-
-	public void setGeneName(String geneName) {
-		this.geneName = geneName;
-	}
-
 	public Date getInsertTs() {
 		return this.insertTs;
 	}
 
 	public void setInsertTs(Date insertTs) {
 		this.insertTs = insertTs;
+	}
+
+	public String getSampleName() {
+		return this.sampleName;
+	}
+
+	public void setSampleName(String sampleName) {
+		this.sampleName = sampleName;
 	}
 
 	public String getSourceSystem() {
@@ -123,6 +128,14 @@ public class FmReportPertNegTb implements Serializable {
 
 	public void setFmReportTb(FmReportTb fmReportTb) {
 		this.fmReportTb = fmReportTb;
+	}
+
+	public FmReportVarTb getFmReportVarTb() {
+		return this.fmReportVarTb;
+	}
+
+	public void setFmReportVarTb(FmReportVarTb fmReportVarTb) {
+		this.fmReportVarTb = fmReportVarTb;
 	}
 
 }

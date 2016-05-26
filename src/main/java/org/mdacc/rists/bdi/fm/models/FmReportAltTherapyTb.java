@@ -18,6 +18,8 @@ public class FmReportAltTherapyTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@SequenceGenerator(name="FM_REPORT_ALT_THERAPY_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_ALT_THERAPY_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_ALT_THERAPY_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
@@ -63,10 +65,6 @@ public class FmReportAltTherapyTb implements Serializable {
 	@Column(name="UPDATE_TS")
 	private Date updateTs;
 
-	//bi-directional many-to-one association to FmReportAltRefLkTb
-	@OneToMany(mappedBy="fmReportAltTherapyTb")
-	private List<FmReportAltRefLkTb> fmReportAltRefLkTbs;
-
 	//bi-directional many-to-one association to FmReportAltTb
 	@ManyToOne
 	@JoinColumn(name="FM_REPORT_ALT_ID")
@@ -76,6 +74,10 @@ public class FmReportAltTherapyTb implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
+
+	//bi-directional many-to-one association to FmReportRefLkTb
+	@OneToMany(mappedBy="fmReportAltTherapyTb", cascade=CascadeType.ALL)
+	private List<FmReportRefLkTb> fmReportRefLkTbs;
 
 	public FmReportAltTherapyTb() {
 	}
@@ -200,28 +202,6 @@ public class FmReportAltTherapyTb implements Serializable {
 		this.updateTs = updateTs;
 	}
 
-	public List<FmReportAltRefLkTb> getFmReportAltRefLkTbs() {
-		return this.fmReportAltRefLkTbs;
-	}
-
-	public void setFmReportAltRefLkTbs(List<FmReportAltRefLkTb> fmReportAltRefLkTbs) {
-		this.fmReportAltRefLkTbs = fmReportAltRefLkTbs;
-	}
-
-	public FmReportAltRefLkTb addFmReportAltRefLkTb(FmReportAltRefLkTb fmReportAltRefLkTb) {
-		getFmReportAltRefLkTbs().add(fmReportAltRefLkTb);
-		fmReportAltRefLkTb.setFmReportAltTherapyTb(this);
-
-		return fmReportAltRefLkTb;
-	}
-
-	public FmReportAltRefLkTb removeFmReportAltRefLkTb(FmReportAltRefLkTb fmReportAltRefLkTb) {
-		getFmReportAltRefLkTbs().remove(fmReportAltRefLkTb);
-		fmReportAltRefLkTb.setFmReportAltTherapyTb(null);
-
-		return fmReportAltRefLkTb;
-	}
-
 	public FmReportAltTb getFmReportAltTb() {
 		return this.fmReportAltTb;
 	}
@@ -236,6 +216,28 @@ public class FmReportAltTherapyTb implements Serializable {
 
 	public void setFmReportTb(FmReportTb fmReportTb) {
 		this.fmReportTb = fmReportTb;
+	}
+
+	public List<FmReportRefLkTb> getFmReportRefLkTbs() {
+		return this.fmReportRefLkTbs;
+	}
+
+	public void setFmReportRefLkTbs(List<FmReportRefLkTb> fmReportRefLkTbs) {
+		this.fmReportRefLkTbs = fmReportRefLkTbs;
+	}
+
+	public FmReportRefLkTb addFmReportRefLkTb(FmReportRefLkTb fmReportRefLkTb) {
+		getFmReportRefLkTbs().add(fmReportRefLkTb);
+		fmReportRefLkTb.setFmReportAltTherapyTb(this);
+
+		return fmReportRefLkTb;
+	}
+
+	public FmReportRefLkTb removeFmReportRefLkTb(FmReportRefLkTb fmReportRefLkTb) {
+		getFmReportRefLkTbs().remove(fmReportRefLkTb);
+		fmReportRefLkTb.setFmReportAltTherapyTb(null);
+
+		return fmReportRefLkTb;
 	}
 
 }

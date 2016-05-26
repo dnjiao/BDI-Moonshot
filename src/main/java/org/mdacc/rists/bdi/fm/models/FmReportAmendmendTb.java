@@ -7,21 +7,23 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the FM_REPORT_AMENDMENT_TB database table.
+ * The persistent class for the FM_REPORT_AMENDMEND_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_AMENDMENT_TB")
-@NamedQuery(name="FmReportAmendmentTb.findAll", query="SELECT f FROM FmReportAmendmentTb f")
-public class FmReportAmendmentTb implements Serializable {
+@Table(name="FM_REPORT_AMENDMEND_TB")
+@NamedQuery(name="FmReportAmendmendTb.findAll", query="SELECT f FROM FmReportAmendmendTb f")
+public class FmReportAmendmendTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@SequenceGenerator(name="FM_REPORT_AMENDMEND_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_AMENDMEND_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_AMENDMEND_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
-	@Column(name="AMENDMENT_COMMENTS")
-	private String amendmentComments;
+	@Column(name="AMENDMEND_COMMENTS")
+	private String amendmendComments;
 
 	private String comments;
 
@@ -57,7 +59,7 @@ public class FmReportAmendmentTb implements Serializable {
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	public FmReportAmendmentTb() {
+	public FmReportAmendmendTb() {
 	}
 
 	public long getRowId() {
@@ -68,12 +70,12 @@ public class FmReportAmendmentTb implements Serializable {
 		this.rowId = rowId;
 	}
 
-	public String getAmendmentComments() {
-		return this.amendmentComments;
+	public String getAmendmendComments() {
+		return this.amendmendComments;
 	}
 
-	public void setAmendmentComments(String amendmentComments) {
-		this.amendmentComments = amendmentComments;
+	public void setAmendmendComments(String amendmendComments) {
+		this.amendmendComments = amendmendComments;
 	}
 
 	public String getComments() {

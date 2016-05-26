@@ -7,18 +7,18 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the FM_REPORT_PERT_NEG_TB database table.
+ * The persistent class for the FM_REPORT_VAR_PROPETY_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_PERT_NEG_TB")
-@NamedQuery(name="FmReportPertNegTb.findAll", query="SELECT f FROM FmReportPertNegTb f")
-public class FmReportPertNegTb implements Serializable {
+@Table(name="FM_REPORT_VAR_PROPETY_TB")
+@NamedQuery(name="FmReportVarPropetyTb.findAll", query="SELECT f FROM FmReportVarPropetyTb f")
+public class FmReportVarPropetyTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@SequenceGenerator(name="FM_REPORT_PERT_NEG_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_PERT_NEG_TB_SEQ", allocationSize=1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_PERT_NEG_TB_ROWID_GENERATOR")
+	@SequenceGenerator(name="FM_REPORT_VAR_PROPETY_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_VAR_PROPETY_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_VAR_PROPETY_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
@@ -38,6 +38,9 @@ public class FmReportPertNegTb implements Serializable {
 	@Column(name="INSERT_TS")
 	private Date insertTs;
 
+	@Column(name="IS_VUS")
+	private String isVus;
+
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
 
@@ -45,12 +48,15 @@ public class FmReportPertNegTb implements Serializable {
 	@Column(name="UPDATE_TS")
 	private Date updateTs;
 
+	@Column(name="VARIANT_NAME")
+	private String variantName;
+
 	//bi-directional many-to-one association to FmReportTb
 	@ManyToOne
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	public FmReportPertNegTb() {
+	public FmReportVarPropetyTb() {
 	}
 
 	public long getRowId() {
@@ -101,6 +107,14 @@ public class FmReportPertNegTb implements Serializable {
 		this.insertTs = insertTs;
 	}
 
+	public String getIsVus() {
+		return this.isVus;
+	}
+
+	public void setIsVus(String isVus) {
+		this.isVus = isVus;
+	}
+
 	public String getSourceSystem() {
 		return this.sourceSystem;
 	}
@@ -115,6 +129,14 @@ public class FmReportPertNegTb implements Serializable {
 
 	public void setUpdateTs(Date updateTs) {
 		this.updateTs = updateTs;
+	}
+
+	public String getVariantName() {
+		return this.variantName;
+	}
+
+	public void setVariantName(String variantName) {
+		this.variantName = variantName;
 	}
 
 	public FmReportTb getFmReportTb() {

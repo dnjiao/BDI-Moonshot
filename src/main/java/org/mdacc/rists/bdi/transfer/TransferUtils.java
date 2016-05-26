@@ -24,14 +24,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.mdacc.rists.bdi.fm.models.FoundationXML;
 import org.mdacc.rists.bdi.utils.XMLParser;
 
 public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		File in = new File("/Users/djiao/Box Sync/Work/Projects/RIStore/foundation/foundation_new/TRF133672_1455294493597.xml");
 		File out = new File("/Users/djiao/Box Sync/Work/Projects/RIStore/foundation/foundation_new/TRF133672_1455294493597.psv");
-		foundationPsv(in, out);
 	}
 	
 	/**
@@ -202,24 +200,6 @@ public class TransferUtils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	/**
-	 * Extract a few sample info fields from xml and save as psv
-	 * @param in - XML file
-	 * @param out - psv file
-	 */
-	public static void foundationPsv(File in, File out) {
-		try {
-			FoundationXML xml = XMLParser.FmXMLParser(in);
-			PrintWriter writer = new PrintWriter(out);
-			writer.println("ReportId|SampleId|FmId|Mrn|Diagnosis");
-			writer.println(xml.getReportId() + "|" + xml.getSampleId() + "|" + xml.getFmId() + "|"
-					+ xml.getMrn() + "|" + xml.getDiagnosis());
-			writer.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
 	}
 
 	/**
