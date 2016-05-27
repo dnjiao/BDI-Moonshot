@@ -35,7 +35,11 @@ public class FmParseUtils {
 		
 	}
 	
-	// XML Path: /FinalReport/Application/ApplicationSettings/ApplicationSetting
+	
+	/**
+	 * Parse "Application" section into fm_report_app_tb
+	 * @param node -- /FinalReport/Application/ApplicationSettings
+	 */
 	public static List<FmReportAppTb> parseApplication(Node node, Date date, BigDecimal etl, FmReportTb report) {
 		List<FmReportAppTb> reportAppList = new ArrayList<FmReportAppTb>();
 		NodeList nodes = node.getChildNodes();
@@ -54,7 +58,10 @@ public class FmParseUtils {
 		return reportAppList;
 	}
 	
-	// XML Path: /FinalReport/PertinentNegatives/PertinentNegative
+	/**
+	 * Parse "PertinentNegatives" node to fm_report_pert_neg_tb
+	 * @param node -- /FinalReport/PertinentNegatives
+	 */
 	public static List<FmReportPertNegTb> parsePert(Node node, Date date, BigDecimal etl, FmReportTb report) {
 		List<FmReportPertNegTb> pertNegList = new ArrayList<FmReportPertNegTb>();
 		NodeList nodes = node.getChildNodes();
@@ -72,7 +79,10 @@ public class FmParseUtils {
 		return pertNegList;
 	}
 	
-	// XML Path: /FinalReport/VariantProperties/VariantProperty
+	/**
+	 * Parse "VariantProperties" into fm_report_var_property_tb
+	 * @param node -- /FinalReport/VariantProperties
+	 */
 	public static List<FmReportVarPropetyTb> parseVarProperty(Node node, Date date, BigDecimal etl, FmReportTb report) {
 		List<FmReportVarPropetyTb> varPropList = new ArrayList<FmReportVarPropetyTb>();
 		NodeList nodes = node.getChildNodes();
@@ -92,7 +102,10 @@ public class FmParseUtils {
 		return varPropList;
 	}
 	
-	// XML Path: /FinalReport/Genes/Gene/
+	/**
+	 * Parse "Genes" node into fm_report_gene_tb and fm_report_ref_lk_tb
+	 * @param genes -- List of "Gene" nodes in /FinalReport/Genes/Gene/
+	 */
 	public static List<FmReportGeneTb> parseGenes(List<Node> genes, Date date, BigDecimal etl, FmReportTb report) {
 			List<FmReportGeneTb> geneList = new ArrayList<FmReportGeneTb>();
 			for (Node gene : genes) {
@@ -104,6 +117,8 @@ public class FmParseUtils {
 				geneTb.setFmReportTb(report);
 				geneTb.setName(XMLParser.getNodeValue("Name", geneNodes));
 				geneTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", geneNodes)));
+				// Alterations section
+				Node altNode = XMLParser.getNode("Alterations", geneNodes);
 				// ReferenceLinks section
 				Node rlNode = XMLParser.getNode("ReferenceLinks", geneNodes);
 				List<FmReportRefLkTb> rfList = new ArrayList<FmReportRefLkTb>();
@@ -183,88 +198,75 @@ public class FmParseUtils {
 	}
 	
 	// XML Path: /FinalReport/Genes/Gene/Alterations/Alteration/AlterationProperties/AlterationProperty 
-	public static List<FmReportAltPropertyTb> parseAltProperty(List<Node> genes, Date date, BigDecimal etl, FmReportTb report, FmReportAltTb reportAlt) {
+	/**
+	 * Parse "AlterationProperties" into fm_report_alt_property_tb
+	 * @param node /FinalReport/Genes/Gene/Alterations/Alteration
+	 */
+	public static List<FmReportAltPropertyTb> parseAltProperty(Node node, Date date, BigDecimal etl, FmReportTb report, FmReportAltTb reportAlt) {
 
 		List<FmReportAltPropertyTb> altPropertyList = new ArrayList<FmReportAltPropertyTb>();
-		for (Node gene : genes) {
-			NodeList geneNodes = gene.getChildNodes();
-			Node alterations = XMLParser.getNode("Alterations", geneNodes);
-			NodeList altNodes = alterations.getChildNodes();
-			List<Node> alts = XMLParser.getNodes("Alteration", altNodes);
-			for (Node alt : alts) {
-				Node properties = XMLParser.getNode("AlterrationProperties", alt.getChildNodes());
-				List<Node> altProps = XMLParser.getNodes("AlterationProperty", properties.getChildNodes());
-				for (Node altProp : altProps) {
-					FmReportAltPropertyTb altProperty = new FmReportAltPropertyTb();
-					altProperty.setInsertTs(date);
-					altProperty.setUpdateTs(date);
-					altProperty.setEtlProcId(etl);
-					altProperty.setFmReportTb(report);
-					altProperty.setFmReportAltTb(reportAlt);
-					altProperty.setIsEquivocal(boolToChar(XMLParser.getNodeAttr("isEquivocal", altProp)));
-					altProperty.setIsSubclonal(XMLParser.getNodeAttr("isSubclonal", altProp));
-					altProperty.setName(XMLParser.getNodeAttr("name", altProp));
-					altPropertyList.add(altProperty);
-				}
-			}
+		Node properties = XMLParser.getNode("AlterrationProperties", node.getChildNodes());
+		List<Node> altProps = XMLParser.getNodes("AlterationProperty", properties.getChildNodes());
+		for (Node altProp : altProps) {
+			FmReportAltPropertyTb altProperty = new FmReportAltPropertyTb();
+			altProperty.setInsertTs(date);
+			altProperty.setUpdateTs(date);
+			altProperty.setEtlProcId(etl);
+			altProperty.setFmReportTb(report);
+			altProperty.setFmReportAltTb(reportAlt);
+			altProperty.setIsEquivocal(boolToChar(XMLParser.getNodeAttr("isEquivocal", altProp)));
+			altProperty.setIsSubclonal(XMLParser.getNodeAttr("isSubclonal", altProp));
+			altProperty.setName(XMLParser.getNodeAttr("name", altProp));
+			altPropertyList.add(altProperty);
 		}
 		return altPropertyList;
 	}
 	
 	// XML Path: /FinalReport/Genes/Gene/Alterations/Alteration/Therapies/Therapy
-	public static List<FmReportAltTherapyTb> parseAltTherapy(List<Node> genes, Date date, BigDecimal etl, FmReportTb report, FmReportAltTb reportAlt) {
-
+	public static List<FmReportAltTherapyTb> parseAltTherapy(Node node, Date date, BigDecimal etl, FmReportTb report, FmReportAltTb reportAlt) {
 		List<FmReportAltTherapyTb> altTherapyList = new ArrayList<FmReportAltTherapyTb>();
-		for (Node gene : genes) {
-			NodeList geneNodes = gene.getChildNodes();
-			Node alterations = XMLParser.getNode("Alterations", geneNodes);
-			NodeList altNodes = alterations.getChildNodes();
-			List<Node> alts = XMLParser.getNodes("Alteration", altNodes);
-			for (Node alt : alts) {
-				Node therapiesNode = XMLParser.getNode("Therapies", alt.getChildNodes());
-				List<Node> therapies = XMLParser.getNodes("Therapy", therapiesNode.getChildNodes());
-				for (Node therapy : therapies) {
-					NodeList nl = therapy.getChildNodes();
-					FmReportAltTherapyTb altTherapy = new FmReportAltTherapyTb();
-					altTherapy.setInsertTs(date);
-					altTherapy.setUpdateTs(date);
-					altTherapy.setEtlProcId(etl);
-					altTherapy.setFmReportTb(report);
-					altTherapy.setFmReportAltTb(reportAlt);
-					altTherapy.setName(XMLParser.getNodeValue("Name", nl));
-					altTherapy.setGenericName(XMLParser.getNodeValue("GenericName", nl));
-					altTherapy.setFdaApproved(boolToChar(XMLParser.getNodeValue("FDAApproved", nl)));
-					altTherapy.setRationale(XMLParser.getNodeValue("Rationale", nl));
-					altTherapy.setApprovedUses(XMLParser.getNodeValue("ApprovedUses", nl));
-					altTherapy.setEffect(XMLParser.getNodeValue("Effect", nl));
-					altTherapy.setInclude(boolToChar(XMLParser.getNodeValue("Include", nl)));
-					altTherapy.setIncludeInSummary(boolToChar(XMLParser.getNodeValue("IncludeInSummary", nl)));
-					// ReferenceLinks section
-					Node rlNode = XMLParser.getNode("ReferenceLinks", geneNodes);
-					List<FmReportRefLkTb> rfList = new ArrayList<FmReportRefLkTb>();
-					if (rlNode != null) {
-						List<Node> reflinks = XMLParser.getNodes("ReferenceLink", rlNode.getChildNodes());
-						if (reflinks != null) {
-							
-							for (Node reflink : reflinks) {
-								FmReportRefLkTb refLk = new FmReportRefLkTb();
-								refLk.setInsertTs(date);
-								refLk.setUpdateTs(date);
-								refLk.setEtlProcId(etl);
-								refLk.setFmReportTb(report);
-								refLk.setReferenceId(XMLParser.getNodeAttr("referenceId", reflink));
-								refLk.setInclude(boolToChar(XMLParser.getNodeValue("Include", reflink.getChildNodes())));
-								refLk.setFmReportAltTherapyTb(altTherapy);
-								rfList.add(refLk);
-							}
-						}
+		Node therapiesNode = XMLParser.getNode("Therapies", node.getChildNodes());
+		List<Node> therapies = XMLParser.getNodes("Therapy", therapiesNode.getChildNodes());
+		for (Node therapy : therapies) {
+			NodeList nl = therapy.getChildNodes();
+			FmReportAltTherapyTb altTherapy = new FmReportAltTherapyTb();
+			altTherapy.setInsertTs(date);
+			altTherapy.setUpdateTs(date);
+			altTherapy.setEtlProcId(etl);
+			altTherapy.setFmReportTb(report);
+			altTherapy.setFmReportAltTb(reportAlt);
+			altTherapy.setName(XMLParser.getNodeValue("Name", nl));
+			altTherapy.setGenericName(XMLParser.getNodeValue("GenericName", nl));
+			altTherapy.setFdaApproved(boolToChar(XMLParser.getNodeValue("FDAApproved", nl)));
+			altTherapy.setRationale(XMLParser.getNodeValue("Rationale", nl));
+			altTherapy.setApprovedUses(XMLParser.getNodeValue("ApprovedUses", nl));
+			altTherapy.setEffect(XMLParser.getNodeValue("Effect", nl));
+			altTherapy.setInclude(boolToChar(XMLParser.getNodeValue("Include", nl)));
+			altTherapy.setIncludeInSummary(boolToChar(XMLParser.getNodeValue("IncludeInSummary", nl)));
+			// ReferenceLinks section
+			Node rlNode = XMLParser.getNode("ReferenceLinks", geneNodes);
+			List<FmReportRefLkTb> rfList = new ArrayList<FmReportRefLkTb>();
+			if (rlNode != null) {
+				List<Node> reflinks = XMLParser.getNodes("ReferenceLink", rlNode.getChildNodes());
+				if (reflinks != null) {
+					
+					for (Node reflink : reflinks) {
+						FmReportRefLkTb refLk = new FmReportRefLkTb();
+						refLk.setInsertTs(date);
+						refLk.setUpdateTs(date);
+						refLk.setEtlProcId(etl);
+						refLk.setFmReportTb(report);
+						refLk.setReferenceId(XMLParser.getNodeAttr("referenceId", reflink));
+						refLk.setInclude(boolToChar(XMLParser.getNodeValue("Include", reflink.getChildNodes())));
+						refLk.setFmReportAltTherapyTb(altTherapy);
+						rfList.add(refLk);
 					}
-					if (rfList != null) {
-						altTherapy.setFmReportRefLkTbs(rfList);
-					}
-					altTherapyList.add(altTherapy);
 				}
 			}
+			if (rfList != null) {
+				altTherapy.setFmReportRefLkTbs(rfList);
+			}
+			altTherapyList.add(altTherapy);
 		}
 		return altTherapyList;
 	}
@@ -341,10 +343,7 @@ public class FmParseUtils {
 			refTb.setUpdateTs(date);
 			refTb.setEtlProcId(etl);
 			refTb.setFmReportTb(report);
-			String refNum = XMLParser.getNodeAttr("number", ref);
-			if (refNum != "") {
-				refTb.setReferenceNumber(new BigDecimal(refNum));
-			}
+			refTb.setReferenceNumber(strToNum(XMLParser.getNodeAttr("number", ref)));
 			refTb.setReferenceId(XMLParser.getNodeValue("ReferenceId", refNodes));
 			refTb.setCitation(XMLParser.getNodeValue("FullCitation", refNodes));
 			refTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", refNodes)));
@@ -424,10 +423,7 @@ public class FmParseUtils {
 			samp.setName(XMLParser.getNodeAttr("name", sample));
 			samp.setTissue(XMLParser.getNodeAttr("tissue", sample));
 			samp.setType(XMLParser.getNodeAttr("type", sample));
-			String depth = XMLParser.getNodeAttr("mean-exon-depth", sample);
-			if (depth != "") {
-				samp.setMeanExonDepth(new BigDecimal(depth));
-			}
+			samp.setMeanExonDepth(strToNum(XMLParser.getNodeAttr("mean-exon-depth", sample)));
 			samp.setBaitSet(XMLParser.getNodeAttr("bait-set", sample));
 			samp.setNucleicAcidType(XMLParser.getNodeAttr("nucleic-acid-type", sample));
 			sampleList.add(samp);
@@ -442,44 +438,208 @@ public class FmParseUtils {
 		//short-variant section
 		Node shortVariants = XMLParser.getNode("short-variants", nodes);
 		List<Node> svNodes = XMLParser.getNodes("short-variant", shortVariants.getChildNodes());
-		for (Node sv : svNodes) {
-			FmReportVarTb varTb = new FmReportVarTb();
-			FmReportVarSampleTb varSample = new FmReportVarSampleTb();
-			varTb.setInsertTs(date);
-			varTb.setUpdateTs(date);
-			varTb.setEtlProcId(etl);
-			varTb.setFmReportTb(report);
-			
-			varTb.setType("short-variant");
-			varTb.setVariantCdsEffect(XMLParser.getNodeAttr("cds-effect", sv));
-			String depth = XMLParser.getNodeAttr("depth", sv);
-			if (depth != "") {
-				varTb.setVariantDepth(new BigDecimal(depth));
+		if (svNodes != null) {
+			for (Node sv : svNodes) {
+				FmReportVarTb varTb = new FmReportVarTb();
+				
+				List<FmReportVarSampleTb> varSampleList = new ArrayList<FmReportVarSampleTb>();
+				varTb.setInsertTs(date);
+				varTb.setUpdateTs(date);
+				varTb.setEtlProcId(etl);
+				varTb.setFmReportTb(report);
+				
+				varTb.setType("short-variant");
+				varTb.setVariantCdsEffect(XMLParser.getNodeAttr("cds-effect", sv));
+				varTb.setVariantDepth(strToNum(XMLParser.getNodeAttr("depth", sv)));
+				varTb.setVariantGeneName(XMLParser.getNodeAttr("gene", sv));
+				varTb.setVariantPercentReads(strToNum(XMLParser.getNodeAttr("percent-reads", sv)));
+				varTb.setVariantPosition(XMLParser.getNodeAttr("position", sv));
+				varTb.setVariantProteinEffect(XMLParser.getNodeAttr("protein-effect", sv));
+				varTb.setVariantStatus(XMLParser.getNodeAttr("status", sv));
+				varTb.setVariantTranscript(XMLParser.getNodeAttr("transcript", sv));
+				varTb.setVariantStrand(XMLParser.getNodeAttr("strand", sv));
+				varTb.setVariantFunctionalEffect(XMLParser.getNodeAttr("functional-effect", sv));
+				varTb.setVariantIsSubclonal(boolToChar(XMLParser.getNodeAttr("subclonal", sv)));
+				Node varSampleNode = XMLParser.getNode("dna-evidence", sv.getChildNodes());
+				if (varSampleNode != null) {
+					FmReportVarSampleTb varSample = new FmReportVarSampleTb();
+					varSample.setInsertTs(date);
+					varSample.setUpdateTs(date);
+					varSample.setEtlProcId(etl);
+					varSample.setFmReportTb(report);
+					varSample.setSampleName(XMLParser.getNodeAttr("sample", varSampleNode));
+					varSample.setFmReportTb(report);
+					varSample.setFmReportVarTb(varTb);
+					varSampleList.add(varSample);
+				}
+				varSampleNode = XMLParser.getNode("rna-evidence", sv.getChildNodes());
+				if (varSampleNode != null) {
+					FmReportVarSampleTb varSample = new FmReportVarSampleTb();
+					varSample.setInsertTs(date);
+					varSample.setUpdateTs(date);
+					varSample.setEtlProcId(etl);
+					varSample.setFmReportTb(report);
+					varSample.setSampleName(XMLParser.getNodeAttr("sample", varSampleNode));
+					varSample.setFmReportTb(report);
+					varSample.setFmReportVarTb(varTb);
+					varSampleList.add(varSample);
+				}
+				varTb.setFmReportVarSampleTbs(varSampleList);
+				varList.add(varTb);
 			}
-			varTb.setVariantGeneName(XMLParser.getNodeAttr("gene", sv));
-			String percent = XMLParser.getNodeAttr("percent-reads", sv);
-			if (percent != "") {
-				varTb.setVariantPercentReads(new BigDecimal(percent));
-			}
-			varTb.setVariantPosition(XMLParser.getNodeAttr("position", sv));
-			varTb.setVariantProteinEffect(XMLParser.getNodeAttr("protein-effect", sv));
-			varTb.setVariantStatus(XMLParser.getNodeAttr("status", sv));
-			varTb.setVariantTranscript(XMLParser.getNodeAttr("transcript", sv));
-			varTb.setVariantStrand(XMLParser.getNodeAttr("strand", sv));
-			varTb.setVariantFunctionalEffect(XMLParser.getNodeAttr("functional-effect", sv));
-			varTb.setVariantIsSubclonal(boolToChar(XMLParser.getNodeAttr("subclonal", sv)));
-			Node varSampleNode = XMLParser.getNode("dna-evidence", sv.getChildNodes());
-			varSample.setInsertTs(date);
-			varSample.setUpdateTs(date);
-			varSample.setEtlProcId(etl);
-			varSample.setFmReportTb(report);
-			varSample.setSampleName(XMLParser.getNodeAttr("sample", varSampleNode));
-			varSample.setFmReportTb(report);
-			varSample.setFmReportVarTb(varTb);
-			varList.add(varTb);
 		}
 		
+		// copy-number-alterations section
+		Node copyNumAlt = XMLParser.getNode("copy-number-alterations", nodes);
+		List<Node> cnNodes = XMLParser.getNodes("copy-number-alteration", copyNumAlt.getChildNodes());
+		if (cnNodes != null) {
+			for (Node cna : cnNodes) {
+				FmReportVarTb varTb = new FmReportVarTb();
+				List<FmReportVarSampleTb> varSampleList = new ArrayList<FmReportVarSampleTb>();
+				varTb.setInsertTs(date);
+				varTb.setUpdateTs(date);
+				varTb.setEtlProcId(etl);
+				varTb.setFmReportTb(report);
+				
+				varTb.setType("copy-number-alteration");
+				varTb.setCopyNumberValue(strToNum(XMLParser.getNodeAttr("copy-number", cna)));
+				varTb.setCopyNumberNumberOfExons(XMLParser.getNodeAttr("number-of-exons", cna));
+				varTb.setCopyNumberPosition(XMLParser.getNodeAttr("position", cna));
+				varTb.setCopyNumberType(XMLParser.getNodeAttr("type", cna));
+				varTb.setCopyNumberRatio(strToNum(XMLParser.getNodeAttr("ratio", cna)));
+				varTb.setCopyNumberStatus(XMLParser.getNodeAttr("status", cna));
+				varTb.setCopyNumberSegmentLength(strToNum(XMLParser.getNodeAttr("segment-length", cna)));
+				varTb.setCopyNumberIsEquivocal(boolToChar(XMLParser.getNodeAttr("equivocal", cna)));
+		
+				Node varSampleNode = XMLParser.getNode("dna-evidence", cna.getChildNodes());
+				if (varSampleNode != null) {
+					FmReportVarSampleTb varSample = new FmReportVarSampleTb();
+					varSample.setInsertTs(date);
+					varSample.setUpdateTs(date);
+					varSample.setEtlProcId(etl);
+					varSample.setFmReportTb(report);
+					varSample.setSampleName(XMLParser.getNodeAttr("sample", varSampleNode));
+					varSample.setFmReportTb(report);
+					varSample.setFmReportVarTb(varTb);
+					varSampleList.add(varSample);
+				}
+				varSampleNode = XMLParser.getNode("rna-evidence", cna.getChildNodes());
+				if (varSampleNode != null) {
+					FmReportVarSampleTb varSample = new FmReportVarSampleTb();
+					varSample.setInsertTs(date);
+					varSample.setUpdateTs(date);
+					varSample.setEtlProcId(etl);
+					varSample.setFmReportTb(report);
+					varSample.setSampleName(XMLParser.getNodeAttr("sample", varSampleNode));
+					varSample.setFmReportTb(report);
+					varSample.setFmReportVarTb(varTb);
+					varSampleList.add(varSample);
+				}
+				varTb.setFmReportVarSampleTbs(varSampleList);
+				varList.add(varTb);
+			}
+		}
+		
+		// rearrangements section
+		Node rearrangement = XMLParser.getNode("rearrangements", nodes);
+		List<Node> raNodes = XMLParser.getNodes("rearrangement", rearrangement.getChildNodes());
+		if (raNodes != null) {
+			for (Node ra : raNodes) {
+				FmReportVarTb varTb = new FmReportVarTb();
+				List<FmReportVarSampleTb> varSampleList = new ArrayList<FmReportVarSampleTb>();
+				varTb.setInsertTs(date);
+				varTb.setUpdateTs(date);
+				varTb.setEtlProcId(etl);
+				varTb.setFmReportTb(report);
+				
+				varTb.setType("rearrangement");
+				varTb.setRearrangementInFrame(XMLParser.getNodeAttr("in-frame", ra));
+				varTb.setRearrangementTargetedGene(XMLParser.getNodeAttr("targeted-gene", ra));
+				varTb.setRearrangementOtherGene(XMLParser.getNodeAttr("other-gene", ra));
+				varTb.setRearrangementPosition1(XMLParser.getNodeAttr("pos1", ra));
+				varTb.setRearrangementPosition2(XMLParser.getNodeAttr("pos2", ra));
+				varTb.setRearrangementReadPairs(strToNum(XMLParser.getNodeAttr("supporting-read-pairs", ra)));
+				varTb.setRearrangementDescription(XMLParser.getNodeAttr("description", ra));
+				varTb.setRearrangementStatus(XMLParser.getNodeAttr("status", ra));
+				
+				Node varSampleNode = XMLParser.getNode("dna-evidence", ra.getChildNodes());
+				if (varSampleNode != null) {
+					FmReportVarSampleTb varSample = new FmReportVarSampleTb();
+					varSample.setInsertTs(date);
+					varSample.setUpdateTs(date);
+					varSample.setEtlProcId(etl);
+					varSample.setFmReportTb(report);
+					varSample.setSampleName(XMLParser.getNodeAttr("sample", varSampleNode));
+					varSample.setFmReportTb(report);
+					varSample.setFmReportVarTb(varTb);
+					varSampleList.add(varSample);
+				}
+				varSampleNode = XMLParser.getNode("rna-evidence", ra.getChildNodes());
+				if (varSampleNode != null) {
+					FmReportVarSampleTb varSample = new FmReportVarSampleTb();
+					varSample.setInsertTs(date);
+					varSample.setUpdateTs(date);
+					varSample.setEtlProcId(etl);
+					varSample.setFmReportTb(report);
+					varSample.setSampleName(XMLParser.getNodeAttr("sample", varSampleNode));
+					varSample.setFmReportTb(report);
+					varSample.setFmReportVarTb(varTb);
+					varSampleList.add(varSample);
+				}
+				varTb.setFmReportVarSampleTbs(varSampleList);
+				varList.add(varTb);
+			}
+		}
+				
+		// non-human section
+		Node nonhuman = XMLParser.getNode("non-human-content", nodes);
+		List<Node> nhNodes = XMLParser.getNodes("non-human", nonhuman.getChildNodes());
+		if (nhNodes != null) {
+			for (Node nh : nhNodes) {
+				FmReportVarTb varTb = new FmReportVarTb();
+				List<FmReportVarSampleTb> varSampleList = new ArrayList<FmReportVarSampleTb>();
+				varTb.setInsertTs(date);
+				varTb.setUpdateTs(date);
+				varTb.setEtlProcId(etl);
+				varTb.setFmReportTb(report);
+				
+				varTb.setType("non-human");
+				varTb.setNonHumanOrganism(XMLParser.getNodeAttr("organism", nh));
+				varTb.setNonHumanReadsPerMillion(strToNum(XMLParser.getNodeAttr("reads-per-million", nh)));
+				varTb.setNonHumanStatus(XMLParser.getNodeAttr("status", nh));
+				
+				Node varSampleNode = XMLParser.getNode("dna-evidence", nh.getChildNodes());
+				if (varSampleNode != null) {
+					FmReportVarSampleTb varSample = new FmReportVarSampleTb();
+					varSample.setInsertTs(date);
+					varSample.setUpdateTs(date);
+					varSample.setEtlProcId(etl);
+					varSample.setFmReportTb(report);
+					varSample.setSampleName(XMLParser.getNodeAttr("sample", varSampleNode));
+					varSample.setFmReportTb(report);
+					varSample.setFmReportVarTb(varTb);
+					varSampleList.add(varSample);
+				}
+				varSampleNode = XMLParser.getNode("rna-evidence", nh.getChildNodes());
+				if (varSampleNode != null) {
+					FmReportVarSampleTb varSample = new FmReportVarSampleTb();
+					varSample.setInsertTs(date);
+					varSample.setUpdateTs(date);
+					varSample.setEtlProcId(etl);
+					varSample.setFmReportTb(report);
+					varSample.setSampleName(XMLParser.getNodeAttr("sample", varSampleNode));
+					varSample.setFmReportTb(report);
+					varSample.setFmReportVarTb(varTb);
+					varSampleList.add(varSample);
+				}
+				varTb.setFmReportVarSampleTbs(varSampleList);
+				varList.add(varTb);
+			}
+		}
+		return varList;
 	}
+	
+	// boolean to Char
 	private static String boolToChar(String str) {
 		if (str.equalsIgnoreCase("true")) {
 			return "Y";
@@ -488,7 +648,15 @@ public class FmParseUtils {
 		} else {
 			return "";
 		}
-		
 	}
-
+	
+	//String to BigDecimal
+	private static BigDecimal strToNum(String str) {
+		try {
+			return new BigDecimal(str);
+		} catch (NumberFormatException ex) {
+			System.out.println("Cannot convert " + str + " to number.");
+			return null;
+		}
+	}
 }

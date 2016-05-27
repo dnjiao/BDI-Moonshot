@@ -17,8 +17,16 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
+import org.mdacc.rists.bdi.fm.models.FmReportAltPropertyTb;
+import org.mdacc.rists.bdi.fm.models.FmReportAltTb;
+import org.mdacc.rists.bdi.fm.models.FmReportAltTherapyTb;
+import org.mdacc.rists.bdi.fm.models.FmReportAltTrialLkTb;
+import org.mdacc.rists.bdi.fm.models.FmReportAppTb;
+import org.mdacc.rists.bdi.fm.models.FmReportGeneTb;
+import org.mdacc.rists.bdi.fm.models.FmReportPertNegTb;
 import org.mdacc.rists.bdi.fm.models.FmReportTb;
 import org.mdacc.rists.bdi.fm.models.FmReportTrialTb;
+import org.mdacc.rists.bdi.fm.models.FmReportVarPropetyTb;
 import org.mdacc.rists.bdi.fm.models.SpecimenTb;
 import org.mdacc.rists.bdi.utils.XMLParser;
 import org.w3c.dom.Document;
@@ -170,19 +178,65 @@ public class InsertFmReport {
 			report.setEtlProcId(etlProcId);
 			specimenTb.setEtlProcId(etlProcId);
 			
-			// set insert_ts and update_ts for all tables
+			// set insert_ts and update_ts 
 			report.setInsertTs(date);
 			report.setUpdateTs(date);
 			specimenTb.setInsertTs(date);
 			specimenTb.setUpdateTs(date);			
 			specimenTb.setSpecimenSource("FM");
 			
-			// persist begins
 			// fm_report_trial_tb
 			Node trials = XMLParser.getNode("Trials", frNodes);
-			List<FmReportTrialTb> trialList = FmParseUtils.parseTrials(trials, date, etlProcId, report);
-			
+			List<FmReportTrialTb> trialList = new ArrayList<FmReportTrialTb>();
+			if (trials != null) {
+				trialList = FmParseUtils.parseTrials(trials, date, etlProcId, report);
+			}
 			report.setFmReportTrialTbs(trialList);
+			
+			//FinalReport/Application/ApplicationSettings/ApplicationSetting			
+			Node application = XMLParser.getNode("Application", frNodes);
+			List<FmReportAppTb> appList = new ArrayList<FmReportAppTb>();
+			if (application != null) {
+				Node appSettings = XMLParser.getNode("ApplicationSettings", application.getChildNodes());
+				if (appSettings != null) {
+					appList = FmParseUtils.parseApplication(appSettings, date, etlProcId, report);
+				}
+				
+			}
+			report.setFmReportAppTbs(appList);
+			
+			//FinalReport/PertinentNegatives/PertinentNegative
+			Node pertNegs = XMLParser.getNode("PertinentNegatives", frNodes);
+			List<FmReportPertNegTb> pertList = new ArrayList<FmReportPertNegTb>();
+			if (pertNegs != null) {
+				pertList = FmParseUtils.parsePert(pertNegs, date, etlProcId, report);
+			}
+			report.setFmReportPertNegTbs(pertList);
+			
+			//FinalReport/VariantProperties/VariantProperty
+			Node varProp = XMLParser.getNode("VariantProperties", frNodes);
+			List<FmReportVarPropetyTb> vpList = new ArrayList<FmReportVarPropetyTb>();
+			if (varProp != null) {
+				vpList = FmParseUtils.parseVarProperty(varProp, date, etlProcId, report);
+			}
+			report.setFmReportVarPropetyTbs(vpList);
+			
+			//FinalReport/Genes/Gene/
+			Node genes = XMLParser.getNode("Genes", frNodes);
+			List<FmReportGeneTb> geneList = new ArrayList<FmReportGeneTb>();
+			List<FmReportAltTb> altList = new ArrayList<FmReportAltTb>();
+			List<FmReportAltPropertyTb> apList = new ArrayList<FmReportAltPropertyTb>();
+			List<FmReportAltTherapyTb> atList = new ArrayList<FmReportAltTherapyTb>();
+			List<FmReportAltTrialLkTb> atlList = new ArrayList<FmReportAltTrialLkTb>();
+			if (genes != null) {
+				List<Node> geneNodes = XMLParser.getNodes("Gene", genes.getChildNodes());
+				if (geneNodes != null) {
+					
+				}
+			}
+			
+			// persist begins
+
 			report.setSpecimenTb(specimenTb);
 			List<FmReportTb> reports = new ArrayList<FmReportTb>();
 			reports.add(report);
