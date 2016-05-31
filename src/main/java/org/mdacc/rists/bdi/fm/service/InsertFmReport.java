@@ -21,12 +21,17 @@ import org.mdacc.rists.bdi.fm.models.FmReportAltPropertyTb;
 import org.mdacc.rists.bdi.fm.models.FmReportAltTb;
 import org.mdacc.rists.bdi.fm.models.FmReportAltTherapyTb;
 import org.mdacc.rists.bdi.fm.models.FmReportAltTrialLkTb;
+import org.mdacc.rists.bdi.fm.models.FmReportAmendmendTb;
 import org.mdacc.rists.bdi.fm.models.FmReportAppTb;
 import org.mdacc.rists.bdi.fm.models.FmReportGeneTb;
 import org.mdacc.rists.bdi.fm.models.FmReportPertNegTb;
+import org.mdacc.rists.bdi.fm.models.FmReportReferenceTb;
+import org.mdacc.rists.bdi.fm.models.FmReportSampleTb;
+import org.mdacc.rists.bdi.fm.models.FmReportSignatureTb;
 import org.mdacc.rists.bdi.fm.models.FmReportTb;
 import org.mdacc.rists.bdi.fm.models.FmReportTrialTb;
 import org.mdacc.rists.bdi.fm.models.FmReportVarPropetyTb;
+import org.mdacc.rists.bdi.fm.models.FmReportVarTb;
 import org.mdacc.rists.bdi.fm.models.SpecimenTb;
 import org.mdacc.rists.bdi.utils.XMLParser;
 import org.w3c.dom.Document;
@@ -144,6 +149,7 @@ public class InsertFmReport {
 			//VariantReport begins
 			Node variantReport = XMLParser.getNode("variant-Report", childNodes);
 			if (variantReport != null) {
+				NodeList vrNodes = variantReport.getChildNodes();
 				report.setVrTissueOfOrigin(XMLParser.getNodeAttr("tissue-of-origin", variantReport));
 				report.setVrTestType(XMLParser.getNodeAttr("test-type", variantReport));
 				report.setVrTestRequest(XMLParser.getNodeAttr("test-request", variantReport));
@@ -185,7 +191,8 @@ public class InsertFmReport {
 			specimenTb.setUpdateTs(date);			
 			specimenTb.setSpecimenSource("FM");
 			
-			// fm_report_trial_tb
+////////////////////////////////////////////////////////
+			//FinalReport/Trials
 			Node trials = XMLParser.getNode("Trials", frNodes);
 			List<FmReportTrialTb> trialList = new ArrayList<FmReportTrialTb>();
 			if (trials != null) {
@@ -193,7 +200,7 @@ public class InsertFmReport {
 			}
 			report.setFmReportTrialTbs(trialList);
 			
-			//FinalReport/Application/ApplicationSettings/ApplicationSetting			
+			//FinalReport/Application/ApplicationSettings/			
 			Node application = XMLParser.getNode("Application", frNodes);
 			List<FmReportAppTb> appList = new ArrayList<FmReportAppTb>();
 			if (application != null) {
@@ -201,11 +208,10 @@ public class InsertFmReport {
 				if (appSettings != null) {
 					appList = FmParseUtils.parseApplication(appSettings, date, etlProcId, report);
 				}
-				
 			}
 			report.setFmReportAppTbs(appList);
 			
-			//FinalReport/PertinentNegatives/PertinentNegative
+			//FinalReport/PertinentNegatives/
 			Node pertNegs = XMLParser.getNode("PertinentNegatives", frNodes);
 			List<FmReportPertNegTb> pertList = new ArrayList<FmReportPertNegTb>();
 			if (pertNegs != null) {
@@ -213,7 +219,7 @@ public class InsertFmReport {
 			}
 			report.setFmReportPertNegTbs(pertList);
 			
-			//FinalReport/VariantProperties/VariantProperty
+			//FinalReport/VariantProperties/
 			Node varProp = XMLParser.getNode("VariantProperties", frNodes);
 			List<FmReportVarPropetyTb> vpList = new ArrayList<FmReportVarPropetyTb>();
 			if (varProp != null) {
@@ -221,22 +227,61 @@ public class InsertFmReport {
 			}
 			report.setFmReportVarPropetyTbs(vpList);
 			
-			//FinalReport/Genes/Gene/
+			//FinalReport/Genes/
 			Node genes = XMLParser.getNode("Genes", frNodes);
 			List<FmReportGeneTb> geneList = new ArrayList<FmReportGeneTb>();
-			List<FmReportAltTb> altList = new ArrayList<FmReportAltTb>();
-			List<FmReportAltPropertyTb> apList = new ArrayList<FmReportAltPropertyTb>();
-			List<FmReportAltTherapyTb> atList = new ArrayList<FmReportAltTherapyTb>();
-			List<FmReportAltTrialLkTb> atlList = new ArrayList<FmReportAltTrialLkTb>();
 			if (genes != null) {
 				List<Node> geneNodes = XMLParser.getNodes("Gene", genes.getChildNodes());
 				if (geneNodes != null) {
-					
+					geneList = FmParseUtils.parseGenes(geneNodes, date, etlProcId, report);
 				}
 			}
+			report.setFmReportGeneTbs(geneList);
+			
+			//FinalReport/References/
+			Node refs = XMLParser.getNode("References", frNodes);
+			List<FmReportReferenceTb> refList = new ArrayList<FmReportReferenceTb>();
+			if (refs != null) {
+				refList = FmParseUtils.parseReference(refs, date, etlProcId, report);
+			}
+			report.setFmReportReferenceTbs(refList);
+			
+			//FinalReport/Signatures/
+			Node sigs = XMLParser.getNode("Signatures", frNodes);
+			List<FmReportSignatureTb> sigList = new ArrayList<FmReportSignatureTb>();
+			if (sigs != null) {
+				sigList = FmParseUtils.parseSignature(sigs, date, etlProcId, report);
+			}
+			report.setFmReportSignatureTbs(sigList);
+			
+			//FinalReport/AAC/Amendmends/
+			Node aac = XMLParser.getNode("AAC", frNodes);
+			List<FmReportAmendmendTb> amendList = new ArrayList<FmReportAmendmendTb>();
+			if (aac != null) {
+				Node amend = XMLParser.getNode("Amendmends", aac.getChildNodes());
+				if (amend != null) {
+					amendList = FmParseUtils.parseAmendmend(amend, date, etlProcId, report);
+				}
+			}
+			report.setFmReportAmendmendTbs(amendList);
+//////////////////////////////////////////////////////////
+			List<FmReportSampleTb> sampList = new ArrayList<FmReportSampleTb>();
+			List<FmReportVarTb> varList = new ArrayList<FmReportVarTb>();
+			if (variantReport != null) {
+				NodeList vrNodes = variantReport.getChildNodes();
+			
+				//variant-report/samples/
+				Node samples = XMLParser.getNode("samples", vrNodes);
+				sampList = FmParseUtils.parseSample(samples, date, etlProcId, report);
+	
+				//variant-report/[short-variant|copy-number-alterations|rearrangements|non-human-content]				
+				varList = FmParseUtils.parseVar(vrNodes, date, etlProcId, report);
+			}
+			report.setFmReportSampleTbs(sampList);
+			report.setFmReportVarTbs(varList);
+			
 			
 			// persist begins
-
 			report.setSpecimenTb(specimenTb);
 			List<FmReportTb> reports = new ArrayList<FmReportTb>();
 			reports.add(report);
