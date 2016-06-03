@@ -134,7 +134,7 @@ public class TransferUtils {
 			}
 		}
 		if (type.equalsIgnoreCase("fm-xml")) {
-			if (filename.startsWith("TRF") && filename.endsWith(".xml")) {
+			if (filename.endsWith(".xml")) {
 				return true;
 			}
 		}

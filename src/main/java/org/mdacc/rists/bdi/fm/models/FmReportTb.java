@@ -2,6 +2,7 @@ package org.mdacc.rists.bdi.fm.models;
 
 import java.io.Serializable;
 import javax.persistence.*;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -185,6 +186,9 @@ public class FmReportTb implements Serializable {
 
 	@Column(name="VR_TISSUE_OF_ORIGIN")
 	private String vrTissueOfOrigin;
+	
+	@Column(name="FILE_LOAD_ID")
+	private BigDecimal fileLoadId;
 
 	//bi-directional many-to-one association to FmReportAltPropertyTb
 	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
@@ -682,6 +686,14 @@ public class FmReportTb implements Serializable {
 		this.vrTissueOfOrigin = vrTissueOfOrigin;
 	}
 
+	public BigDecimal getFileLoadId() {
+		return fileLoadId;
+	}
+
+	public void setFileLoadId(BigDecimal fileLoadId) {
+		this.fileLoadId = fileLoadId;
+	}
+
 	public List<FmReportAltPropertyTb> getFmReportAltPropertyTbs() {
 		return this.fmReportAltPropertyTbs;
 	}
@@ -1041,5 +1053,5 @@ public class FmReportTb implements Serializable {
 
 		return fmReportAmendmendTb;
 	}
-
+	
 }

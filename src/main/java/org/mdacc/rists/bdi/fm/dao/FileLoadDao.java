@@ -3,30 +3,29 @@ package org.mdacc.rists.bdi.fm.dao;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
-import org.mdacc.rists.bdi.fm.models.SpecimenTb;
+import org.mdacc.rists.bdi.fm.models.FileLoadTb;
 
-public class SpecimenDao {
+public class FileLoadDao {
+
 	EntityManager entityManager;
 
-	public SpecimenDao() {
+	public FileLoadDao() {
 		super();
 	}
 
-	public SpecimenDao(EntityManager entityManager) {
+	public FileLoadDao(EntityManager entityManager) {
 		super();
 		this.entityManager = entityManager;
 	}
 	
-	public boolean persistSpecimen(SpecimenTb specimen) {
+	public boolean persistFileLoad(FileLoadTb fileLoad) {
 		EntityTransaction transaction = entityManager.getTransaction();
         try {
             transaction.begin();
-            entityManager.persist(specimen);
+            entityManager.persist(fileLoad);
             transaction.commit();
             return true;
         } catch (Exception e) {
-        	String fmId = specimen.getFmReportTbs().get(0).getFrFmId();
-        	System.err.println("Loading " + fmId + " failed");
         	e.printStackTrace();
             transaction.rollback();
             return false;

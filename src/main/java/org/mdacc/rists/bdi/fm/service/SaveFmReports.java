@@ -1,8 +1,14 @@
 package org.mdacc.rists.bdi.fm.service;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,11 +22,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.joda.time.DateTime;
+import org.mdacc.rists.bdi.dbops.DBConnection;
+import org.mdacc.rists.bdi.dbops.FileQueueUtil;
+import org.mdacc.rists.bdi.fm.dao.FileLoadDao;
 import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
-import org.mdacc.rists.bdi.fm.models.FmReportAltPropertyTb;
-import org.mdacc.rists.bdi.fm.models.FmReportAltTb;
-import org.mdacc.rists.bdi.fm.models.FmReportAltTherapyTb;
-import org.mdacc.rists.bdi.fm.models.FmReportAltTrialLkTb;
+import org.mdacc.rists.bdi.fm.models.FileLoadTb;
 import org.mdacc.rists.bdi.fm.models.FmReportAmendmendTb;
 import org.mdacc.rists.bdi.fm.models.FmReportAppTb;
 import org.mdacc.rists.bdi.fm.models.FmReportGeneTb;
@@ -39,21 +46,96 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class InsertFmReport {
+public class SaveFmReports {
 	public static void main (String args[]) throws ParserConfigurationException, SAXException, IOException {
-		File file = new File(args[0]);
-		insertReportTb(file);
+
+		Connection conn = DBConnection.getConnection();
+		try {
+	        // call stored procedure to get unsent files by type
+			ResultSet rs = FileQueueUtil.getUnloaded(conn, "fm-xml");
+			if (rs == null) {
+				System.out.println("No foundation files to load.");
+				return;
+			}
+			// loop thru results
+			int counter = 0;
+			while (rs.next()) {
+				int fileQueueId = rs.getInt("ROW_ID");
+				String filepath = rs.getString("FILE_URI");
+				BigDecimal etl = getNextValue("ETL_PROC_SEQ");
+				BigDecimal fileLoadId;
+				Long flId = insertFileLoadTb(fileQueueId, filepath, etl);
+				if (flId > 0) {
+					fileLoadId = new BigDecimal(flId);
+					File file = new File(filepath);
+					if (!file.exists()) {
+						System.err.println(filepath + " does not exist.");
+					}
+					else {
+						if (variantExists(file)) {
+							if (insertReportTb(file, etl, fileLoadId)) {
+								counter ++;
+								setLoadStatus(conn, "S", fileQueueId, fileLoadId);
+							} else {
+								setLoadStatus(conn, "E", fileQueueId, fileLoadId);
+							}
+						}
+					}
+				}
+				
+			}
+			System.out.println("Total " + counter + " FM files loaded to database.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+
+	/**
+	 * Get next value in sequence
+	 * @param seq - sequence name in db
+	 * @return
+	 */
+	private static BigDecimal getNextValue(String seq) {
+		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
+		EntityManager em = emFactory.createEntityManager();
+		String query = "SELECT " + seq + ".nextval from DUAL";
+		Query q = em.createNativeQuery(query);
+		BigDecimal val = (BigDecimal)q.getSingleResult();
+		em.close();
+		emFactory.close();
+		return val;
 	}
 	
-	public static void insertReportTb (File file) {
+	private static long insertFileLoadTb(int fileQueueId, String filepath, BigDecimal etl) {
+		
+		long rowId = getNextValue("FILE_LOAD_TB_SEQ").longValue();
+		BigDecimal fqId = new BigDecimal(String.valueOf(fileQueueId));
+		BigDecimal fileTypeId = new BigDecimal(String.valueOf(10));
+		BigDecimal seqNum = new BigDecimal(String.valueOf(1));
+		File file = new File(filepath);
+		String fileName = file.getName();
+		Date date = new Date();
+		FileLoadTb fileLoad = new FileLoadTb(rowId, etl, fqId, fileTypeId, date, fileName, seqNum, date, filepath);
+		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
+		EntityManager em = emFactory.createEntityManager();
+		FileLoadDao flDao = new FileLoadDao(em);
+		boolean success = flDao.persistFileLoad(fileLoad);
+		em.close();
+		emFactory.close();
+		if (success == true) {
+			return rowId;
+		}
+		return 0;
+	}
+
+
+	public static boolean insertReportTb (File file, BigDecimal etlProcId, BigDecimal flId) {
+	
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
 		try {
-			// get etl_proc_id from sequence and set to all tables
-			EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
-			EntityManager em = emFactory.createEntityManager();
-			Query q = em.createNativeQuery("SELECT ETL_PROC_SEQ.nextval from DUAL");
-			BigDecimal etlProcId=(BigDecimal)q.getSingleResult();
+			
 			// get current datetime for insert_ts and update_ts
 			Date date = new Date();
 			
@@ -283,18 +365,82 @@ public class InsertFmReport {
 			
 			// persist begins
 			report.setSpecimenTb(specimenTb);
+			report.setFileLoadId(flId);
 			List<FmReportTb> reports = new ArrayList<FmReportTb>();
 			reports.add(report);
 			specimenTb.setFmReportTbs(reports);
+			specimenTb.setFileLoadId(flId);
 			
+			EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
+			EntityManager em = emFactory.createEntityManager();
 			SpecimenDao specimenDao = new SpecimenDao(em);
-			specimenDao.persistSpecimen(specimenTb);
+			boolean success = specimenDao.persistSpecimen(specimenTb);
 			em.close();
 			emFactory.close();
+			if (success == true) {
+				return true;
+			}
 	
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
+		return false;
 	}
 	
+	/**
+	 * determine if variant-report section exists in report
+	 * @param file 
+	 * @return - true for exists, false for not
+	 */
+	private static boolean variantExists(File file) {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(file));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.contains("variant-report")) {
+					return true;
+				}
+			}
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	/**
+	 * Update load_status in file_queue_id and file_load_id after loading fm report into tables
+	 * @param conn - db connection
+	 * @param status - 'S' for success, 'E' for error
+	 * @param fileQueueId - row_id in file_queue_tb
+	 * @param fileLoadId - row_id in file_load_tb
+	 */
+	private static void setLoadStatus(Connection conn, String status, int fileQueueId, BigDecimal fileLoadId) {
+		Date date = new Date();
+		try {
+			//update file_queue_tb
+			String sql = "Update FILE_QUEUE_TB set LOAD_STATUS = ?, UPDATE_TS = ? where ROW_ID = ? ";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, status);
+			ps.setDate(2, new java.sql.Date(date.getTime()));
+			ps.setInt(3, fileQueueId);
+			ps.executeUpdate();
+			System.out.println("Update Load_Status in FILE_QUEUE_ID table: " + status);
+			
+			//update file_load_tb
+			sql = "Update FILE_LOAD_TB set LOAD_STATUS = ?, UPDATE_TS = ? where ROW_ID = ? ";
+			ps = conn.prepareStatement(sql);
+			ps.setString(1, status);
+			ps.setDate(2, new java.sql.Date(date.getTime()));
+			ps.setInt(3, Integer.valueOf(fileLoadId.intValue()));
+			ps.executeUpdate();
+			System.out.println("Update Load_Status in FILE_LOAD_ID table: " + status);
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+	}
 }

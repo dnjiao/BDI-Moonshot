@@ -20,6 +20,7 @@
 		<class>org.mdacc.rists.bdi.fm.models.FmReportVarSampleTb</class>
 		<class>org.mdacc.rists.bdi.fm.models.FmReportVarTb</class>
 		<class>org.mdacc.rists.bdi.fm.models.SpecimenTb</class>
+		<class>org.mdacc.rists.bdi.fm.models.FileLoadTb</class>
 
         <properties>
             <property name="javax.persistence.jdbc.driver" value="oracle.jdbc.OracleDriver" />
@@ -29,7 +30,7 @@
             
             <!--Hibernate properties-->
             <property name="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect" />
-            <property name="hibernate.show_sql" value="true" />
+<!--             <property name="hibernate.show_sql" value="true" /> -->
 <!--             <property name="hibernate.hbm2ddl.auto" value="update" /> -->
         </properties>
 	</persistence-unit>
