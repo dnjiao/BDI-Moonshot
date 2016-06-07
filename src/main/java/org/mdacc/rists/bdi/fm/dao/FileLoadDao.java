@@ -31,6 +31,20 @@ public class FileLoadDao {
             return false;
         }
 	}
+	
+	public boolean mergeFileLoad(FileLoadTb fileLoad) {
+		EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            entityManager.merge(fileLoad);
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+        	e.printStackTrace();
+            transaction.rollback();
+            return false;
+        }
+	}
 
 	public EntityManager getEntityManager() {
 		return entityManager;

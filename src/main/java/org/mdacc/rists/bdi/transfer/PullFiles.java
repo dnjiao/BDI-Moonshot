@@ -272,7 +272,7 @@ public class PullFiles {
 				archive.mkdir();
 			}
 //			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found-xml.sh", dest + "/archive"};
-			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/test/*.xml " + archive.getAbsolutePath()};
+			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/*.xml " + archive.getAbsolutePath()};
 			String source = "ftp.mdanderson.org";
 			System.out.println(cmd);
 			
@@ -364,7 +364,7 @@ public class PullFiles {
 			
 			// run bash script to download validation files from ftp server
 //			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found-val.sh", dest};
-			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/test/*.csv " + archive.getAbsolutePath()};
+			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/*.csv " + archive.getAbsolutePath()};
 			System.out.println(cmd);
 
 			// capture stdout and stderr from running bash script

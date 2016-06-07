@@ -32,6 +32,22 @@ public class SpecimenDao {
             return false;
         }
 	}
+	
+	public boolean mergeSpecimen(SpecimenTb specimen) {
+		EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            entityManager.merge(specimen);
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+        	String fmId = specimen.getFmReportTbs().get(0).getFrFmId();
+        	System.err.println("Loading " + fmId + " failed");
+        	e.printStackTrace();
+            transaction.rollback();
+            return false;
+        }
+	}
 
 	public EntityManager getEntityManager() {
 		return entityManager;

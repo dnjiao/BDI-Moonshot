@@ -28,4 +28,16 @@ public class FmReportDao {
             transaction.rollback();
         }
 	}
+	
+	public void mergeReport(FmReportTb report) {
+		EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            entityManager.merge(report);
+            transaction.commit();
+        } catch (Exception e) {
+        	e.printStackTrace();
+            transaction.rollback();
+        }
+	}
 }

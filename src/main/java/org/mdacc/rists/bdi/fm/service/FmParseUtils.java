@@ -570,6 +570,7 @@ public class FmParseUtils {
 				varTb.setFmReportTb(report);
 				
 				varTb.setType("rearrangement");
+				System.out.println("rearrangement");
 				varTb.setRearrangementInFrame(XMLParser.getNodeAttr("in-frame", ra));
 				varTb.setRearrangementTargetedGene(XMLParser.getNodeAttr("targeted-gene", ra));
 				varTb.setRearrangementOtherGene(XMLParser.getNodeAttr("other-gene", ra));

@@ -64,6 +64,7 @@ public class SaveFmReports {
 				String filepath = rs.getString("FILE_URI");
 				BigDecimal etl = getNextValue("ETL_PROC_SEQ");
 				BigDecimal fileLoadId;
+				System.out.println("Processing " + filepath);
 				Long flId = insertFileLoadTb(fileQueueId, filepath, etl);
 				if (flId > 0) {
 					fileLoadId = new BigDecimal(flId);
@@ -82,7 +83,6 @@ public class SaveFmReports {
 						}
 					}
 				}
-				
 			}
 			System.out.println("Total " + counter + " FM files loaded to database.");
 		} catch (SQLException e) {

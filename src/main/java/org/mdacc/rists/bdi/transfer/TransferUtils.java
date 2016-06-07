@@ -81,8 +81,6 @@ public class TransferUtils {
 				return "FM";
 			case "fm-val":
 				return "FM Validation";
-			case "fm-psv":
-				return "FM Specimen";
 			default:
 				System.err.println("Invalid file type: " + type);
 				return null;
