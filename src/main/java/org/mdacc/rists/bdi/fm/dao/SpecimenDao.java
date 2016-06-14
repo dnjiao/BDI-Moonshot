@@ -2,6 +2,8 @@ package org.mdacc.rists.bdi.fm.dao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
+import javax.persistence.Query;
 
 import org.mdacc.rists.bdi.fm.models.SpecimenTb;
 
@@ -48,7 +50,17 @@ public class SpecimenDao {
             return false;
         }
 	}
-
+	
+	public SpecimenTb findSpecimenBySpecno(String sno) {
+		Query q = entityManager.createQuery("SELECT s FROM SPECIMEN_TB s WHERE specimen_no = :specno");
+		q.setParameter("specno", sno);
+		try {
+			return (SpecimenTb) q.getSingleResult();
+		} catch (NoResultException exc) {
+			return null;
+		}
+		
+	}
 	public EntityManager getEntityManager() {
 		return entityManager;
 	}

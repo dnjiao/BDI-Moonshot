@@ -1,9 +1,11 @@
-package org.mdacc.rists.bdi.dbops;
+package org.mdacc.rists.bdi;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Types;
+
+import org.mdacc.rists.bdi.db.utils.DBConnection;
 
 public class FileProcess {
 	public static void main(String[] args) {

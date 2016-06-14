@@ -37,7 +37,7 @@ public class FileLoadTb implements Serializable {
 	private BigDecimal fileTypeId;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="INSERT_TS")
+	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
 	@Column(name="LOAD_STATUS")

@@ -32,7 +32,7 @@ public class FmReportSignatureTb implements Serializable {
 	private BigDecimal etlProcId;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="INSERT_TS")
+	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
 	@Column(name="OP_NAME")

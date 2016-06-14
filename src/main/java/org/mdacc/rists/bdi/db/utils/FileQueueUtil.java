@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.dbops;
+package org.mdacc.rists.bdi.db.utils;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -6,30 +6,29 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 import oracle.jdbc.OracleTypes;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.mdacc.rists.bdi.transfer.TransferUtils;
+import org.mdacc.rists.bdi.TransferUtils;
+import org.mdacc.rists.bdi.db.models.FileQueueResult;
 
 public class FileQueueUtil {
 	
 	public static void main(String[] args) throws SQLException {
-		Connection con = DBConnection.getConnection();
-		int size = 0;
-		ResultSet rs = getUnloaded(con, "fm-xml");
-		while (rs.next()) {
-			size++;
-		}
-		System.out.println(size);
+
 	}
 	
-	public static ResultSet getUnvalidated (Connection con, String type) {
+	public static List<FileQueueResult> getUnvalidated (Connection con, String type) {
 		CallableStatement stmt;
 		ResultSet rs = null;
+		List<FileQueueResult> fqList = null;
 		try {
+			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_invalid_file_by_type for type " + type);
 			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_invalid_file_by_type(?,?,?,?,?)}");
 			stmt.setString(1, TransferUtils.convertTypeStr(type));
 			stmt.registerOutParameter(2, OracleTypes.CURSOR);
@@ -37,21 +36,24 @@ public class FileQueueUtil {
 			stmt.registerOutParameter(4, Types.VARCHAR);
 			stmt.registerOutParameter(5, Types.VARCHAR);
 			stmt.executeUpdate();
-			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_invalid_file_by_type for type " + type);
+			
 			
 			// get cursor and cast it to ResultSet
 			rs = (ResultSet) stmt.getObject(2);
+			fqList = ResultSetToList(rs);
+			rs.close();
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		return rs;
+		return fqList;
 	}
 	
-	public static ResultSet getUnloaded (Connection con, String type) {
+	public static List<FileQueueResult> getUnloaded (Connection con, String type) {
 		CallableStatement stmt;
 		ResultSet rs = null;
+		List<FileQueueResult> fqList = null;
 		try {
 			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unloaded_file_by_type(?,?,?,?,?)}");
 			stmt.setString(1, TransferUtils.convertTypeStr(type));
@@ -64,16 +66,19 @@ public class FileQueueUtil {
 			
 			// get cursor and cast it to ResultSet
 			rs = (ResultSet) stmt.getObject(2);
+			fqList = ResultSetToList(rs);
+			rs.close();
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		return rs;
+		return fqList;
 	}
-	public static ResultSet getUnsent (Connection con, String type) {
+	public static List<FileQueueResult> getUnsent (Connection con, String type) {
 		CallableStatement stmt;
 		ResultSet rs = null;
+		List<FileQueueResult> fqList = null;
 		try {
 			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unsent_file_by_type(?,?,?,?,?)}");
 //			String t = TransferUtils.convertTypeStr(type);
@@ -87,6 +92,8 @@ public class FileQueueUtil {
 			
 			// get cursor and cast it to ResultSet
 			rs = (ResultSet) stmt.getObject(2);
+			fqList = ResultSetToList(rs);
+			rs.close();
 			
 //			//DEBUG: print out ResultSet content.
 //			ResultSetMetaData rsmd = rs.getMetaData();
@@ -105,13 +112,14 @@ public class FileQueueUtil {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		return rs;
+		return fqList;
 	}
 	
 	public static int insertRecord (Connection con, String filepath, String type) {
 		CallableStatement stmt;
 		int queueId = 0;
 		try {
+			System.out.println("Calling procedure FILE_QUEUE_UTIL.insert_record for type " + type + ": " + filepath);
 			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.insert_record(?,?,?,?,?,?,?)}");
 			stmt.setString(1, filepath);
 			if (type.equals("vcf") || type.equals("cnv") || type.equals("gene") || type.equals("exon") || type.equals("junction")) {
@@ -126,7 +134,7 @@ public class FileQueueUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.registerOutParameter(7, Types.VARCHAR);
 			stmt.executeUpdate();
-			System.out.println("Calling procedure FILE_QUEUE_UTIL.insert_record for type " + type);
+			
 			queueId = stmt.getInt(4);
 			// if update/insert is not success, print out error description
 			if (queueId == 0) {
@@ -156,9 +164,27 @@ public class FileQueueUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.executeUpdate();
 			System.out.println("Calling procedure FILE_QUEUE_UTIL.update_send_status.");
+			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
+	}
+	
+	public static List<FileQueueResult> ResultSetToList(ResultSet rs) {
+		List<FileQueueResult> fqList = new ArrayList<FileQueueResult>();
+		try {	
+			while (rs.next()) {
+				FileQueueResult resultSet;
+				int id = rs.getInt("ROW_ID");
+				String uri = rs.getString("FILE_URI");
+				resultSet = new FileQueueResult(id, uri);
+				fqList.add(resultSet);
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return fqList;
 	}
 }

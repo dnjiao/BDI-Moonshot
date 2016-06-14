@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.dbops;
+package org.mdacc.rists.bdi.db.utils;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -7,7 +7,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mdacc.rists.bdi.transfer.TransferUtils;
+import org.mdacc.rists.bdi.TransferUtils;
 
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
@@ -32,6 +32,7 @@ public class FileTransferAuditUtil {
 	public static int insertRecord (Connection con, String sourceUri, String destUri, String protocol) {
 		int ret = 0;
 		try {
+			System.out.println("Calling procedure FILE_TRANSFER_AUDIT_UTIL.insert_record: " + destUri);
 			CallableStatement stmt = con.prepareCall("{call FILE_TRANSFER_AUDIT_UTIL.insert_record(?,?,?,?,?,?,?)}");
 			stmt.setString(1, sourceUri);
 			stmt.setString(2, destUri);
@@ -59,6 +60,7 @@ public class FileTransferAuditUtil {
 	public static void updateFileQueueId (Connection con, List<String> fileList, int fileQueueId) {
 		String[] fileArray = fileList.toArray(new String[fileList.size()]);
 		try{
+			System.out.println("Calling procedure FILE_TRANSFER_AUDIT_UTIL.update_file_queue_id with queueID " + fileQueueId);
 			ArrayDescriptor des = ArrayDescriptor.createDescriptor("VARCHAR2_TABLE", con);
 			ARRAY array = new ARRAY(des, con, fileArray);
 			CallableStatement stmt = con.prepareCall("{call FILE_TRANSFER_AUDIT_UTIL.update_file_queue_id(?,?,?,?,?,?)}");
@@ -70,7 +72,7 @@ public class FileTransferAuditUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			
 			stmt.execute();
-			System.out.println("Calling procedure FILE_TRANSFER_AUDIT_UTIL.update_file_queue_id with queueID " + fileQueueId);
+			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -93,6 +95,7 @@ public class FileTransferAuditUtil {
 			stmt.executeUpdate();
 			System.out.println("Calling procedure FILE_TRANSFER_AUDIT_UTIL.get_latest_file_by_type for type " + type);
 			fileuri = stmt.getString(2);
+			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);

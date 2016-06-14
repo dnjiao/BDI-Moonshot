@@ -54,7 +54,7 @@ public class SpecimenTb implements Serializable {
 	private BigDecimal foreignReportId;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="INSERT_TS")
+	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
 	private String mrn;

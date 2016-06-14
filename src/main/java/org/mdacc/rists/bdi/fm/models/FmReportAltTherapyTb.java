@@ -50,7 +50,7 @@ public class FmReportAltTherapyTb implements Serializable {
 	private String includeInSummary;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="INSERT_TS")
+	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
 	private String name;

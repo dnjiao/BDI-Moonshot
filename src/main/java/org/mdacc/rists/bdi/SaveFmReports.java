@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.fm.service;
+package org.mdacc.rists.bdi;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,8 +23,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.joda.time.DateTime;
-import org.mdacc.rists.bdi.dbops.DBConnection;
-import org.mdacc.rists.bdi.dbops.FileQueueUtil;
+import org.mdacc.rists.bdi.db.models.FileQueueResult;
+import org.mdacc.rists.bdi.db.utils.DBConnection;
+import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
 import org.mdacc.rists.bdi.fm.dao.FileLoadDao;
 import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
 import org.mdacc.rists.bdi.fm.models.FileLoadTb;
@@ -40,6 +41,7 @@ import org.mdacc.rists.bdi.fm.models.FmReportTrialTb;
 import org.mdacc.rists.bdi.fm.models.FmReportVarPropetyTb;
 import org.mdacc.rists.bdi.fm.models.FmReportVarTb;
 import org.mdacc.rists.bdi.fm.models.SpecimenTb;
+import org.mdacc.rists.bdi.fm.service.FmParseUtils;
 import org.mdacc.rists.bdi.utils.XMLParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -48,47 +50,50 @@ import org.xml.sax.SAXException;
 
 public class SaveFmReports {
 	public static void main (String args[]) throws ParserConfigurationException, SAXException, IOException {
-
+		
 		Connection conn = DBConnection.getConnection();
-		try {
-	        // call stored procedure to get unsent files by type
-			ResultSet rs = FileQueueUtil.getUnloaded(conn, "fm-xml");
-			if (rs == null) {
-				System.out.println("No foundation files to load.");
-				return;
+        // call stored procedure to get unsent files by type
+		
+		List<FileQueueResult> fqList = FileQueueUtil.getUnloaded(conn, "fm-xml");
+		if (fqList == null) {
+			System.out.println("No foundation files to load.");
+			return;
+		}
+		// loop thru results
+		int counter = 0;
+		for (FileQueueResult fq : fqList) {
+			int fileQueueId = fq.getRowId();
+			String filepath = fq.getFileUri();
+			File file = new File(filepath);
+			if (!file.exists()) {
+				System.err.println(filepath + " does not exist.");
 			}
-			// loop thru results
-			int counter = 0;
-			while (rs.next()) {
-				int fileQueueId = rs.getInt("ROW_ID");
-				String filepath = rs.getString("FILE_URI");
-				BigDecimal etl = getNextValue("ETL_PROC_SEQ");
-				BigDecimal fileLoadId;
-				System.out.println("Processing " + filepath);
-				Long flId = insertFileLoadTb(fileQueueId, filepath, etl);
-				if (flId > 0) {
-					fileLoadId = new BigDecimal(flId);
-					File file = new File(filepath);
-					if (!file.exists()) {
-						System.err.println(filepath + " does not exist.");
-					}
-					else {
-						if (variantExists(file)) {
-							if (insertReportTb(file, etl, fileLoadId)) {
-								counter ++;
-								setLoadStatus(conn, "S", fileQueueId, fileLoadId);
-							} else {
-								setLoadStatus(conn, "E", fileQueueId, fileLoadId);
-							}
+			else {
+				if (variantExists(file)) {
+					BigDecimal etl = getNextValue("ETL_PROC_SEQ");
+					BigDecimal fileLoadId;
+					Long flId = insertFileLoadTb(fileQueueId, filepath, etl);
+					if (flId > 0) {
+						fileLoadId = new BigDecimal(flId);
+						if (insertReportTb(file, etl, fileLoadId)) {
+							Date now = new Date();
+							SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+							System.out.println(file.getName() + " loaded successful with fileLoadId " + Long.toString(flId) + " at " + df.format(now));
+							counter ++;
+							setLoadStatus(conn, "S", fileQueueId, fileLoadId);
+						} else {
+							setLoadStatus(conn, "E", fileQueueId, fileLoadId);
 						}
 					}
 				}
+				else {
+					Date now = new Date();
+					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					System.out.println("No variant-report found in " + file.getName() + " at " + df.format(now));
+				}
 			}
-			System.out.println("Total " + counter + " FM files loaded to database.");
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.exit(1);
 		}
+		System.out.println("Total " + counter + " FM files loaded to database.");
 	}
 
 	/**
@@ -435,6 +440,7 @@ public class SaveFmReports {
 			ps.setInt(3, Integer.valueOf(fileLoadId.intValue()));
 			ps.executeUpdate();
 			System.out.println("Update Load_Status in FILE_LOAD_ID table: " + status);
+			ps.close();
 			
 		} catch (SQLException e) {
 			e.printStackTrace();

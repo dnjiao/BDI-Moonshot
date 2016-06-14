@@ -126,7 +126,7 @@ public class FmReportTb implements Serializable {
 	private BigDecimal frVersion;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="INSERT_TS")
+	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
 	@Column(name="REFERENCE_ID")

@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.transfer;
+package org.mdacc.rists.bdi;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,11 +21,11 @@ import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.mdacc.rists.bdi.dbops.FileLocationUtil;
-import org.mdacc.rists.bdi.dbops.FileQueueUtil;
-import org.mdacc.rists.bdi.dbops.FileTransferAuditUtil;
-import org.mdacc.rists.bdi.dbops.DBConnection;
-import org.mdacc.rists.bdi.dbops.FileChecksumUtil;
+import org.mdacc.rists.bdi.db.utils.DBConnection;
+import org.mdacc.rists.bdi.db.utils.FileChecksumUtil;
+import org.mdacc.rists.bdi.db.utils.FileLocationUtil;
+import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
+import org.mdacc.rists.bdi.db.utils.FileTransferAuditUtil;
 import org.mdacc.rists.bdi.utils.GenChecksum;
 import org.mdacc.rists.bdi.utils.XMLParser;
 
@@ -324,18 +324,16 @@ public class PullFiles {
 				FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newXMLFile.getAbsolutePath(), "sftp");
 				
 				//validation
-				String md5 = GenChecksum.getMd5(newXMLFile);
-				System.out.println("Validating " + newXMLFile.getAbsolutePath() + " with checksum " + md5);
-				int isValidated = FileChecksumUtil.ValidateChecksum(newXMLFile.getAbsolutePath(), md5, "FM");
-				System.out.println("validation return " + Integer.toString(isValidated));
-				if (isValidated > 0) {
-					auditFileList.clear();				
-					int fileQueueId = FileQueueUtil.insertRecord(CONN, newXMLFile.getAbsolutePath(), "fm-xml");
-					fileCounter ++;
-					auditFileList.add(newXMLFile.getAbsolutePath());
-					FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
-					FileLocationUtil.setLastTimeStamp(CONN, "fm-xml", source, current);
-				}
+//				String md5 = GenChecksum.getMd5(newXMLFile);
+//				System.out.println("Validating " + newXMLFile.getAbsolutePath() + " with checksum " + md5);
+//				int isValidated = FileChecksumUtil.ValidateChecksum(newXMLFile.getAbsolutePath(), md5, "FM");
+//				System.out.println("validation return " + Integer.toString(isValidated));
+				
+				int fileQueueId = FileQueueUtil.insertRecord(CONN, newXMLFile.getAbsolutePath(), "fm-xml");
+				fileCounter ++;
+				auditFileList.add(newXMLFile.getAbsolutePath());
+				FileTransferAuditUtil.updateFileQueueId(CONN, auditFileList, fileQueueId);
+				FileLocationUtil.setLastTimeStamp(CONN, "fm-xml", source, current);
 				// delete file from archive dir
 				file.delete();
 			}

@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.dbops;
+package org.mdacc.rists.bdi.db.utils;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -16,6 +16,7 @@ public class FileChecksumUtil {
 		int returnInt = 0;
 		Connection conn = DBConnection.getConnection();
 		try {
+			System.out.println("Calling procedure FILE_CHECKSUM_UTIL.valid_file_by_source.");
 			CallableStatement stmt = conn.prepareCall("{call FILE_CHECKSUM_UTIL.valid_file_by_source(?,?,?,?,?,?,?)}");
 			stmt.setString(1,  filepath);
 			stmt.setString(2, checksum);
@@ -26,7 +27,7 @@ public class FileChecksumUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.registerOutParameter(7, Types.VARCHAR);
 			stmt.executeUpdate();
-			System.out.println("Calling procedure FILE_CHECKSUM_UTIL.valid_file_by_source.");
+			
 //				System.out.println("Error code: " + stmt.getString(7));
 //				System.out.println("Error description: " + stmt.getString(8));
 //				System.out.println("Error trace: " + stmt.getString(9));

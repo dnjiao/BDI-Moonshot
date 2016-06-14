@@ -38,7 +38,7 @@ public class FmReportAltTb implements Serializable {
 	private String indication;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="INSERT_TS")
+	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
 	@Lob

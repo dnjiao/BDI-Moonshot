@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.dbops;
+package org.mdacc.rists.bdi.db.utils;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -8,7 +8,7 @@ import java.sql.Types;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.mdacc.rists.bdi.transfer.TransferUtils;
+import org.mdacc.rists.bdi.TransferUtils;
 
 public class FileLocationUtil {
 	
@@ -36,7 +36,7 @@ public class FileLocationUtil {
 		String dtStr = FORMATTER.print(dt);
 		try {
 			CallableStatement stmt = con.prepareCall("{call FILE_LOCATION_UTIL.upsert_last_copy_ts(?,?,'SRC',?,?,?,?,?)}");
-			
+			System.out.println("Calling procedure FILE_LOCATION_UTIL.upsert_last_copy_ts: " + path);
 			stmt.setString(1, typeStr);
 			stmt.setString(2, path);
 			stmt.setString(3, dtStr);
@@ -45,7 +45,7 @@ public class FileLocationUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.registerOutParameter(7, Types.VARCHAR);
 			stmt.executeUpdate();
-			System.out.println("Calling procedure FILE_LOCATION_UTIL.upsert_last_copy_ts.");
+			
 			int ret = stmt.getInt(4);
 			// if update/insert is not success, print out error description
 			if (ret == 0) {

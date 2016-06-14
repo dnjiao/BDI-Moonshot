@@ -46,7 +46,7 @@ public class FmReportTrialTb implements Serializable {
 	private String include;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="INSERT_TS")
+	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
 	private String locations;

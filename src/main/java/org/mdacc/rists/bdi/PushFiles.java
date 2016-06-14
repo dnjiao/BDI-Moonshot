@@ -1,9 +1,8 @@
-package org.mdacc.rists.bdi.transfer;
+package org.mdacc.rists.bdi;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -15,8 +14,9 @@ import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.joda.time.DateTime;
-import org.mdacc.rists.bdi.dbops.DBConnection;
-import org.mdacc.rists.bdi.dbops.FileQueueUtil;
+import org.mdacc.rists.bdi.db.models.FileQueueResult;
+import org.mdacc.rists.bdi.db.utils.DBConnection;
+import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
 
 public class PushFiles {
 	final static String URL_STRING = "http://10.113.241.55:8099/bdi/serviceingestion?domain=";
@@ -24,7 +24,7 @@ public class PushFiles {
 	final static String PASSWORD = "CH!M@321";
 	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "splice");
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 		if (args.length != 2) {
 			System.err.println("Invalid arguments.Usage: PushFiles [type] [bool]");
 			System.exit(1);
@@ -38,37 +38,29 @@ public class PushFiles {
 		String prefix = URL_STRING  + type + "&fileName=";
 		
 		Connection conn = DBConnection.getConnection();
-		try {
-			
-	        // call stored procedure to get unsent files by type
-			ResultSet rs = FileQueueUtil.getUnsent(conn, type);
-			
-			// counter of successfully pushed files
-			int rowcount = 0;
-			DateTime dt;
-			if (rs == null) {
-				System.out.println("No " + type + " files to push.");
-				return;
-			}
-			// loop thru results
-			while (rs.next()) {
-				int rowId = rs.getInt("ROW_ID");
-				String filepath = rs.getString("FILE_URI");
-				dt = new DateTime();
-				if (pushSingle(prefix, USERNAME, PASSWORD, filepath, pushFlag) == 1) {
-					FileQueueUtil.updateSendStatus(conn, rowId, dt);
-					rowcount ++;
-				}
-			}
-			
-			System.out.println("Total of " + Integer.toString(rowcount) + " " + type + " files pushed.");
-			conn.close();
-		}
-		catch (SQLException e) {
-			e.printStackTrace();
-			System.exit(1);
+		List<FileQueueResult> fqList = FileQueueUtil.getUnsent(conn, type);
+		if (fqList == null) {
+			System.out.println("No " + type + " files to push.");
+			return;
 		}
 		
+		// counter of successfully pushed files
+		int rowcount = 0;
+		DateTime dt;
+		
+		// loop thru results
+		for (FileQueueResult fq : fqList) {
+			int rowId = fq.getRowId();
+			String filepath = fq.getFileUri();
+			dt = new DateTime();
+			if (pushSingle(prefix, USERNAME, PASSWORD, filepath, pushFlag) == 1) {
+				FileQueueUtil.updateSendStatus(conn, rowId, dt);
+				rowcount ++;
+			}
+		}
+		
+		System.out.println("Total of " + Integer.toString(rowcount) + " " + type + " files pushed.");
+		conn.close();
 	}
 
 	

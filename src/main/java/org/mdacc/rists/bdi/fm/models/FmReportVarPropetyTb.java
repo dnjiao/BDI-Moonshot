@@ -35,7 +35,7 @@ public class FmReportVarPropetyTb implements Serializable {
 	private String geneName;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="INSERT_TS")
+	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
 	@Column(name="IS_VUS")

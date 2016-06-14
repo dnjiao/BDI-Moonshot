@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.transfer;
+package org.mdacc.rists.bdi;
 
 import java.io.File;
 import java.util.Arrays;

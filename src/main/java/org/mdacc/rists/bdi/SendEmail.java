@@ -1,8 +1,9 @@
-package org.mdacc.rists.bdi.transfer;
+package org.mdacc.rists.bdi;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -10,8 +11,9 @@ import org.joda.time.format.DateTimeFormatter;
 import org.mdacc.hp.ris.trex.service.notification.RISNotificationManager;
 import org.mdacc.hp.ris.trex.service.notification.RISNotificationManagerService;
 import org.mdacc.hp.ris.trex.service.notification.RisEmailMessage;
-import org.mdacc.rists.bdi.dbops.DBConnection;
-import org.mdacc.rists.bdi.dbops.FileQueueUtil;
+import org.mdacc.rists.bdi.db.models.FileQueueResult;
+import org.mdacc.rists.bdi.db.utils.DBConnection;
+import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
 import org.mdacc.rists.bdi.utils.EmailNotificationClient;
 import org.mdacc.rists.bdi.utils.EmailVO;
 
@@ -28,24 +30,25 @@ public class SendEmail {
 		String type = args[1];
 		
 		Connection conn = DBConnection.getConnection();
-		ResultSet rs = FileQueueUtil.getUnvalidated(conn, type);
+		List<FileQueueResult> fqList = FileQueueUtil.getUnvalidated(conn, type);
 		
 		DateTimeFormatter FORMAT = DateTimeFormat.forPattern("MMddyyyy");
 		DateTime dt = new DateTime();
 		String subject = "Unvalidated files " + FORMAT.print(dt);
-		String message = constructMessage(rs);
+		String message = constructMessage(fqList);
 		EmailNotificationClient client = new EmailNotificationClient();
 		client.sendEmailNotification(createEmail(toAddress, subject, message));
 
 	}
-	private static String constructMessage(ResultSet rs) throws SQLException {
-		if (rs == null) {
+	private static String constructMessage(List<FileQueueResult> list) throws SQLException {
+		if (list == null) {
 			System.out.println("No unvalidated files.");
 			System.exit(0);
 		}
 		String body = "Here is the list of files either failed validation or missing validation info.\n";
-		while (rs.next()) {
-			String filename = rs.getString("FILE_NAME");
+		for (FileQueueResult fq : list) {
+			String filepath = fq.getFileUri();
+			String filename = filepath.substring(filepath.lastIndexOf("/")+1, filepath.length());
 			body += filename + "\n";
 			
 		}
