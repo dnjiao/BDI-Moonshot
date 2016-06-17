@@ -18,6 +18,7 @@ public class SaveSingleFmReport {
 		BigDecimal flId = new BigDecimal(args[1]);
 		boolean status = SaveFmReports.insertReportTb(file, new BigDecimal(9999), flId);
 		System.out.println(status);
+		return;
 	}
 	
 	public static void saveOrUpdateSpecimen(String sid) {
@@ -33,13 +34,9 @@ public class SaveSingleFmReport {
 		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
 		EntityManager em = emFactory.createEntityManager();
 		SpecimenDao specimenDao = new SpecimenDao(em);
-		if (specimenDao.findSpecimenBySpecno(sid) != null) {
-			specimenDao.mergeSpecimen(specimen);
-		}
-		else {
-			specimenDao.persistSpecimen(specimen);
-		}
-		
+		SpecimenTb spec = specimenDao.getSpecimenBySpecno(sid);
+		boolean success = false;
+
 		em.close();
 		emFactory.close();
 	}

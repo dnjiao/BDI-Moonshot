@@ -1,10 +1,14 @@
 package org.mdacc.rists.bdi.fm.dao;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.mdacc.rists.bdi.fm.models.FmReportTb;
 import org.mdacc.rists.bdi.fm.models.SpecimenTb;
 
 public class SpecimenDao {
@@ -35,24 +39,26 @@ public class SpecimenDao {
         }
 	}
 	
-	public boolean mergeSpecimen(SpecimenTb specimen) {
+	public boolean updateSpecimen(SpecimenTb specimen, FmReportTb report) {
 		EntityTransaction transaction = entityManager.getTransaction();
+		List<FmReportTb> reportList = new ArrayList<FmReportTb>();
+		reportList.add(report);
         try {
             transaction.begin();
-            entityManager.merge(specimen);
+            specimen.setFmReportTbs(reportList);
             transaction.commit();
             return true;
         } catch (Exception e) {
-        	String fmId = specimen.getFmReportTbs().get(0).getFrFmId();
-        	System.err.println("Loading " + fmId + " failed");
+        	String specNo = specimen.getSpecimenNo();
+        	System.err.println("Updating " + specNo + " failed");
         	e.printStackTrace();
             transaction.rollback();
             return false;
         }
 	}
 	
-	public SpecimenTb findSpecimenBySpecno(String sno) {
-		Query q = entityManager.createQuery("SELECT s FROM SPECIMEN_TB s WHERE specimen_no = :specno");
+	public SpecimenTb getSpecimenBySpecno(String sno) {
+		Query q = entityManager.createQuery("SELECT s FROM SpecimenTb s WHERE specimen_no = :specno");
 		q.setParameter("specno", sno);
 		try {
 			return (SpecimenTb) q.getSingleResult();

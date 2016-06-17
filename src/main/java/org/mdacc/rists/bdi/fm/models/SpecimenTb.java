@@ -89,7 +89,7 @@ public class SpecimenTb implements Serializable {
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
 
-	@Column(name="SPECIMEN_NO")
+	@Column(name="SPECIMEN_NO", unique = true)
 	private String specimenNo;
 
 	@Column(name="SPECIMEN_SOURCE")

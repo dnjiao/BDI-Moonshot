@@ -379,7 +379,14 @@ public class SaveFmReports {
 			EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
 			EntityManager em = emFactory.createEntityManager();
 			SpecimenDao specimenDao = new SpecimenDao(em);
-			boolean success = specimenDao.persistSpecimen(specimenTb);
+			SpecimenTb spec = specimenDao.getSpecimenBySpecno(specimenTb.getSpecimenNo());
+			boolean success = false;
+			if (spec != null) {
+				success = specimenDao.updateSpecimen(spec, report);
+			}
+			else {
+				success = specimenDao.persistSpecimen(specimenTb);
+			}
 			em.close();
 			emFactory.close();
 			if (success == true) {
@@ -391,7 +398,7 @@ public class SaveFmReports {
 		} 
 		return false;
 	}
-	
+
 	/**
 	 * determine if variant-report section exists in report
 	 * @param file 
