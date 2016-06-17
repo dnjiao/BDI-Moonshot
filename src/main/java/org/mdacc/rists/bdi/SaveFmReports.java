@@ -68,25 +68,26 @@ public class SaveFmReports {
 			if (!file.exists()) {
 				System.err.println(filepath + " does not exist.");
 			}
-			else {
+			else {			
 				if (variantExists(file)) {
 					BigDecimal etl = getNextValue("ETL_PROC_SEQ");
-					BigDecimal fileLoadId;
 					Long flId = insertFileLoadTb(fileQueueId, filepath, etl);
+					BigDecimal fileLoadId = new BigDecimal(flId);
 					if (flId > 0) {
-						fileLoadId = new BigDecimal(flId);
-						if (insertReportTb(file, etl, fileLoadId)) {
+						char insertStatus = insertReportTb(file, etl, fileLoadId);
+						if (insertStatus == 'S') {
 							Date now = new Date();
 							SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 							System.out.println(file.getName() + " loaded successful with fileLoadId " + Long.toString(flId) + " at " + df.format(now));
 							counter ++;
-							setLoadStatus(conn, "S", fileQueueId, fileLoadId);
+							setFileLoadStatus(conn, "S", fileQueueId, fileLoadId);
 						} else {
-							setLoadStatus(conn, "E", fileQueueId, fileLoadId);
+							setFileLoadStatus(conn, Character.toString(insertStatus), fileQueueId, fileLoadId);
 						}
 					}
 				}
 				else {
+					setFileQueueStatus(conn, "N", fileQueueId);
 					Date now = new Date();
 					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					System.out.println("No variant-report found in " + file.getName() + " at " + df.format(now));
@@ -135,11 +136,15 @@ public class SaveFmReports {
 	}
 
 
-	public static boolean insertReportTb (File file, BigDecimal etlProcId, BigDecimal flId) {
+	public static char insertReportTb (File file, BigDecimal etlProcId, BigDecimal flId) {
 	
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
+		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
+		EntityManager em = emFactory.createEntityManager();
 		try {
+			
+			SpecimenDao specimenDao = new SpecimenDao(em);
 			
 			// get current datetime for insert_ts and update_ts
 			Date date = new Date();
@@ -176,6 +181,12 @@ public class SaveFmReports {
 			report.setFrFmId(XMLParser.getNodeValue("FM_Id", sampNodes));
 			report.setFrSampleId(XMLParser.getNodeValue("SampleId", sampNodes));
 			String blockId = XMLParser.getNodeValue("BlockId", sampNodes);
+			if (specimenDao.getSpecimenBySpecno(blockId) != null) {
+				em.close();
+				emFactory.close();
+				return 'D';
+			}
+			
 			report.setFrBlockId(blockId);
 			//block_id as the specimen_no in specimen_tb
 			specimenTb.setSpecimenNo(blockId);
@@ -374,29 +385,26 @@ public class SaveFmReports {
 			List<FmReportTb> reports = new ArrayList<FmReportTb>();
 			reports.add(report);
 			specimenTb.setFmReportTbs(reports);
-			specimenTb.setFileLoadId(flId);
-			
-			EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
-			EntityManager em = emFactory.createEntityManager();
-			SpecimenDao specimenDao = new SpecimenDao(em);
-			SpecimenTb spec = specimenDao.getSpecimenBySpecno(specimenTb.getSpecimenNo());
-			boolean success = false;
-			if (spec != null) {
-				success = specimenDao.updateSpecimen(spec, report);
-			}
-			else {
-				success = specimenDao.persistSpecimen(specimenTb);
-			}
+			specimenTb.setFileLoadId(flId);			
+			boolean success = specimenDao.persistSpecimen(specimenTb);
 			em.close();
 			emFactory.close();
 			if (success == true) {
-				return true;
+				em.close();
+				emFactory.close();
+				return 'S';
+				
 			}
 	
 		} catch (Exception e) {
 			e.printStackTrace();
+			em.close();
+			emFactory.close();
 		} 
-		return false;
+		em.close();
+		emFactory.close();
+		return 'E';
+		
 	}
 
 	/**
@@ -427,7 +435,35 @@ public class SaveFmReports {
 	 * @param fileQueueId - row_id in file_queue_tb
 	 * @param fileLoadId - row_id in file_load_tb
 	 */
-	private static void setLoadStatus(Connection conn, String status, int fileQueueId, BigDecimal fileLoadId) {
+	private static void setFileLoadStatus(Connection conn, String status, int fileQueueId, BigDecimal fileLoadId) {
+		Date date = new Date();
+		try {
+			//update file_load_tb
+			String sql = "Update FILE_LOAD_TB set LOAD_STATUS = ?, UPDATE_TS = ? where ROW_ID = ? ";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps = conn.prepareStatement(sql);
+			ps.setString(1, status);
+			ps.setDate(2, new java.sql.Date(date.getTime()));
+			ps.setInt(3, Integer.valueOf(fileLoadId.intValue()));
+			ps.executeUpdate();
+			System.out.println("Update Load_Status in FILE_LOAD_ID table: " + status);
+			
+			//update file_queue_tb
+			sql = "Update FILE_QUEUE_TB set LOAD_STATUS = ?, UPDATE_TS = ? where ROW_ID = ? ";
+			ps = conn.prepareStatement(sql);
+			ps.setString(1, status);
+			ps.setDate(2, new java.sql.Date(date.getTime()));
+			ps.setInt(3, fileQueueId);
+			ps.executeUpdate();
+			System.out.println("Update Load_Status in FILE_QUEUE_ID table: " + status);
+			ps.close();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void setFileQueueStatus(Connection conn, String status, int fileQueueId) {
 		Date date = new Date();
 		try {
 			//update file_queue_tb
@@ -438,22 +474,11 @@ public class SaveFmReports {
 			ps.setInt(3, fileQueueId);
 			ps.executeUpdate();
 			System.out.println("Update Load_Status in FILE_QUEUE_ID table: " + status);
-			
-			//update file_load_tb
-			sql = "Update FILE_LOAD_TB set LOAD_STATUS = ?, UPDATE_TS = ? where ROW_ID = ? ";
-			ps = conn.prepareStatement(sql);
-			ps.setString(1, status);
-			ps.setDate(2, new java.sql.Date(date.getTime()));
-			ps.setInt(3, Integer.valueOf(fileLoadId.intValue()));
-			ps.executeUpdate();
-			System.out.println("Update Load_Status in FILE_LOAD_ID table: " + status);
 			ps.close();
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}
-		
-		
-		
+		}	
 	}
+	
 }

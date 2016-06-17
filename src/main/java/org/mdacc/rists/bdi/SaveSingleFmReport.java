@@ -16,12 +16,12 @@ public class SaveSingleFmReport {
 		String filepath = args[0];
 		File file = new File(filepath);
 		BigDecimal flId = new BigDecimal(args[1]);
-		boolean status = SaveFmReports.insertReportTb(file, new BigDecimal(9999), flId);
+		char status = SaveFmReports.insertReportTb(file, new BigDecimal(9999), flId);
 		System.out.println(status);
 		return;
 	}
 	
-	public static void saveOrUpdateSpecimen(String sid) {
+	public static boolean insertSpecimen(String sid) {
 		SpecimenTb specimen = new SpecimenTb();
 		Date date = new Date();
 		String source = "FM";
@@ -34,10 +34,9 @@ public class SaveSingleFmReport {
 		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
 		EntityManager em = emFactory.createEntityManager();
 		SpecimenDao specimenDao = new SpecimenDao(em);
-		SpecimenTb spec = specimenDao.getSpecimenBySpecno(sid);
-		boolean success = false;
-
+		boolean success = specimenDao.persistSpecimen(specimen);
 		em.close();
 		emFactory.close();
+		return success;
 	}
 }
