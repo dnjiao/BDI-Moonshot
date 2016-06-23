@@ -258,6 +258,15 @@ public class FmReportTb implements Serializable {
 	//bi-directional many-to-one association to FmReportAmendmendTb
 	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
 	private List<FmReportAmendmendTb> fmReportAmendmendTbs;
+	
+	@Column(name="FR_STAGING_ID")
+	private String frStagingId;
+	
+	@Column(name="FR_CLINICAL_ID")
+	private String frClinicalId;
+	
+	@Column(name="FR_PERFORMANCE_DATA_ID")
+	private String frPerformanceDataId;
 
 	public FmReportTb() {
 	}
@@ -1052,6 +1061,30 @@ public class FmReportTb implements Serializable {
 		fmReportAmendmendTb.setFmReportTb(null);
 
 		return fmReportAmendmendTb;
+	}
+
+	public String getFrStagingId() {
+		return frStagingId;
+	}
+
+	public void setFrStagingId(String frStagingId) {
+		this.frStagingId = frStagingId;
+	}
+
+	public String getFrClinicalId() {
+		return frClinicalId;
+	}
+
+	public void setFrClinicalId(String frClinicalId) {
+		this.frClinicalId = frClinicalId;
+	}
+
+	public String getFrPerformanceDataId() {
+		return frPerformanceDataId;
+	}
+
+	public void setFrPerformanceDataId(String frPerformanceDataId) {
+		this.frPerformanceDataId = frPerformanceDataId;
 	}
 	
 }

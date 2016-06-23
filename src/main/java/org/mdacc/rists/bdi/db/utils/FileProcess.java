@@ -1,11 +1,9 @@
-package org.mdacc.rists.bdi;
+package org.mdacc.rists.bdi.db.utils;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Types;
-
-import org.mdacc.rists.bdi.db.utils.DBConnection;
 
 public class FileProcess {
 	public static void main(String[] args) {
@@ -35,21 +33,15 @@ public class FileProcess {
 			arr[4] = "Y";
 		if (type.equals("mapping"))
 			arr[5] = "Y";
-		if (type.equals("fm-xml"))
-			arr[6] = "Y";
-		if (type.equals("fm-val"))
-			arr[7] = "Y";
-		if (type.equals("fm-psv")) {
-			arr[8] = "Y";
-		}
+
 		try {
-			CallableStatement stmt = conn.prepareCall("{call FILE_PROCESS.load_file(?,?,?,?,?,?,?,?,?,?,?,?)}");
+			CallableStatement stmt = conn.prepareCall("{call FILE_PROCESS.load_file(?,?,?,?,?,?,?,?,?)}");
 			for (int i = 1; i < 10; i ++) {
 				stmt.setString(i, arr[i - 1]);
 			}
-			stmt.registerOutParameter(10, Types.VARCHAR);
-			stmt.registerOutParameter(11, Types.VARCHAR);
-			stmt.registerOutParameter(12, Types.VARCHAR);
+			stmt.registerOutParameter(7, Types.VARCHAR);
+			stmt.registerOutParameter(8, Types.VARCHAR);
+			stmt.registerOutParameter(9, Types.VARCHAR);
 			stmt.executeUpdate();
 			System.out.println("Calling procedure FILE_PROCESS.load_file.");
 //			System.out.println("Error code: " + stmt.getString(7));

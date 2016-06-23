@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,9 +21,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.joda.time.DateTime;
 import org.mdacc.rists.bdi.db.models.FileQueueResult;
 import org.mdacc.rists.bdi.db.utils.DBConnection;
+import org.mdacc.rists.bdi.db.utils.FileLoadUtil;
 import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
 import org.mdacc.rists.bdi.fm.dao.FileLoadDao;
 import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
@@ -71,7 +70,8 @@ public class SaveFmReports {
 			else {			
 				if (variantExists(file)) {
 					BigDecimal etl = getNextValue("ETL_PROC_SEQ");
-					Long flId = insertFileLoadTb(fileQueueId, filepath, etl);
+					int seqNum = FileLoadUtil.getFileSeqNum(conn, filepath);
+					Long flId = insertFileLoadTb(fileQueueId, filepath, seqNum, etl);
 					BigDecimal fileLoadId = new BigDecimal(flId);
 					if (flId > 0) {
 						char insertStatus = insertReportTb(file, etl, fileLoadId);
@@ -113,12 +113,12 @@ public class SaveFmReports {
 		return val;
 	}
 	
-	private static long insertFileLoadTb(int fileQueueId, String filepath, BigDecimal etl) {
+	private static long insertFileLoadTb(int fileQueueId, String filepath, int num, BigDecimal etl) {
 		
 		long rowId = getNextValue("FILE_LOAD_TB_SEQ").longValue();
 		BigDecimal fqId = new BigDecimal(String.valueOf(fileQueueId));
-		BigDecimal fileTypeId = new BigDecimal(String.valueOf(10));
-		BigDecimal seqNum = new BigDecimal(String.valueOf(1));
+		BigDecimal fileTypeId = new BigDecimal(10);
+		BigDecimal seqNum = new BigDecimal(String.valueOf(num));
 		File file = new File(filepath);
 		String fileName = file.getName();
 		Date date = new Date();
@@ -158,6 +158,9 @@ public class SaveFmReports {
 			NodeList childNodes = doc.getDocumentElement().getChildNodes();
 			//FinalReport begins
 			Node finalReport = XMLParser.getNode("FinalReport", childNodes);
+			report.setFrStagingId(XMLParser.getNodeAttr("StagingId", finalReport));
+			report.setFrClinicalId(XMLParser.getNodeAttr("clinicalId", finalReport));
+			report.setFrPerformanceDataId(XMLParser.getNodeAttr("PerformanceDataId", finalReport));
 			NodeList frNodes = finalReport.getChildNodes();
 			report.setFrReportId(XMLParser.getNodeValue("ReportId", frNodes));
 			report.setFrSampleName(XMLParser.getNodeValue("SampleName", frNodes));
@@ -247,7 +250,6 @@ public class SaveFmReports {
 			//VariantReport begins
 			Node variantReport = XMLParser.getNode("variant-Report", childNodes);
 			if (variantReport != null) {
-				NodeList vrNodes = variantReport.getChildNodes();
 				report.setVrTissueOfOrigin(XMLParser.getNodeAttr("tissue-of-origin", variantReport));
 				report.setVrTestType(XMLParser.getNodeAttr("test-type", variantReport));
 				report.setVrTestRequest(XMLParser.getNodeAttr("test-request", variantReport));
@@ -390,16 +392,12 @@ public class SaveFmReports {
 			em.close();
 			emFactory.close();
 			if (success == true) {
-				em.close();
-				emFactory.close();
 				return 'S';
 				
 			}
 	
 		} catch (Exception e) {
 			e.printStackTrace();
-			em.close();
-			emFactory.close();
 		} 
 		em.close();
 		emFactory.close();

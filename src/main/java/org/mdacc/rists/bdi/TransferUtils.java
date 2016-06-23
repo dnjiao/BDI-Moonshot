@@ -24,12 +24,10 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.mdacc.rists.bdi.utils.XMLParser;
 
 public class TransferUtils {
 	public static void main(String[] args) throws IOException, URISyntaxException {
-		File in = new File("/Users/djiao/Box Sync/Work/Projects/RIStore/foundation/foundation_new/TRF133672_1455294493597.xml");
-		File out = new File("/Users/djiao/Box Sync/Work/Projects/RIStore/foundation/foundation_new/TRF133672_1455294493597.psv");
+
 	}
 	
 	/**
@@ -79,8 +77,7 @@ public class TransferUtils {
 				return "RNASeq Junction Counts";
 			case "fm-xml":
 				return "FM";
-			case "fm-val":
-				return "FM Validation";
+			
 			default:
 				System.err.println("Invalid file type: " + type);
 				return null;

@@ -68,6 +68,7 @@ public class FileQueueUtil {
 			rs = (ResultSet) stmt.getObject(2);
 			fqList = ResultSetToList(rs);
 			rs.close();
+			stmt.close();
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -107,7 +108,7 @@ public class FileQueueUtil {
 //		        System.out.println("");
 //		    }
 //			
-			
+			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);

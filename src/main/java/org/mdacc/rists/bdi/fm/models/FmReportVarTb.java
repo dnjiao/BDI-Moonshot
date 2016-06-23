@@ -48,6 +48,9 @@ public class FmReportVarTb implements Serializable {
 
 	@Column(name="COPY_NUMBER_VALUE")
 	private BigDecimal copyNumberValue;
+	
+	@Column(name="COPY_NUMBER_GENE_NAME")
+	private String copyNumberGeneName;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="DELETE_TS")
@@ -144,7 +147,7 @@ public class FmReportVarTb implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
-
+	
 	public FmReportVarTb() {
 	}
 
@@ -228,6 +231,14 @@ public class FmReportVarTb implements Serializable {
 		this.copyNumberValue = copyNumberValue;
 	}
 
+	public String getCopyNumberGeneName() {
+		return copyNumberGeneName;
+	}
+
+	public void setCopyNumberGeneName(String copyNumberGeneName) {
+		this.copyNumberGeneName = copyNumberGeneName;
+	}
+	
 	public Date getDeleteTs() {
 		return this.deleteTs;
 	}
@@ -481,5 +492,7 @@ public class FmReportVarTb implements Serializable {
 	public void setFmReportTb(FmReportTb fmReportTb) {
 		this.fmReportTb = fmReportTb;
 	}
+
+
 
 }

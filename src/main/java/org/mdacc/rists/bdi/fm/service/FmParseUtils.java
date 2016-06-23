@@ -89,7 +89,6 @@ public class FmParseUtils {
 		List<Node> varProps = XMLParser.getNodes("VariantProperty", nodes);
 		for (Node varProp : varProps) {
 			FmReportVarPropetyTb vpTb = new FmReportVarPropetyTb();
-			NodeList vpNodes = varProp.getChildNodes();
 			vpTb.setInsertTs(date);
 			vpTb.setUpdateTs(date);
 			vpTb.setEtlProcId(etl);
@@ -143,6 +142,7 @@ public class FmParseUtils {
 						altTb.setFmReportAltTherapyTbs(atList);
 						List<FmReportAltTrialLkTb> atlList = parseAltTrialLk(alteration, date, etl, report, altTb);
 						altTb.setFmReportAltTrialLkTbs(atlList);
+						altTb.setFmReportGeneTb(geneTb);
 						altList.add(altTb);
 					}
 				}
@@ -520,6 +520,7 @@ public class FmParseUtils {
 				
 				varTb.setType("copy-number-alteration");
 				varTb.setCopyNumberValue(strToNum(XMLParser.getNodeAttr("copy-number", cna)));
+				varTb.setCopyNumberGeneName(XMLParser.getNodeAttr("gene", cna));
 				varTb.setCopyNumberNumberOfExons(XMLParser.getNodeAttr("number-of-exons", cna));
 				varTb.setCopyNumberPosition(XMLParser.getNodeAttr("position", cna));
 				varTb.setCopyNumberType(XMLParser.getNodeAttr("type", cna));

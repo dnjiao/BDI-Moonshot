@@ -22,11 +22,9 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.mdacc.rists.bdi.db.utils.DBConnection;
-import org.mdacc.rists.bdi.db.utils.FileChecksumUtil;
 import org.mdacc.rists.bdi.db.utils.FileLocationUtil;
 import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
 import org.mdacc.rists.bdi.db.utils.FileTransferAuditUtil;
-import org.mdacc.rists.bdi.utils.GenChecksum;
 import org.mdacc.rists.bdi.utils.XMLParser;
 
 public class PullFiles {
