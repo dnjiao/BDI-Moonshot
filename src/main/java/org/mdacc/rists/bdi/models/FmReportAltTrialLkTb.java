@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.fm.models;
+package org.mdacc.rists.bdi.models;
 
 import java.io.Serializable;
 import javax.persistence.*;
@@ -7,18 +7,18 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the FM_REPORT_SIGNATURE_TB database table.
+ * The persistent class for the FM_REPORT_ALT_TRIAL_LK_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_SIGNATURE_TB")
-@NamedQuery(name="FmReportSignatureTb.findAll", query="SELECT f FROM FmReportSignatureTb f")
-public class FmReportSignatureTb implements Serializable {
+@Table(name="FM_REPORT_ALT_TRIAL_LK_TB")
+@NamedQuery(name="FmReportAltTrialLkTb.findAll", query="SELECT f FROM FmReportAltTrialLkTb f")
+public class FmReportAltTrialLkTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@SequenceGenerator(name="FM_REPORT_SIGNATURE_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_SIGNATURE_TB_SEQ", allocationSize=1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_SIGNATURE_TB_ROWID_GENERATOR")
+	@SequenceGenerator(name="FM_REPORT_ALT_TRIAL_LK_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_ALT_TRIAL_LK_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_ALT_TRIAL_LK_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
@@ -35,28 +35,27 @@ public class FmReportSignatureTb implements Serializable {
 	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
-	@Column(name="OP_NAME")
-	private String opName;
-
-	@Temporal(TemporalType.DATE)
-	@Column(name="SERVER_TIME")
-	private Date serverTime;
+	@Column(name="NCT_ID")
+	private String nctId;
 
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
 
-	private String text;
-
 	@Temporal(TemporalType.DATE)
 	@Column(name="UPDATE_TS")
 	private Date updateTs;
+
+	//bi-directional many-to-one association to FmReportAltTb
+	@ManyToOne
+	@JoinColumn(name="FM_REPORT_ALT_ID")
+	private FmReportAltTb fmReportAltTb;
 
 	//bi-directional many-to-one association to FmReportTb
 	@ManyToOne
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	public FmReportSignatureTb() {
+	public FmReportAltTrialLkTb() {
 	}
 
 	public long getRowId() {
@@ -99,20 +98,12 @@ public class FmReportSignatureTb implements Serializable {
 		this.insertTs = insertTs;
 	}
 
-	public String getOpName() {
-		return this.opName;
+	public String getNctId() {
+		return this.nctId;
 	}
 
-	public void setOpName(String opName) {
-		this.opName = opName;
-	}
-
-	public Date getServerTime() {
-		return this.serverTime;
-	}
-
-	public void setServerTime(Date serverTime) {
-		this.serverTime = serverTime;
+	public void setNctId(String nctId) {
+		this.nctId = nctId;
 	}
 
 	public String getSourceSystem() {
@@ -123,20 +114,20 @@ public class FmReportSignatureTb implements Serializable {
 		this.sourceSystem = sourceSystem;
 	}
 
-	public String getText() {
-		return this.text;
-	}
-
-	public void setText(String text) {
-		this.text = text;
-	}
-
 	public Date getUpdateTs() {
 		return this.updateTs;
 	}
 
 	public void setUpdateTs(Date updateTs) {
 		this.updateTs = updateTs;
+	}
+
+	public FmReportAltTb getFmReportAltTb() {
+		return this.fmReportAltTb;
+	}
+
+	public void setFmReportAltTb(FmReportAltTb fmReportAltTb) {
+		this.fmReportAltTb = fmReportAltTb;
 	}
 
 	public FmReportTb getFmReportTb() {

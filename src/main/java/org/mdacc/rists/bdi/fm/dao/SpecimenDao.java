@@ -8,8 +8,8 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
-import org.mdacc.rists.bdi.fm.models.FmReportTb;
-import org.mdacc.rists.bdi.fm.models.SpecimenTb;
+import org.mdacc.rists.bdi.models.FmReportTb;
+import org.mdacc.rists.bdi.models.SpecimenTb;
 
 public class SpecimenDao {
 	EntityManager entityManager;

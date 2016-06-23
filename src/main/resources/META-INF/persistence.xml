@@ -2,25 +2,25 @@
 <persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
 	<persistence-unit name="RIStore_Flow" >
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportAltPropertyTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportAltTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportAltTherapyTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportAltTrialLkTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportAmendmendTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportAppTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportGeneTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportPertNegTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportReferenceTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportRefLkTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportSampleTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportSignatureTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportTrialTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportVarPropetyTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportVarSampleTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FmReportVarTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.SpecimenTb</class>
-		<class>org.mdacc.rists.bdi.fm.models.FileLoadTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltPropertyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTherapyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTrialLkTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAmendmendTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAppTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportGeneTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportPertNegTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportReferenceTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportRefLkTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportSampleTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportSignatureTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportTrialTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarPropetyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarSampleTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarTb</class>
+		<class>org.mdacc.rists.bdi.models.SpecimenTb</class>
+		<class>org.mdacc.rists.bdi.models.FileLoadTb</class>
 
         <properties>
             <property name="javax.persistence.jdbc.driver" value="oracle.jdbc.OracleDriver" />

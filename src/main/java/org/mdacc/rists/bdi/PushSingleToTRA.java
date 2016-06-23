@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class PushSingleTest {
+public class PushSingleToTRA {
 	final static String URL_STRING = "http://10.113.241.55:8099/bdi/serviceingestion?domain=";
 	final static String USERNAME = "ristsvc";
 	final static String PASSWORD = "CH!M@321";
@@ -21,6 +21,6 @@ public class PushSingleTest {
 			System.err.println("File does not exist, " + args[1]);
 			System.exit(1);
 		}
-		PushFiles.pushSingle(prefix, USERNAME, PASSWORD, args[1], true);
+		PushToTRA.pushSingle(prefix, USERNAME, PASSWORD, args[1], true);
 	}
 }

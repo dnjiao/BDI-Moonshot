@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.fm.models;
+package org.mdacc.rists.bdi.models;
 
 import java.io.Serializable;
 import javax.persistence.*;
@@ -8,23 +8,20 @@ import java.util.List;
 
 
 /**
- * The persistent class for the FM_REPORT_ALT_THERAPY_TB database table.
+ * The persistent class for the FM_REPORT_GENE_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_ALT_THERAPY_TB")
-@NamedQuery(name="FmReportAltTherapyTb.findAll", query="SELECT f FROM FmReportAltTherapyTb f")
-public class FmReportAltTherapyTb implements Serializable {
+@Table(name="FM_REPORT_GENE_TB")
+@NamedQuery(name="FmReportGeneTb.findAll", query="SELECT f FROM FmReportGeneTb f")
+public class FmReportGeneTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@SequenceGenerator(name="FM_REPORT_ALT_THERAPY_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_ALT_THERAPY_TB_SEQ", allocationSize=1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_ALT_THERAPY_TB_ROWID_GENERATOR")
+	@SequenceGenerator(name="FM_REPORT_GENE_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_GENE_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_GENE_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
-
-	@Column(name="APPROVED_USES")
-	private String approvedUses;
 
 	private String comments;
 
@@ -32,31 +29,17 @@ public class FmReportAltTherapyTb implements Serializable {
 	@Column(name="DELETE_TS")
 	private Date deleteTs;
 
-	private String effect;
-
 	@Column(name="ETL_PROC_ID")
 	private BigDecimal etlProcId;
 
-	@Column(name="FDA_APPROVED")
-	private String fdaApproved;
-
-	@Column(name="GENERIC_NAME")
-	private String genericName;
-
 	@Column(name="\"INCLUDE\"")
 	private String include;
-
-	@Column(name="INCLUDE_IN_SUMMARY")
-	private String includeInSummary;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
 	private String name;
-
-	@Lob
-	private String rationale;
 
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
@@ -66,9 +49,8 @@ public class FmReportAltTherapyTb implements Serializable {
 	private Date updateTs;
 
 	//bi-directional many-to-one association to FmReportAltTb
-	@ManyToOne
-	@JoinColumn(name="FM_REPORT_ALT_ID")
-	private FmReportAltTb fmReportAltTb;
+	@OneToMany(mappedBy="fmReportGeneTb", cascade=CascadeType.ALL)
+	private List<FmReportAltTb> fmReportAltTbs;
 
 	//bi-directional many-to-one association to FmReportTb
 	@ManyToOne
@@ -76,10 +58,10 @@ public class FmReportAltTherapyTb implements Serializable {
 	private FmReportTb fmReportTb;
 
 	//bi-directional many-to-one association to FmReportRefLkTb
-	@OneToMany(mappedBy="fmReportAltTherapyTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportGeneTb", cascade=CascadeType.ALL)
 	private List<FmReportRefLkTb> fmReportRefLkTbs;
 
-	public FmReportAltTherapyTb() {
+	public FmReportGeneTb() {
 	}
 
 	public long getRowId() {
@@ -88,14 +70,6 @@ public class FmReportAltTherapyTb implements Serializable {
 
 	public void setRowId(long rowId) {
 		this.rowId = rowId;
-	}
-
-	public String getApprovedUses() {
-		return this.approvedUses;
-	}
-
-	public void setApprovedUses(String approvedUses) {
-		this.approvedUses = approvedUses;
 	}
 
 	public String getComments() {
@@ -114,14 +88,6 @@ public class FmReportAltTherapyTb implements Serializable {
 		this.deleteTs = deleteTs;
 	}
 
-	public String getEffect() {
-		return this.effect;
-	}
-
-	public void setEffect(String effect) {
-		this.effect = effect;
-	}
-
 	public BigDecimal getEtlProcId() {
 		return this.etlProcId;
 	}
@@ -130,36 +96,12 @@ public class FmReportAltTherapyTb implements Serializable {
 		this.etlProcId = etlProcId;
 	}
 
-	public String getFdaApproved() {
-		return this.fdaApproved;
-	}
-
-	public void setFdaApproved(String fdaApproved) {
-		this.fdaApproved = fdaApproved;
-	}
-
-	public String getGenericName() {
-		return this.genericName;
-	}
-
-	public void setGenericName(String genericName) {
-		this.genericName = genericName;
-	}
-
 	public String getInclude() {
 		return this.include;
 	}
 
 	public void setInclude(String include) {
 		this.include = include;
-	}
-
-	public String getIncludeInSummary() {
-		return this.includeInSummary;
-	}
-
-	public void setIncludeInSummary(String includeInSummary) {
-		this.includeInSummary = includeInSummary;
 	}
 
 	public Date getInsertTs() {
@@ -178,14 +120,6 @@ public class FmReportAltTherapyTb implements Serializable {
 		this.name = name;
 	}
 
-	public String getRationale() {
-		return this.rationale;
-	}
-
-	public void setRationale(String rationale) {
-		this.rationale = rationale;
-	}
-
 	public String getSourceSystem() {
 		return this.sourceSystem;
 	}
@@ -202,12 +136,26 @@ public class FmReportAltTherapyTb implements Serializable {
 		this.updateTs = updateTs;
 	}
 
-	public FmReportAltTb getFmReportAltTb() {
-		return this.fmReportAltTb;
+	public List<FmReportAltTb> getFmReportAltTbs() {
+		return this.fmReportAltTbs;
 	}
 
-	public void setFmReportAltTb(FmReportAltTb fmReportAltTb) {
-		this.fmReportAltTb = fmReportAltTb;
+	public void setFmReportAltTbs(List<FmReportAltTb> fmReportAltTbs) {
+		this.fmReportAltTbs = fmReportAltTbs;
+	}
+
+	public FmReportAltTb addFmReportAltTb(FmReportAltTb fmReportAltTb) {
+		getFmReportAltTbs().add(fmReportAltTb);
+		fmReportAltTb.setFmReportGeneTb(this);
+
+		return fmReportAltTb;
+	}
+
+	public FmReportAltTb removeFmReportAltTb(FmReportAltTb fmReportAltTb) {
+		getFmReportAltTbs().remove(fmReportAltTb);
+		fmReportAltTb.setFmReportGeneTb(null);
+
+		return fmReportAltTb;
 	}
 
 	public FmReportTb getFmReportTb() {
@@ -228,14 +176,14 @@ public class FmReportAltTherapyTb implements Serializable {
 
 	public FmReportRefLkTb addFmReportRefLkTb(FmReportRefLkTb fmReportRefLkTb) {
 		getFmReportRefLkTbs().add(fmReportRefLkTb);
-		fmReportRefLkTb.setFmReportAltTherapyTb(this);
+		fmReportRefLkTb.setFmReportGeneTb(this);
 
 		return fmReportRefLkTb;
 	}
 
 	public FmReportRefLkTb removeFmReportRefLkTb(FmReportRefLkTb fmReportRefLkTb) {
 		getFmReportRefLkTbs().remove(fmReportRefLkTb);
-		fmReportRefLkTb.setFmReportAltTherapyTb(null);
+		fmReportRefLkTb.setFmReportGeneTb(null);
 
 		return fmReportRefLkTb;
 	}

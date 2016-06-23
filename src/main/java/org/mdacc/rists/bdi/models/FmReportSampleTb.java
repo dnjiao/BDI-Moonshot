@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.fm.models;
+package org.mdacc.rists.bdi.models;
 
 import java.io.Serializable;
 import javax.persistence.*;
@@ -7,20 +7,23 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the FM_REPORT_VAR_SAMPLE_TB database table.
+ * The persistent class for the FM_REPORT_SAMPLE_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_VAR_SAMPLE_TB")
-@NamedQuery(name="FmReportVarSampleTb.findAll", query="SELECT f FROM FmReportVarSampleTb f")
-public class FmReportVarSampleTb implements Serializable {
+@Table(name="FM_REPORT_SAMPLE_TB")
+@NamedQuery(name="FmReportSampleTb.findAll", query="SELECT f FROM FmReportSampleTb f")
+public class FmReportSampleTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@SequenceGenerator(name="FM_REPORT_VAR_SAMPLE_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_VAR_SAMPLE_TB_SEQ", allocationSize=1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_VAR_SAMPLE_TB_ROWID_GENERATOR")
+	@SequenceGenerator(name="FM_REPORT_SAMPLE_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_SAMPLE_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_SAMPLE_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
+
+	@Column(name="BAIT_SET")
+	private String baitSet;
 
 	private String comments;
 
@@ -35,11 +38,21 @@ public class FmReportVarSampleTb implements Serializable {
 	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
-	@Column(name="SAMPLE_NAME")
-	private String sampleName;
+	@Column(name="MEAN_EXON_DEPTH")
+	private BigDecimal meanExonDepth;
+
+	private String name;
+
+	@Column(name="NUCLEIC_ACID_TYPE")
+	private String nucleicAcidType;
 
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
+
+	private String tissue;
+
+	@Column(name="\"TYPE\"")
+	private String type;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="UPDATE_TS")
@@ -50,12 +63,7 @@ public class FmReportVarSampleTb implements Serializable {
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	//bi-directional many-to-one association to FmReportVarTb
-	@ManyToOne
-	@JoinColumn(name="FM_REPORT_VAR_ID")
-	private FmReportVarTb fmReportVarTb;
-
-	public FmReportVarSampleTb() {
+	public FmReportSampleTb() {
 	}
 
 	public long getRowId() {
@@ -64,6 +72,14 @@ public class FmReportVarSampleTb implements Serializable {
 
 	public void setRowId(long rowId) {
 		this.rowId = rowId;
+	}
+
+	public String getBaitSet() {
+		return this.baitSet;
+	}
+
+	public void setBaitSet(String baitSet) {
+		this.baitSet = baitSet;
 	}
 
 	public String getComments() {
@@ -98,12 +114,28 @@ public class FmReportVarSampleTb implements Serializable {
 		this.insertTs = insertTs;
 	}
 
-	public String getSampleName() {
-		return this.sampleName;
+	public BigDecimal getMeanExonDepth() {
+		return this.meanExonDepth;
 	}
 
-	public void setSampleName(String sampleName) {
-		this.sampleName = sampleName;
+	public void setMeanExonDepth(BigDecimal meanExonDepth) {
+		this.meanExonDepth = meanExonDepth;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getNucleicAcidType() {
+		return this.nucleicAcidType;
+	}
+
+	public void setNucleicAcidType(String nucleicAcidType) {
+		this.nucleicAcidType = nucleicAcidType;
 	}
 
 	public String getSourceSystem() {
@@ -112,6 +144,22 @@ public class FmReportVarSampleTb implements Serializable {
 
 	public void setSourceSystem(String sourceSystem) {
 		this.sourceSystem = sourceSystem;
+	}
+
+	public String getTissue() {
+		return this.tissue;
+	}
+
+	public void setTissue(String tissue) {
+		this.tissue = tissue;
+	}
+
+	public String getType() {
+		return this.type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public Date getUpdateTs() {
@@ -128,14 +176,6 @@ public class FmReportVarSampleTb implements Serializable {
 
 	public void setFmReportTb(FmReportTb fmReportTb) {
 		this.fmReportTb = fmReportTb;
-	}
-
-	public FmReportVarTb getFmReportVarTb() {
-		return this.fmReportVarTb;
-	}
-
-	public void setFmReportVarTb(FmReportVarTb fmReportVarTb) {
-		this.fmReportVarTb = fmReportVarTb;
 	}
 
 }

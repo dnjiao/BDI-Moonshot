@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.fm.models;
+package org.mdacc.rists.bdi.models;
 
 import java.io.Serializable;
 import javax.persistence.*;
@@ -7,18 +7,18 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the FM_REPORT_PERT_NEG_TB database table.
+ * The persistent class for the FM_REPORT_ALT_PROPERTY_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_PERT_NEG_TB")
-@NamedQuery(name="FmReportPertNegTb.findAll", query="SELECT f FROM FmReportPertNegTb f")
-public class FmReportPertNegTb implements Serializable {
+@Table(name="FM_REPORT_ALT_PROPERTY_TB")
+@NamedQuery(name="FmReportAltPropertyTb.findAll", query="SELECT f FROM FmReportAltPropertyTb f")
+public class FmReportAltPropertyTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@SequenceGenerator(name="FM_REPORT_PERT_NEG_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_PERT_NEG_TB_SEQ", allocationSize=1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_PERT_NEG_TB_ROWID_GENERATOR")
+	@SequenceGenerator(name="FM_REPORT_ALT_PROPERTY_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_ALT_PROPERTY_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_ALT_PROPERTY_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
@@ -31,12 +31,17 @@ public class FmReportPertNegTb implements Serializable {
 	@Column(name="ETL_PROC_ID")
 	private BigDecimal etlProcId;
 
-	@Column(name="GENE_NAME")
-	private String geneName;
-
 	@Temporal(TemporalType.DATE)
 	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
+
+	@Column(name="IS_EQUIVOCAL")
+	private String isEquivocal;
+
+	@Column(name="IS_SUBCLONAL")
+	private String isSubclonal;
+
+	private String name;
 
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
@@ -45,12 +50,17 @@ public class FmReportPertNegTb implements Serializable {
 	@Column(name="UPDATE_TS")
 	private Date updateTs;
 
+	//bi-directional many-to-one association to FmReportAltTb
+	@ManyToOne
+	@JoinColumn(name="FM_REPORT_ALT_ID")
+	private FmReportAltTb fmReportAltTb;
+
 	//bi-directional many-to-one association to FmReportTb
 	@ManyToOne
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	public FmReportPertNegTb() {
+	public FmReportAltPropertyTb() {
 	}
 
 	public long getRowId() {
@@ -85,20 +95,36 @@ public class FmReportPertNegTb implements Serializable {
 		this.etlProcId = etlProcId;
 	}
 
-	public String getGeneName() {
-		return this.geneName;
-	}
-
-	public void setGeneName(String geneName) {
-		this.geneName = geneName;
-	}
-
 	public Date getInsertTs() {
 		return this.insertTs;
 	}
 
 	public void setInsertTs(Date insertTs) {
 		this.insertTs = insertTs;
+	}
+
+	public String getIsEquivocal() {
+		return this.isEquivocal;
+	}
+
+	public void setIsEquivocal(String isEquivocal) {
+		this.isEquivocal = isEquivocal;
+	}
+
+	public String getIsSubclonal() {
+		return this.isSubclonal;
+	}
+
+	public void setIsSubclonal(String isSubclonal) {
+		this.isSubclonal = isSubclonal;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getSourceSystem() {
@@ -115,6 +141,14 @@ public class FmReportPertNegTb implements Serializable {
 
 	public void setUpdateTs(Date updateTs) {
 		this.updateTs = updateTs;
+	}
+
+	public FmReportAltTb getFmReportAltTb() {
+		return this.fmReportAltTb;
+	}
+
+	public void setFmReportAltTb(FmReportAltTb fmReportAltTb) {
+		this.fmReportAltTb = fmReportAltTb;
 	}
 
 	public FmReportTb getFmReportTb() {

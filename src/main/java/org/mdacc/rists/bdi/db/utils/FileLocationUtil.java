@@ -8,7 +8,7 @@ import java.sql.Types;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.mdacc.rists.bdi.TransferUtils;
+import org.mdacc.rists.bdi.WorkflowUtils;
 
 public class FileLocationUtil {
 	
@@ -32,7 +32,7 @@ public class FileLocationUtil {
 	 * @param dt - timestamp of last pull
 	 */
 	public static void setLastTimeStamp (Connection con, String type, String path, DateTime dt) {
-		String typeStr = TransferUtils.convertTypeStr(type);
+		String typeStr = WorkflowUtils.convertTypeStr(type);
 		String dtStr = FORMATTER.print(dt);
 		try {
 			CallableStatement stmt = con.prepareCall("{call FILE_LOCATION_UTIL.upsert_last_copy_ts(?,?,'SRC',?,?,?,?,?)}");
@@ -62,7 +62,7 @@ public class FileLocationUtil {
 	}
 	
 	public static DateTime getLastTimeStamp (Connection con, String type, String path) {
-		String typeStr = TransferUtils.convertTypeStr(type);
+		String typeStr = WorkflowUtils.convertTypeStr(type);
 		String dtStr;
 		DateTime dt = null;
 		

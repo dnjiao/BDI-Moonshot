@@ -1,4 +1,4 @@
-package org.mdacc.rists.bdi.fm.models;
+package org.mdacc.rists.bdi.models;
 
 import java.io.Serializable;
 import javax.persistence.*;
@@ -7,18 +7,18 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the FM_REPORT_ALT_TRIAL_LK_TB database table.
+ * The persistent class for the FM_REPORT_VAR_SAMPLE_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_ALT_TRIAL_LK_TB")
-@NamedQuery(name="FmReportAltTrialLkTb.findAll", query="SELECT f FROM FmReportAltTrialLkTb f")
-public class FmReportAltTrialLkTb implements Serializable {
+@Table(name="FM_REPORT_VAR_SAMPLE_TB")
+@NamedQuery(name="FmReportVarSampleTb.findAll", query="SELECT f FROM FmReportVarSampleTb f")
+public class FmReportVarSampleTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@SequenceGenerator(name="FM_REPORT_ALT_TRIAL_LK_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_ALT_TRIAL_LK_TB_SEQ", allocationSize=1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_ALT_TRIAL_LK_TB_ROWID_GENERATOR")
+	@SequenceGenerator(name="FM_REPORT_VAR_SAMPLE_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_VAR_SAMPLE_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_VAR_SAMPLE_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
@@ -35,8 +35,8 @@ public class FmReportAltTrialLkTb implements Serializable {
 	@Column(name="INSERT_TS", updatable=false)
 	private Date insertTs;
 
-	@Column(name="NCT_ID")
-	private String nctId;
+	@Column(name="SAMPLE_NAME")
+	private String sampleName;
 
 	@Column(name="SOURCE_SYSTEM")
 	private String sourceSystem;
@@ -45,17 +45,17 @@ public class FmReportAltTrialLkTb implements Serializable {
 	@Column(name="UPDATE_TS")
 	private Date updateTs;
 
-	//bi-directional many-to-one association to FmReportAltTb
-	@ManyToOne
-	@JoinColumn(name="FM_REPORT_ALT_ID")
-	private FmReportAltTb fmReportAltTb;
-
 	//bi-directional many-to-one association to FmReportTb
 	@ManyToOne
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	public FmReportAltTrialLkTb() {
+	//bi-directional many-to-one association to FmReportVarTb
+	@ManyToOne
+	@JoinColumn(name="FM_REPORT_VAR_ID")
+	private FmReportVarTb fmReportVarTb;
+
+	public FmReportVarSampleTb() {
 	}
 
 	public long getRowId() {
@@ -98,12 +98,12 @@ public class FmReportAltTrialLkTb implements Serializable {
 		this.insertTs = insertTs;
 	}
 
-	public String getNctId() {
-		return this.nctId;
+	public String getSampleName() {
+		return this.sampleName;
 	}
 
-	public void setNctId(String nctId) {
-		this.nctId = nctId;
+	public void setSampleName(String sampleName) {
+		this.sampleName = sampleName;
 	}
 
 	public String getSourceSystem() {
@@ -122,20 +122,20 @@ public class FmReportAltTrialLkTb implements Serializable {
 		this.updateTs = updateTs;
 	}
 
-	public FmReportAltTb getFmReportAltTb() {
-		return this.fmReportAltTb;
-	}
-
-	public void setFmReportAltTb(FmReportAltTb fmReportAltTb) {
-		this.fmReportAltTb = fmReportAltTb;
-	}
-
 	public FmReportTb getFmReportTb() {
 		return this.fmReportTb;
 	}
 
 	public void setFmReportTb(FmReportTb fmReportTb) {
 		this.fmReportTb = fmReportTb;
+	}
+
+	public FmReportVarTb getFmReportVarTb() {
+		return this.fmReportVarTb;
+	}
+
+	public void setFmReportVarTb(FmReportVarTb fmReportVarTb) {
+		this.fmReportVarTb = fmReportVarTb;
 	}
 
 }

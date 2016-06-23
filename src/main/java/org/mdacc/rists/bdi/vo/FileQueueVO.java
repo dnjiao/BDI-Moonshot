@@ -1,14 +1,14 @@
-package org.mdacc.rists.bdi.db.models;
+package org.mdacc.rists.bdi.vo;
 
-public class FileQueueResult {
+public class FileQueueVO {
 	int rowId;
 	String fileUri;
 	String fileName;
 	
-	public FileQueueResult() {
+	public FileQueueVO() {
 		super();
 	}
-	public FileQueueResult(int rowId, String fileUri) {
+	public FileQueueVO(int rowId, String fileUri) {
 		super();
 		this.rowId = rowId;
 		this.fileUri = fileUri;

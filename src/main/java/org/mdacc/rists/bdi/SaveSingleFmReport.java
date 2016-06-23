@@ -9,7 +9,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
-import org.mdacc.rists.bdi.fm.models.SpecimenTb;
+import org.mdacc.rists.bdi.models.SpecimenTb;
 
 public class SaveSingleFmReport {
 	public static void main(String[] args) {

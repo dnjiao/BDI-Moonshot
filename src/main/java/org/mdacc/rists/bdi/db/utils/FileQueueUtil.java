@@ -14,23 +14,24 @@ import oracle.jdbc.OracleTypes;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.mdacc.rists.bdi.TransferUtils;
-import org.mdacc.rists.bdi.db.models.FileQueueResult;
+import org.mdacc.rists.bdi.WorkflowUtils;
+import org.mdacc.rists.bdi.vo.FileQueueVO;
 
 public class FileQueueUtil {
 	
 	public static void main(String[] args) throws SQLException {
-
+		Connection con = DBConnection.getConnection();
+		List<FileQueueVO> fqList = getUnsent(con, "FM", "TRA");
 	}
 	
-	public static List<FileQueueResult> getUnvalidated (Connection con, String type) {
+	public static List<FileQueueVO> getUnvalidated (Connection con, String type) {
 		CallableStatement stmt;
 		ResultSet rs = null;
-		List<FileQueueResult> fqList = null;
+		List<FileQueueVO> fqList = null;
 		try {
 			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_invalid_file_by_type for type " + type);
 			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_invalid_file_by_type(?,?,?,?,?)}");
-			stmt.setString(1, TransferUtils.convertTypeStr(type));
+			stmt.setString(1, WorkflowUtils.convertTypeStr(type));
 			stmt.registerOutParameter(2, OracleTypes.CURSOR);
 			stmt.registerOutParameter(3, Types.VARCHAR);
 			stmt.registerOutParameter(4, Types.VARCHAR);
@@ -50,19 +51,19 @@ public class FileQueueUtil {
 		return fqList;
 	}
 	
-	public static List<FileQueueResult> getUnloaded (Connection con, String type) {
+	public static List<FileQueueVO> getUnloaded (Connection con, String type) {
 		CallableStatement stmt;
 		ResultSet rs = null;
-		List<FileQueueResult> fqList = null;
+		List<FileQueueVO> fqList = null;
 		try {
-			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unloaded_file_by_type(?,?,?,?,?)}");
-			stmt.setString(1, TransferUtils.convertTypeStr(type));
+			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unloaded_by_type(?,?,?,?,?)}");
+			stmt.setString(1, WorkflowUtils.convertTypeStr(type));
 			stmt.registerOutParameter(2, OracleTypes.CURSOR);
 			stmt.registerOutParameter(3, Types.VARCHAR);
 			stmt.registerOutParameter(4, Types.VARCHAR);
 			stmt.registerOutParameter(5, Types.VARCHAR);
 			stmt.executeUpdate();
-			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_unloaded_file_by_type for type " + type);
+			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_unloaded_by_type for type " + type);
 			
 			// get cursor and cast it to ResultSet
 			rs = (ResultSet) stmt.getObject(2);
@@ -76,23 +77,24 @@ public class FileQueueUtil {
 		}
 		return fqList;
 	}
-	public static List<FileQueueResult> getUnsent (Connection con, String type) {
+	public static List<FileQueueVO> getUnsent (Connection con, String type, String consumer) {
 		CallableStatement stmt;
 		ResultSet rs = null;
-		List<FileQueueResult> fqList = null;
+		List<FileQueueVO> fqList = null;
 		try {
-			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unsent_file_by_type(?,?,?,?,?)}");
+			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unsent_by_type_consumer(?,?,?,?,?,?)}");
 //			String t = TransferUtils.convertTypeStr(type);
-			stmt.setString(1, TransferUtils.convertTypeStr(type));
-			stmt.registerOutParameter(2, OracleTypes.CURSOR);
-			stmt.registerOutParameter(3, Types.VARCHAR);
+			stmt.setString(1, type);
+			stmt.setString(2, consumer);
+			stmt.registerOutParameter(3, OracleTypes.CURSOR);
 			stmt.registerOutParameter(4, Types.VARCHAR);
 			stmt.registerOutParameter(5, Types.VARCHAR);
+			stmt.registerOutParameter(6, Types.VARCHAR);
 			stmt.executeUpdate();
-			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_unsent_file_by_type for type " + type);
+			System.out.println("Calling procedure FILE_QUEUE_UTIL.get_unsent_by_type_consumer for type " + type + " and consumer " + consumer);
 			
 			// get cursor and cast it to ResultSet
-			rs = (ResultSet) stmt.getObject(2);
+			rs = (ResultSet) stmt.getObject(3);
 			fqList = ResultSetToList(rs);
 			rs.close();
 			
@@ -172,14 +174,14 @@ public class FileQueueUtil {
 		}
 	}
 	
-	public static List<FileQueueResult> ResultSetToList(ResultSet rs) {
-		List<FileQueueResult> fqList = new ArrayList<FileQueueResult>();
+	private static List<FileQueueVO> ResultSetToList(ResultSet rs) {
+		List<FileQueueVO> fqList = new ArrayList<FileQueueVO>();
 		try {	
 			while (rs.next()) {
-				FileQueueResult resultSet;
+				FileQueueVO resultSet;
 				int id = rs.getInt("ROW_ID");
 				String uri = rs.getString("FILE_URI");
-				resultSet = new FileQueueResult(id, uri);
+				resultSet = new FileQueueVO(id, uri);
 				fqList.add(resultSet);
 			}
 			

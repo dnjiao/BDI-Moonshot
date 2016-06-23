@@ -153,7 +153,7 @@ public class PullFiles {
 		List<File> fileList = new ArrayList<File>();
 		// delete older files and non mapping files
 		for (File file : files) {
-			if (TransferUtils.isMapping(file)) {
+			if (WorkflowUtils.isMapping(file)) {
 				if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
 					fileList.add(file);
 				}
@@ -222,7 +222,7 @@ public class PullFiles {
 					List<String> auditFileList = new ArrayList<String>();
 					String newName = file.getName().split("\\.")[0] + "_" + FORMAT.print(current) + ".txt";;
 					File newFile = new File(dest, newName);
-					TransferUtils.fixMappingFile(file, newFile);
+					WorkflowUtils.fixMappingFile(file, newFile);
 					FileTransferAuditUtil.insertRecord(CONN, source + "/" + file.getName(), newFile.getAbsolutePath(), "sftp");
 					int fileQueueId = FileQueueUtil.insertRecord(CONN, newFile.getAbsolutePath(), "mapping");
 					fileCounter ++;
@@ -297,7 +297,7 @@ public class PullFiles {
 			List<File> fileList = new ArrayList<File>();
 			// delete older files
 			for (File file : files) {
-				if (TransferUtils.isType(file.getName(), "fm-xml")) {
+				if (WorkflowUtils.isType(file.getName(), "fm-xml")) {
 					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
 						fileList.add(file);
 					}
@@ -387,7 +387,7 @@ public class PullFiles {
 			List<File> fileList = new ArrayList<File>();
 			// delete older files
 			for (File file : files) {
-				if (TransferUtils.isType(file.getName(), "fm-val")) {
+				if (WorkflowUtils.isType(file.getName(), "fm-val")) {
 					if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
 						fileList.add(file);
 					}
@@ -442,7 +442,7 @@ public class PullFiles {
 				   File file = filePath.toFile();
 				   String fileName = filePath.getFileName().toString();		
 				   if(!file.isHidden()) {  // exclude hidden files
-					   if (TransferUtils.isType(fileName, TYPE)) {	
+					   if (WorkflowUtils.isType(fileName, TYPE)) {	
 	//					   System.out.println(fileName + " " + TYPE);
 						   String srcPath = file.getParent();
 						   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath);
@@ -480,14 +480,14 @@ public class PullFiles {
 								   FileTransferAuditUtil.insertRecord(CONN, fromPath.toString(), toPath.toString(), "cp");
 								   int imtSuccess = 1;
 								   if (TYPE.equals("immunopath")) {
-									   newName = TransferUtils.switchExt(newName, "psv");
+									   newName = WorkflowUtils.switchExt(newName, "psv");
 									   toPath = Paths.get(DEST, newName);
-									   imtSuccess = TransferUtils.immunoPsv(oldPath.toFile(), toPath.toFile());
+									   imtSuccess = WorkflowUtils.immunoPsv(oldPath.toFile(), toPath.toFile());
 								   }
 								   if (TYPE.equals("flowcyto")) {
-									   newName = TransferUtils.switchExt(newName, "psv");
+									   newName = WorkflowUtils.switchExt(newName, "psv");
 									   toPath = Paths.get(DEST, newName);
-									   imtSuccess = TransferUtils.flowPsv(oldPath.toFile(), toPath.toFile());
+									   imtSuccess = WorkflowUtils.flowPsv(oldPath.toFile(), toPath.toFile());
 								   }
 								   
 								   if (imtSuccess == 1) {

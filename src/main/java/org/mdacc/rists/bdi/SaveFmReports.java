@@ -21,27 +21,27 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.mdacc.rists.bdi.db.models.FileQueueResult;
 import org.mdacc.rists.bdi.db.utils.DBConnection;
 import org.mdacc.rists.bdi.db.utils.FileLoadUtil;
 import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
 import org.mdacc.rists.bdi.fm.dao.FileLoadDao;
 import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
-import org.mdacc.rists.bdi.fm.models.FileLoadTb;
-import org.mdacc.rists.bdi.fm.models.FmReportAmendmendTb;
-import org.mdacc.rists.bdi.fm.models.FmReportAppTb;
-import org.mdacc.rists.bdi.fm.models.FmReportGeneTb;
-import org.mdacc.rists.bdi.fm.models.FmReportPertNegTb;
-import org.mdacc.rists.bdi.fm.models.FmReportReferenceTb;
-import org.mdacc.rists.bdi.fm.models.FmReportSampleTb;
-import org.mdacc.rists.bdi.fm.models.FmReportSignatureTb;
-import org.mdacc.rists.bdi.fm.models.FmReportTb;
-import org.mdacc.rists.bdi.fm.models.FmReportTrialTb;
-import org.mdacc.rists.bdi.fm.models.FmReportVarPropetyTb;
-import org.mdacc.rists.bdi.fm.models.FmReportVarTb;
-import org.mdacc.rists.bdi.fm.models.SpecimenTb;
 import org.mdacc.rists.bdi.fm.service.FmParseUtils;
+import org.mdacc.rists.bdi.models.FileLoadTb;
+import org.mdacc.rists.bdi.models.FmReportAmendmendTb;
+import org.mdacc.rists.bdi.models.FmReportAppTb;
+import org.mdacc.rists.bdi.models.FmReportGeneTb;
+import org.mdacc.rists.bdi.models.FmReportPertNegTb;
+import org.mdacc.rists.bdi.models.FmReportReferenceTb;
+import org.mdacc.rists.bdi.models.FmReportSampleTb;
+import org.mdacc.rists.bdi.models.FmReportSignatureTb;
+import org.mdacc.rists.bdi.models.FmReportTb;
+import org.mdacc.rists.bdi.models.FmReportTrialTb;
+import org.mdacc.rists.bdi.models.FmReportVarPropetyTb;
+import org.mdacc.rists.bdi.models.FmReportVarTb;
+import org.mdacc.rists.bdi.models.SpecimenTb;
 import org.mdacc.rists.bdi.utils.XMLParser;
+import org.mdacc.rists.bdi.vo.FileQueueVO;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -53,14 +53,14 @@ public class SaveFmReports {
 		Connection conn = DBConnection.getConnection();
         // call stored procedure to get unsent files by type
 		
-		List<FileQueueResult> fqList = FileQueueUtil.getUnloaded(conn, "fm-xml");
+		List<FileQueueVO> fqList = FileQueueUtil.getUnloaded(conn, "fm-xml");
 		if (fqList == null) {
 			System.out.println("No foundation files to load.");
 			return;
 		}
 		// loop thru results
 		int counter = 0;
-		for (FileQueueResult fq : fqList) {
+		for (FileQueueVO fq : fqList) {
 			int fileQueueId = fq.getRowId();
 			String filepath = fq.getFileUri();
 			File file = new File(filepath);

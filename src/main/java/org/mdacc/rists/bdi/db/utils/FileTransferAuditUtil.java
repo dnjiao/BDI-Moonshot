@@ -7,7 +7,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mdacc.rists.bdi.TransferUtils;
+import org.mdacc.rists.bdi.WorkflowUtils;
 
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
@@ -81,7 +81,7 @@ public class FileTransferAuditUtil {
 	}
 	
 	public static String getLatestFile (Connection con, String type) {
-		String typeStr = TransferUtils.convertTypeStr(type);
+		String typeStr = WorkflowUtils.convertTypeStr(type);
 		CallableStatement stmt;
 		String fileuri = null;
 		try {

@@ -3,7 +3,7 @@ package org.mdacc.rists.bdi.fm.dao;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
-import org.mdacc.rists.bdi.fm.models.FmReportTb;
+import org.mdacc.rists.bdi.models.FmReportTb;
 
 public class FmReportDao {
 	EntityManager entityManager;
