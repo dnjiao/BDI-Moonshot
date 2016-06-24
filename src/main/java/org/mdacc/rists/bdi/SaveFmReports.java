@@ -48,7 +48,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class SaveFmReports {
-	public static void main (String args[]) throws ParserConfigurationException, SAXException, IOException {
+	public static void main (String args[]) throws ParserConfigurationException, SAXException, IOException, SQLException {
 		
 		Connection conn = DBConnection.getConnection();
         // call stored procedure to get unsent files by type
@@ -95,6 +95,7 @@ public class SaveFmReports {
 			}
 		}
 		System.out.println("Total " + counter + " FM files loaded to database.");
+		conn.close();
 	}
 
 	/**

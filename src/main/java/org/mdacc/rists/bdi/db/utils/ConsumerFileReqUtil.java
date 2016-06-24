@@ -14,9 +14,7 @@ import oracle.jdbc.OracleTypes;
 
 public class ConsumerFileReqUtil {
 	public static void main(String[] args) {
-		
-		List<ConsumerFileReqVO> list = getAllConsumer();
-		
+
 	}
 	
 	public static List<ConsumerFileReqVO> getAllConsumer() {
