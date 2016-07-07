@@ -38,4 +38,26 @@ public class FileLoadUtil {
 		}
 		return seqNum;
 	}
+	
+	public static int insertRecord(Connection con, String fileUri) {
+		CallableStatement stmt;
+		int seqNum = 1;
+		try {
+			System.out.println("Calling procedure FILE_LOAD_UTIL.get_file_seq_num for " + fileUri);
+			stmt = con.prepareCall("{call FILE_LOAD_UTIL.get_file_seq_num(?,?,?,?,?)}");
+			stmt.setString(1, fileUri);
+			stmt.registerOutParameter(2, Types.INTEGER);
+			stmt.registerOutParameter(3, Types.VARCHAR);
+			stmt.registerOutParameter(4, Types.VARCHAR);
+			stmt.registerOutParameter(5, Types.VARCHAR);
+			stmt.executeUpdate();
+			seqNum = stmt.getInt(2);
+			stmt.close();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		return seqNum;
+	}
 }

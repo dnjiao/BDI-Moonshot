@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
-	<persistence-unit name="RIStore_Flow" >
+	<persistence-unit name="RIStore_DEV" >
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<class>org.mdacc.rists.bdi.models.FmReportAltPropertyTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportAltTb</class>
@@ -34,6 +34,105 @@
 <!--             <property name="log4j.logger.org.hibernate" value="off" /> -->
 <!--             <property name="hibernate.show_sql" value="true" /> -->
 <!--             <property name="hibernate.hbm2ddl.auto" value="update" /> -->
+        </properties>
+	</persistence-unit>
+	<persistence-unit name="RIStore_QA" >
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<class>org.mdacc.rists.bdi.models.FmReportAltPropertyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTherapyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTrialLkTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAmendmendTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAppTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportGeneTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportPertNegTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportReferenceTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportRefLkTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportSampleTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportSignatureTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportTrialTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarPropetyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarSampleTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarTb</class>
+		<class>org.mdacc.rists.bdi.models.SpecimenTb</class>
+		<class>org.mdacc.rists.bdi.models.FileLoadTb</class>
+
+        <properties>
+            <property name="javax.persistence.jdbc.driver" value="oracle.jdbc.OracleDriver" />
+            <property name="javax.persistence.jdbc.url" value="jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu" />
+            <property name="javax.persistence.jdbc.user" value="ristore_owner_qa" />
+            <property name="javax.persistence.jdbc.password" value="ristore987q" />
+            
+            <property name="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect" />
+            <property name="eclipselink.logging.level" value="severe" />
+
+        </properties>
+	</persistence-unit>
+	<persistence-unit name="RIStore_STG" >
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<class>org.mdacc.rists.bdi.models.FmReportAltPropertyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTherapyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTrialLkTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAmendmendTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAppTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportGeneTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportPertNegTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportReferenceTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportRefLkTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportSampleTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportSignatureTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportTrialTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarPropetyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarSampleTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarTb</class>
+		<class>org.mdacc.rists.bdi.models.SpecimenTb</class>
+		<class>org.mdacc.rists.bdi.models.FileLoadTb</class>
+
+        <properties>
+            <property name="javax.persistence.jdbc.driver" value="oracle.jdbc.OracleDriver" />
+            <property name="javax.persistence.jdbc.url" value="jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risdev3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu" />
+            <property name="javax.persistence.jdbc.user" value="ristore_owner_stg" />
+            <property name="javax.persistence.jdbc.password" value="ristore987s" />
+            
+            <property name="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect" />
+            <property name="eclipselink.logging.level" value="severe" />
+
+        </properties>
+	</persistence-unit>
+	<persistence-unit name="RIStore_PROD" >
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<class>org.mdacc.rists.bdi.models.FmReportAltPropertyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTherapyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAltTrialLkTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAmendmendTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportAppTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportGeneTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportPertNegTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportReferenceTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportRefLkTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportSampleTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportSignatureTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportTrialTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarPropetyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarSampleTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarTb</class>
+		<class>org.mdacc.rists.bdi.models.SpecimenTb</class>
+		<class>org.mdacc.rists.bdi.models.FileLoadTb</class>
+
+        <properties>
+            <property name="javax.persistence.jdbc.driver" value="oracle.jdbc.OracleDriver" />
+            <property name="javax.persistence.jdbc.url" value="jdbc:oracle:thin:@ldap://mdaoid.mdanderson.org:389/risstg3, cn=OracleContext,dc=mdacc,dc=tmc,dc=edu" />
+            <property name="javax.persistence.jdbc.user" value="ristore_owner" />
+            <property name="javax.persistence.jdbc.password" value="ristore4pgodzilla" />
+            
+            <property name="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect" />
+            <property name="eclipselink.logging.level" value="severe" />
+
         </properties>
 	</persistence-unit>
 </persistence>

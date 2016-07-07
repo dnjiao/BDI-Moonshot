@@ -24,6 +24,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.mdacc.rists.bdi.db.utils.DBConnection;
 import org.mdacc.rists.bdi.db.utils.FileLoadUtil;
 import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
+import org.mdacc.rists.bdi.db.utils.FileTypeUtil;
 import org.mdacc.rists.bdi.fm.dao.FileLoadDao;
 import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
 import org.mdacc.rists.bdi.fm.service.FmParseUtils;
@@ -48,6 +49,9 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class SaveFmReports {
+	
+	final static String DBNAME = "RIStore_" + System.getenv("DEV_ENV").toUpperCase();
+	
 	public static void main (String args[]) throws ParserConfigurationException, SAXException, IOException, SQLException {
 		
 		Connection conn = DBConnection.getConnection();
@@ -71,7 +75,8 @@ public class SaveFmReports {
 				if (variantExists(file)) {
 					BigDecimal etl = getNextValue("ETL_PROC_SEQ");
 					int seqNum = FileLoadUtil.getFileSeqNum(conn, filepath);
-					Long flId = insertFileLoadTb(fileQueueId, filepath, seqNum, etl);
+					int typeId = FileTypeUtil.getFileTypeId(conn, "FM");
+					Long flId = insertFileLoadTb(fileQueueId, typeId, filepath, seqNum, etl);
 					BigDecimal fileLoadId = new BigDecimal(flId);
 					if (flId > 0) {
 						char insertStatus = insertReportTb(file, etl, fileLoadId);
@@ -104,7 +109,7 @@ public class SaveFmReports {
 	 * @return
 	 */
 	private static BigDecimal getNextValue(String seq) {
-		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
+		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory(DBNAME);
 		EntityManager em = emFactory.createEntityManager();
 		String query = "SELECT " + seq + ".nextval from DUAL";
 		Query q = em.createNativeQuery(query);
@@ -114,17 +119,17 @@ public class SaveFmReports {
 		return val;
 	}
 	
-	private static long insertFileLoadTb(int fileQueueId, String filepath, int num, BigDecimal etl) {
+	private static long insertFileLoadTb(int fileQueueId, int fileTypeId, String filepath, int num, BigDecimal etl) {
 		
 		long rowId = getNextValue("FILE_LOAD_TB_SEQ").longValue();
 		BigDecimal fqId = new BigDecimal(String.valueOf(fileQueueId));
-		BigDecimal fileTypeId = new BigDecimal(10);
+		BigDecimal ftId = new BigDecimal(String.valueOf(fileTypeId));
 		BigDecimal seqNum = new BigDecimal(String.valueOf(num));
 		File file = new File(filepath);
 		String fileName = file.getName();
 		Date date = new Date();
-		FileLoadTb fileLoad = new FileLoadTb(rowId, etl, fqId, fileTypeId, date, fileName, seqNum, date, filepath);
-		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
+		FileLoadTb fileLoad = new FileLoadTb(rowId, etl, fqId, ftId, date, fileName, seqNum, date, filepath);
+		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory(DBNAME);
 		EntityManager em = emFactory.createEntityManager();
 		FileLoadDao flDao = new FileLoadDao(em);
 		boolean success = flDao.persistFileLoad(fileLoad);
@@ -141,7 +146,7 @@ public class SaveFmReports {
 	
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
-		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("RIStore_Flow");
+		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory(DBNAME);
 		EntityManager em = emFactory.createEntityManager();
 		try {
 			
