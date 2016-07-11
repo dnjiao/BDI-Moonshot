@@ -57,14 +57,14 @@ public class SpecimenDao {
         }
 	}
 	
-	public SpecimenTb getSpecimenBySpecno(String sno) {
-		Query q = entityManager.createQuery("SELECT s FROM SpecimenTb s WHERE specimen_no = :specno");
-		q.setParameter("specno", sno);
+	public SpecimenTb findSpecimenBySpecno(String sno) {
 		try {
-			return (SpecimenTb) q.getSingleResult();
-		} catch (NoResultException exc) {
+			return (SpecimenTb) entityManager.createNamedQuery("SpecimenTb.findBySpecimenNo")
+										.setParameter("specimenNo", sno).getSingleResult();
+		} catch (NoResultException ex) {
 			return null;
 		}
+		
 		
 	}
 	public EntityManager getEntityManager() {

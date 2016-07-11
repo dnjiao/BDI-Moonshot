@@ -13,7 +13,11 @@ import java.util.List;
  */
 @Entity
 @Table(name="SPECIMEN_TB")
-@NamedQuery(name="SpecimenTb.findAll", query="SELECT s FROM SpecimenTb s")
+@NamedQueries({
+	@NamedQuery(name="SpecimenTb.findAll", query="SELECT s FROM SpecimenTb s"),
+	@NamedQuery(name="SpecimenTb.findBySpecimenNo", query="select s from SpecimenTb s where s.specimenNo = :specimenNo"),
+})
+
 public class SpecimenTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 

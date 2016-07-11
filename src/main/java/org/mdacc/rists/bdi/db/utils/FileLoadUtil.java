@@ -18,7 +18,7 @@ public class FileLoadUtil {
 	}
 	
 	public static int getFileSeqNum(Connection con, String fileUri) {
-		CallableStatement stmt;
+		CallableStatement stmt = null;
 		int seqNum = 1;
 		try {
 			System.out.println("Calling procedure FILE_LOAD_UTIL.get_file_seq_num for " + fileUri);
@@ -34,13 +34,17 @@ public class FileLoadUtil {
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+			try {
+				stmt.close();
+			} catch (Exception ignore) {}
+			
 			System.exit(1);
 		}
 		return seqNum;
 	}
 	
 	public static int insertRecord(Connection con, String fileUri) {
-		CallableStatement stmt;
+		CallableStatement stmt = null;
 		int seqNum = 1;
 		try {
 			System.out.println("Calling procedure FILE_LOAD_UTIL.get_file_seq_num for " + fileUri);
@@ -56,6 +60,9 @@ public class FileLoadUtil {
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+			try {
+				stmt.close();
+			} catch (Exception ignore) {}
 			System.exit(1);
 		}
 		return seqNum;

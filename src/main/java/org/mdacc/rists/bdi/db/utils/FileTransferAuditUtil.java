@@ -31,9 +31,10 @@ public class FileTransferAuditUtil {
 	}
 	public static int insertRecord (Connection con, String sourceUri, String destUri, String protocol) {
 		int ret = 0;
+		CallableStatement stmt = null;
 		try {
 			System.out.println("Calling procedure FILE_TRANSFER_AUDIT_UTIL.insert_record: " + destUri);
-			CallableStatement stmt = con.prepareCall("{call FILE_TRANSFER_AUDIT_UTIL.insert_record(?,?,?,?,?,?,?)}");
+			stmt = con.prepareCall("{call FILE_TRANSFER_AUDIT_UTIL.insert_record(?,?,?,?,?,?,?)}");
 			stmt.setString(1, sourceUri);
 			stmt.setString(2, destUri);
 			stmt.setString(3, protocol.toUpperCase());
@@ -52,6 +53,9 @@ public class FileTransferAuditUtil {
 		}
 		catch (SQLException e) {
 			e.printStackTrace();
+			try {
+				stmt.close();
+			} catch (Exception ignore) {}
 			System.exit(1);
 		}
 		return ret;

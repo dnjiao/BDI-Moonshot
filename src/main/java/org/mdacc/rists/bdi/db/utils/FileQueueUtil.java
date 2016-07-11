@@ -51,7 +51,7 @@ public class FileQueueUtil {
 	}
 	
 	public static List<FileQueueVO> getUnloaded (Connection con, String type) {
-		CallableStatement stmt;
+		CallableStatement stmt = null;
 		ResultSet rs = null;
 		List<FileQueueVO> fqList = null;
 		try {
@@ -72,12 +72,15 @@ public class FileQueueUtil {
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+			try {
+				stmt.close();
+			} catch (Exception ignore) {}
 			System.exit(1);
 		}
 		return fqList;
 	}
 	public static List<FileQueueVO> getUnsent (Connection con, String type, String consumer) {
-		CallableStatement stmt;
+		CallableStatement stmt = null;
 		ResultSet rs = null;
 		List<FileQueueVO> fqList = null;
 		try {
@@ -112,6 +115,9 @@ public class FileQueueUtil {
 			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
+			try {
+				stmt.close();
+			} catch (Exception ignore) {}
 			System.exit(1);
 		}
 		return fqList;

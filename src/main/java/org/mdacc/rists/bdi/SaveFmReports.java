@@ -64,7 +64,11 @@ public class SaveFmReports {
 		}
 		// loop thru results
 		int counter = 0;
+		int index = 0;
+		System.out.println("Total unloaded: " + fqList.size());
 		for (FileQueueVO fq : fqList) {
+			index ++;
+			System.out.println("Index: " + index);
 			int fileQueueId = fq.getRowId();
 			String filepath = fq.getFileUri();
 			File file = new File(filepath);
@@ -73,21 +77,40 @@ public class SaveFmReports {
 			}
 			else {			
 				if (variantExists(file)) {
+					long start = System.currentTimeMillis();
 					BigDecimal etl = getNextValue("ETL_PROC_SEQ");
+					long elapsedTime = System.currentTimeMillis() - start;
+					System.out.println("getNextValue for etl took " + elapsedTime + " ms");
+					start = System.currentTimeMillis();
 					int seqNum = FileLoadUtil.getFileSeqNum(conn, filepath);
+					elapsedTime = System.currentTimeMillis() - start;
+					System.out.println("FileLoadUtil.getFileSeqNum took " + elapsedTime + " ms");
+					start = System.currentTimeMillis();
 					int typeId = FileTypeUtil.getFileTypeId(conn, "FM");
+					elapsedTime = System.currentTimeMillis() - start;
+					System.out.println("FileTypeUtil.getFileTypeId took " + elapsedTime + " ms");
+					start = System.currentTimeMillis();
 					Long flId = insertFileLoadTb(fileQueueId, typeId, filepath, seqNum, etl);
+					elapsedTime = System.currentTimeMillis() - start;
+					System.out.println("insertFileLoadTb took " + elapsedTime + " ms");
 					BigDecimal fileLoadId = new BigDecimal(flId);
 					if (flId > 0) {
-						char insertStatus = insertReportTb(file, etl, fileLoadId);
+//						char insertStatus = insertReportTb(file, etl, fileLoadId);
+						char insertStatus = 'T';
 						if (insertStatus == 'S') {
 							Date now = new Date();
 							SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 							System.out.println(file.getName() + " loaded successful with fileLoadId " + Long.toString(flId) + " at " + df.format(now));
 							counter ++;
+							start = System.currentTimeMillis();
 							setFileLoadStatus(conn, "S", fileQueueId, fileLoadId);
+							elapsedTime = System.currentTimeMillis() - start;
+							System.out.println("setFileLoadStatus took " + elapsedTime + " ms");
 						} else {
+							start = System.currentTimeMillis();
 							setFileLoadStatus(conn, Character.toString(insertStatus), fileQueueId, fileLoadId);
+							elapsedTime = System.currentTimeMillis() - start;
+							System.out.println("setFileLoadStatus took " + elapsedTime + " ms");
 						}
 					}
 				}
@@ -141,7 +164,6 @@ public class SaveFmReports {
 		return 0;
 	}
 
-
 	public static char insertReportTb (File file, BigDecimal etlProcId, BigDecimal flId) {
 	
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -190,7 +212,7 @@ public class SaveFmReports {
 			report.setFrFmId(XMLParser.getNodeValue("FM_Id", sampNodes));
 			report.setFrSampleId(XMLParser.getNodeValue("SampleId", sampNodes));
 			String blockId = XMLParser.getNodeValue("BlockId", sampNodes);
-			if (specimenDao.getSpecimenBySpecno(blockId) != null) {
+			if (specimenDao.findSpecimenBySpecno(blockId) != null) {
 				em.close();
 				emFactory.close();
 				return 'D';
