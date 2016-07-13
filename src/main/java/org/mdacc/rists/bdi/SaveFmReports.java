@@ -55,6 +55,8 @@ public class SaveFmReports {
 	public static void main (String args[]) throws ParserConfigurationException, SAXException, IOException, SQLException {
 		
 		Connection conn = DBConnection.getConnection();
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory(DBNAME);
+		EntityManager em = emf.createEntityManager();
         // call stored procedure to get unsent files by type
 		
 		List<FileQueueVO> fqList = FileQueueUtil.getUnloaded(conn, "fm-xml");
@@ -77,20 +79,13 @@ public class SaveFmReports {
 			}
 			else {			
 				if (variantExists(file)) {
-					long start = System.currentTimeMillis();
-					BigDecimal etl = getNextValue("ETL_PROC_SEQ");
-					long elapsedTime = System.currentTimeMillis() - start;
-					System.out.println("getNextValue for etl took " + elapsedTime + " ms");
-					start = System.currentTimeMillis();
+					BigDecimal etl = getNextValue(emf, "ETL_PROC_SEQ");
 					int seqNum = FileLoadUtil.getFileSeqNum(conn, filepath);
-					elapsedTime = System.currentTimeMillis() - start;
-					System.out.println("FileLoadUtil.getFileSeqNum took " + elapsedTime + " ms");
-					
 					int typeId = FileTypeUtil.getFileTypeId(conn, "FM");
-					Long flId = insertFileLoadTb(fileQueueId, typeId, filepath, seqNum, etl);
+					Long flId = insertFileLoadTb(emf, fileQueueId, typeId, filepath, seqNum, etl);
 					BigDecimal fileLoadId = new BigDecimal(flId);
 					if (flId > 0) {
-						char insertStatus = insertReportTb(file, etl, fileLoadId);
+						char insertStatus = insertReportTb(emf, file, etl, fileLoadId);
 						if (insertStatus == 'S') {
 							Date now = new Date();
 							SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -111,6 +106,7 @@ public class SaveFmReports {
 			}
 		}
 		System.out.println("Total " + counter + " FM files loaded to database.");
+		emf.close();
 		conn.close();
 	}
 
@@ -119,35 +115,18 @@ public class SaveFmReports {
 	 * @param seq - sequence name in db
 	 * @return
 	 */
-	private static BigDecimal getNextValue(String seq) {
-		long start = System.currentTimeMillis();
-		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory(DBNAME);
-		long elapsedTime = System.currentTimeMillis() - start;
-		System.out.println("EntityManagerFactory took " + elapsedTime + " ms");
-		start = System.currentTimeMillis();
-		EntityManager em = emFactory.createEntityManager();
-		elapsedTime = System.currentTimeMillis() - start;
-		System.out.println("EntityManager took " + elapsedTime + " ms");
-		start = System.currentTimeMillis();
+	private static BigDecimal getNextValue(EntityManagerFactory emf, String seq) {
+		EntityManager em = emf.createEntityManager();
 		String query = "SELECT " + seq + ".nextval from DUAL";
-		Query q = em.createNativeQuery(query);
-		elapsedTime = System.currentTimeMillis() - start;
-		System.out.println("Query took " + elapsedTime + " ms");
-		start = System.currentTimeMillis();
+		Query q = em.createNativeQuery(query);		
 		BigDecimal val = (BigDecimal)q.getSingleResult();
-		elapsedTime = System.currentTimeMillis() - start;
-		System.out.println("getSingleResult took " + elapsedTime + " ms");
-		start = System.currentTimeMillis();
 		em.close();
-		emFactory.close();
-		elapsedTime = System.currentTimeMillis() - start;
-		System.out.println("Closing EM took " + elapsedTime + " ms");
 		return val;
 	}
 	
-	private static long insertFileLoadTb(int fileQueueId, int fileTypeId, String filepath, int num, BigDecimal etl) {
-		
-		long rowId = getNextValue("FILE_LOAD_TB_SEQ").longValue();
+	private static long insertFileLoadTb(EntityManagerFactory emf, int fileQueueId, int fileTypeId, String filepath, int num, BigDecimal etl) {
+		EntityManager em = emf.createEntityManager();
+		long rowId = getNextValue(emf, "FILE_LOAD_TB_SEQ").longValue();
 		BigDecimal fqId = new BigDecimal(String.valueOf(fileQueueId));
 		BigDecimal ftId = new BigDecimal(String.valueOf(fileTypeId));
 		BigDecimal seqNum = new BigDecimal(String.valueOf(num));
@@ -155,24 +134,21 @@ public class SaveFmReports {
 		String fileName = file.getName();
 		Date date = new Date();
 		FileLoadTb fileLoad = new FileLoadTb(rowId, etl, fqId, ftId, date, fileName, seqNum, date, filepath);
-		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory(DBNAME);
-		EntityManager em = emFactory.createEntityManager();
 		FileLoadDao flDao = new FileLoadDao(em);
 		boolean success = flDao.persistFileLoad(fileLoad);
-		em.close();
-		emFactory.close();
 		if (success == true) {
+			em.close();
 			return rowId;
 		}
+		em.close();
 		return 0;
 	}
 
-	public static char insertReportTb (File file, BigDecimal etlProcId, BigDecimal flId) {
+	public static char insertReportTb (EntityManagerFactory emf, File file, BigDecimal etlProcId, BigDecimal flId) {
 	
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
-		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory(DBNAME);
-		EntityManager em = emFactory.createEntityManager();
+		EntityManager em = emf.createEntityManager();
 		try {
 			
 			SpecimenDao specimenDao = new SpecimenDao(em);
@@ -216,8 +192,7 @@ public class SaveFmReports {
 			report.setFrSampleId(XMLParser.getNodeValue("SampleId", sampNodes));
 			String blockId = XMLParser.getNodeValue("BlockId", sampNodes);
 			if (specimenDao.findSpecimenBySpecno(blockId) != null) {
-				em.close();
-				emFactory.close();
+
 				return 'D';
 			}
 			
@@ -420,18 +395,16 @@ public class SaveFmReports {
 			specimenTb.setFmReportTbs(reports);
 			specimenTb.setFileLoadId(flId);			
 			boolean success = specimenDao.persistSpecimen(specimenTb);
-			em.close();
-			emFactory.close();
+
 			if (success == true) {
+				em.close();
 				return 'S';
-				
 			}
 	
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
 		em.close();
-		emFactory.close();
 		return 'E';
 		
 	}
