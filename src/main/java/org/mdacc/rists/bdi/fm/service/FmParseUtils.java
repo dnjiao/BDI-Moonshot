@@ -32,7 +32,8 @@ public class FmParseUtils {
 	
 	final static SimpleDateFormat FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
 	public static void main(String[] args) {
-		
+		String str = "CDK2A/B";
+		System.out.println(parseGeneName(str));
 	}
 	
 	
@@ -108,74 +109,93 @@ public class FmParseUtils {
 	public static List<FmReportGeneTb> parseGenes(List<Node> genes, Date date, BigDecimal etl, FmReportTb report) {
 			List<FmReportGeneTb> geneList = new ArrayList<FmReportGeneTb>();
 			for (Node gene : genes) {
-				FmReportGeneTb geneTb = new FmReportGeneTb();
 				NodeList geneNodes = gene.getChildNodes();
-				geneTb.setInsertTs(date);
-				geneTb.setUpdateTs(date);
-				geneTb.setEtlProcId(etl);
-				geneTb.setFmReportTb(report);
-				geneTb.setName(XMLParser.getNodeValue("Name", geneNodes));
-				geneTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", geneNodes)));
-				// Alterations section
 				Node altNode = XMLParser.getNode("Alterations", geneNodes);
-				List<FmReportAltTb> altList = new ArrayList<FmReportAltTb>();
-				if (altNode != null) {
-					List<Node> alterations = XMLParser.getNodes("Alteration", altNode.getChildNodes());
-					for (Node alteration : alterations) {
-						NodeList nl = alteration.getChildNodes();
-						FmReportAltTb altTb = new FmReportAltTb();
-						altTb.setInsertTs(date);
-						altTb.setUpdateTs(date);
-						altTb.setEtlProcId(etl);
-						altTb.setFmReportTb(report);
-						altTb.setName(XMLParser.getNodeValue("Name", nl));
-						altTb.setRelavance(XMLParser.getNodeValue("Relavance", nl));
-						altTb.setInterpretation(XMLParser.getNodeValue("Interpretation", nl));
-						altTb.setIndication(XMLParser.getNodeValue("Indication", nl));
-						altTb.setTrialNote(XMLParser.getNodeValue("ClinicalTrialNote", nl));
-						altTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", nl)));
-						List<FmReportAltPropertyTb> apList = parseAltProperty(alteration, date, etl, report, altTb);
-						altTb.setFmReportAltPropertyTbs(apList);
-						List<FmReportRefLkTb> rfList = parseRefLkFromAlteration(nl, date, etl, report, altTb);
-						altTb.setFmReportRefLkTbs(rfList);
-						List<FmReportAltTherapyTb> atList = parseAltTherapy(alteration, date, etl, report, altTb);
-						altTb.setFmReportAltTherapyTbs(atList);
-						List<FmReportAltTrialLkTb> atlList = parseAltTrialLk(alteration, date, etl, report, altTb);
-						altTb.setFmReportAltTrialLkTbs(atlList);
-						altTb.setFmReportGeneTb(geneTb);
-						altList.add(altTb);
-					}
-				}
-				geneTb.setFmReportAltTbs(altList);
-				// ReferenceLinks section
 				Node rlNode = XMLParser.getNode("ReferenceLinks", geneNodes);
-				List<FmReportRefLkTb> rfList = new ArrayList<FmReportRefLkTb>();
-				if (rlNode != null) {
-					List<Node> reflinks = XMLParser.getNodes("ReferenceLink", rlNode.getChildNodes());
-					if (reflinks != null) {
-						for (Node reflink : reflinks) {
-							FmReportRefLkTb refLk = new FmReportRefLkTb();
-							refLk.setInsertTs(date);
-							refLk.setUpdateTs(date);
-							refLk.setEtlProcId(etl);
-							refLk.setFmReportTb(report);
-							refLk.setReferenceId(XMLParser.getNodeAttr("referenceId", reflink));
-							refLk.setInclude(boolToChar(XMLParser.getNodeValue("Include", reflink.getChildNodes())));
-							refLk.setFmReportGeneTb(geneTb);
-							refLk.setFmReportTb(report);
-							rfList.add(refLk);
+				String name = XMLParser.getNodeValue("Name", geneNodes);
+				List<String> geneNames = parseGeneName(name);
+				for (String geneName : geneNames) {
+					FmReportGeneTb geneTb = new FmReportGeneTb();
+					geneTb.setInsertTs(date);
+					geneTb.setUpdateTs(date);
+					geneTb.setEtlProcId(etl);
+					geneTb.setFmReportTb(report);
+					geneTb.setName(geneName);
+					geneTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", geneNodes)));
+					
+					// Alterations section
+					List<FmReportAltTb> altList = new ArrayList<FmReportAltTb>();
+					if (altNode != null) {
+						List<Node> alterations = XMLParser.getNodes("Alteration", altNode.getChildNodes());
+						for (Node alteration : alterations) {
+							NodeList nl = alteration.getChildNodes();
+							FmReportAltTb altTb = new FmReportAltTb();
+							altTb.setInsertTs(date);
+							altTb.setUpdateTs(date);
+							altTb.setEtlProcId(etl);
+							altTb.setFmReportTb(report);
+							altTb.setName(XMLParser.getNodeValue("Name", nl));
+							altTb.setRelavance(XMLParser.getNodeValue("Relavance", nl));
+							altTb.setInterpretation(XMLParser.getNodeValue("Interpretation", nl));
+							altTb.setIndication(XMLParser.getNodeValue("Indication", nl));
+							altTb.setTrialNote(XMLParser.getNodeValue("ClinicalTrialNote", nl));
+							altTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", nl)));
+							List<FmReportAltPropertyTb> apList = parseAltProperty(alteration, date, etl, report, altTb);
+							altTb.setFmReportAltPropertyTbs(apList);
+							List<FmReportRefLkTb> rfList = parseRefLkFromAlteration(nl, date, etl, report, altTb);
+							altTb.setFmReportRefLkTbs(rfList);
+							List<FmReportAltTherapyTb> atList = parseAltTherapy(alteration, date, etl, report, altTb);
+							altTb.setFmReportAltTherapyTbs(atList);
+							List<FmReportAltTrialLkTb> atlList = parseAltTrialLk(alteration, date, etl, report, altTb);
+							altTb.setFmReportAltTrialLkTbs(atlList);
+							altTb.setFmReportGeneTb(geneTb);
+							altList.add(altTb);
 						}
 					}
+					geneTb.setFmReportAltTbs(altList);
+					// ReferenceLinks section
+					List<FmReportRefLkTb> rfList = new ArrayList<FmReportRefLkTb>();
+					if (rlNode != null) {
+						List<Node> reflinks = XMLParser.getNodes("ReferenceLink", rlNode.getChildNodes());
+						if (reflinks != null) {
+							for (Node reflink : reflinks) {
+								FmReportRefLkTb refLk = new FmReportRefLkTb();
+								refLk.setInsertTs(date);
+								refLk.setUpdateTs(date);
+								refLk.setEtlProcId(etl);
+								refLk.setFmReportTb(report);
+								refLk.setReferenceId(XMLParser.getNodeAttr("referenceId", reflink));
+								refLk.setInclude(boolToChar(XMLParser.getNodeValue("Include", reflink.getChildNodes())));
+								refLk.setFmReportGeneTb(geneTb);
+								refLk.setFmReportTb(report);
+								rfList.add(refLk);
+							}
+						}
+					}
+					if (rfList != null) {
+						geneTb.setFmReportRefLkTbs(rfList);
+					}
+					
+					geneList.add(geneTb);
 				}
-				if (rfList != null) {
-					geneTb.setFmReportRefLkTbs(rfList);
-				}
-				
-				geneList.add(geneTb);
 			}
 			return geneList;
 		}
 		
+	private static List<String> parseGeneName(String name) {
+		List<String> gNames = new ArrayList<String>();
+		if (name.indexOf('/') == name.length() - 2) {
+			String[] items = name.split("/");
+			gNames.add(items[0]);
+			gNames.add(items[0].substring(0, items[0].length() - 1) + items[1]);
+		}
+		else {
+			gNames.add(name);
+		}
+		return gNames;
+	}
+
+
 	/**
 	 * parse reference links from /FinalReport/Genes/Gene/Alterations/Alteration section
 	 * @param nl - NodeList of ReferenceLinks

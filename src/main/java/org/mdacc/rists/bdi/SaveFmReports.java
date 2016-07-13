@@ -85,32 +85,20 @@ public class SaveFmReports {
 					int seqNum = FileLoadUtil.getFileSeqNum(conn, filepath);
 					elapsedTime = System.currentTimeMillis() - start;
 					System.out.println("FileLoadUtil.getFileSeqNum took " + elapsedTime + " ms");
-					start = System.currentTimeMillis();
+					
 					int typeId = FileTypeUtil.getFileTypeId(conn, "FM");
-					elapsedTime = System.currentTimeMillis() - start;
-					System.out.println("FileTypeUtil.getFileTypeId took " + elapsedTime + " ms");
-					start = System.currentTimeMillis();
 					Long flId = insertFileLoadTb(fileQueueId, typeId, filepath, seqNum, etl);
-					elapsedTime = System.currentTimeMillis() - start;
-					System.out.println("insertFileLoadTb took " + elapsedTime + " ms");
 					BigDecimal fileLoadId = new BigDecimal(flId);
 					if (flId > 0) {
-//						char insertStatus = insertReportTb(file, etl, fileLoadId);
-						char insertStatus = 'T';
+						char insertStatus = insertReportTb(file, etl, fileLoadId);
 						if (insertStatus == 'S') {
 							Date now = new Date();
 							SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 							System.out.println(file.getName() + " loaded successful with fileLoadId " + Long.toString(flId) + " at " + df.format(now));
 							counter ++;
-							start = System.currentTimeMillis();
 							setFileLoadStatus(conn, "S", fileQueueId, fileLoadId);
-							elapsedTime = System.currentTimeMillis() - start;
-							System.out.println("setFileLoadStatus took " + elapsedTime + " ms");
 						} else {
-							start = System.currentTimeMillis();
 							setFileLoadStatus(conn, Character.toString(insertStatus), fileQueueId, fileLoadId);
-							elapsedTime = System.currentTimeMillis() - start;
-							System.out.println("setFileLoadStatus took " + elapsedTime + " ms");
 						}
 					}
 				}
@@ -132,13 +120,28 @@ public class SaveFmReports {
 	 * @return
 	 */
 	private static BigDecimal getNextValue(String seq) {
+		long start = System.currentTimeMillis();
 		EntityManagerFactory emFactory = Persistence.createEntityManagerFactory(DBNAME);
+		long elapsedTime = System.currentTimeMillis() - start;
+		System.out.println("EntityManagerFactory took " + elapsedTime + " ms");
+		start = System.currentTimeMillis();
 		EntityManager em = emFactory.createEntityManager();
+		elapsedTime = System.currentTimeMillis() - start;
+		System.out.println("EntityManager took " + elapsedTime + " ms");
+		start = System.currentTimeMillis();
 		String query = "SELECT " + seq + ".nextval from DUAL";
 		Query q = em.createNativeQuery(query);
+		elapsedTime = System.currentTimeMillis() - start;
+		System.out.println("Query took " + elapsedTime + " ms");
+		start = System.currentTimeMillis();
 		BigDecimal val = (BigDecimal)q.getSingleResult();
+		elapsedTime = System.currentTimeMillis() - start;
+		System.out.println("getSingleResult took " + elapsedTime + " ms");
+		start = System.currentTimeMillis();
 		em.close();
 		emFactory.close();
+		elapsedTime = System.currentTimeMillis() - start;
+		System.out.println("Closing EM took " + elapsedTime + " ms");
 		return val;
 	}
 	
@@ -473,6 +476,7 @@ public class SaveFmReports {
 			ps.setInt(3, Integer.valueOf(fileLoadId.intValue()));
 			ps.executeUpdate();
 			System.out.println("Update Load_Status in FILE_LOAD_ID table: " + status);
+			ps.close();
 			
 			//update file_queue_tb
 			sql = "Update FILE_QUEUE_TB set LOAD_STATUS = ?, UPDATE_TS = ? where ROW_ID = ? ";
