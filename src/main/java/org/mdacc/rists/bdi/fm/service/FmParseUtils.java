@@ -41,8 +41,14 @@ public class FmParseUtils {
 	 * Parse "Application" section into fm_report_app_tb
 	 * @param node -- /FinalReport/Application/ApplicationSettings
 	 */
-	public static List<FmReportAppTb> parseApplication(Node node, Date date, BigDecimal etl, FmReportTb report) {
-		List<FmReportAppTb> reportAppList = new ArrayList<FmReportAppTb>();
+	public static List<FmReportAppTb> parseApplication(Node node, Date date, BigDecimal etl, FmReportTb report, int update) {
+		
+		List<FmReportAppTb> reportAppList = null;
+		if (update == 1) {
+			reportAppList = report.getFmReportAppTbs();
+		} else {
+			reportAppList = new ArrayList<FmReportAppTb>();
+		}
 		NodeList nodes = node.getChildNodes();
 		List<Node> settings = XMLParser.getNodes("ApplicationSetting", nodes);
 		for (Node setting : settings) {
@@ -63,8 +69,13 @@ public class FmParseUtils {
 	 * Parse "PertinentNegatives" node to fm_report_pert_neg_tb
 	 * @param node -- /FinalReport/PertinentNegatives
 	 */
-	public static List<FmReportPertNegTb> parsePert(Node node, Date date, BigDecimal etl, FmReportTb report) {
-		List<FmReportPertNegTb> pertNegList = new ArrayList<FmReportPertNegTb>();
+	public static List<FmReportPertNegTb> parsePert(Node node, Date date, BigDecimal etl, FmReportTb report, int update) {
+		List<FmReportPertNegTb> pertNegList = null;
+		if (update == 1) {
+			pertNegList = report.getFmReportPertNegTbs();
+		} else {
+			pertNegList = new ArrayList<FmReportPertNegTb>();
+		}
 		NodeList nodes = node.getChildNodes();
 		List<Node> pertNegs = XMLParser.getNodes("PertinentNegative", nodes);
 		for (Node pertNeg : pertNegs) {
@@ -84,8 +95,13 @@ public class FmParseUtils {
 	 * Parse "VariantProperties" into fm_report_var_property_tb
 	 * @param node -- /FinalReport/VariantProperties
 	 */
-	public static List<FmReportVarPropetyTb> parseVarProperty(Node node, Date date, BigDecimal etl, FmReportTb report) {
-		List<FmReportVarPropetyTb> varPropList = new ArrayList<FmReportVarPropetyTb>();
+	public static List<FmReportVarPropetyTb> parseVarProperty(Node node, Date date, BigDecimal etl, FmReportTb report, int update) {
+		List<FmReportVarPropetyTb> varPropList = null;
+		if (update == 1) {
+			varPropList = report.getFmReportVarPropetyTbs();
+		} else {
+			varPropList = new ArrayList<FmReportVarPropetyTb>();
+		}
 		NodeList nodes = node.getChildNodes();
 		List<Node> varProps = XMLParser.getNodes("VariantProperty", nodes);
 		for (Node varProp : varProps) {
@@ -106,81 +122,86 @@ public class FmParseUtils {
 	 * Parse "Genes" node into fm_report_gene_tb, all alt tables
 	 * @param genes -- List of "Gene" nodes in /FinalReport/Genes/Gene/
 	 */
-	public static List<FmReportGeneTb> parseGenes(List<Node> genes, Date date, BigDecimal etl, FmReportTb report) {
-			List<FmReportGeneTb> geneList = new ArrayList<FmReportGeneTb>();
-			for (Node gene : genes) {
-				NodeList geneNodes = gene.getChildNodes();
-				Node altNode = XMLParser.getNode("Alterations", geneNodes);
-				Node rlNode = XMLParser.getNode("ReferenceLinks", geneNodes);
-				String name = XMLParser.getNodeValue("Name", geneNodes);
-				List<String> geneNames = parseGeneName(name);
-				for (String geneName : geneNames) {
-					FmReportGeneTb geneTb = new FmReportGeneTb();
-					geneTb.setInsertTs(date);
-					geneTb.setUpdateTs(date);
-					geneTb.setEtlProcId(etl);
-					geneTb.setFmReportTb(report);
-					geneTb.setName(geneName);
-					geneTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", geneNodes)));
-					
-					// Alterations section
-					List<FmReportAltTb> altList = new ArrayList<FmReportAltTb>();
-					if (altNode != null) {
-						List<Node> alterations = XMLParser.getNodes("Alteration", altNode.getChildNodes());
-						for (Node alteration : alterations) {
-							NodeList nl = alteration.getChildNodes();
-							FmReportAltTb altTb = new FmReportAltTb();
-							altTb.setInsertTs(date);
-							altTb.setUpdateTs(date);
-							altTb.setEtlProcId(etl);
-							altTb.setFmReportTb(report);
-							altTb.setName(XMLParser.getNodeValue("Name", nl));
-							altTb.setRelavance(XMLParser.getNodeValue("Relavance", nl));
-							altTb.setInterpretation(XMLParser.getNodeValue("Interpretation", nl));
-							altTb.setIndication(XMLParser.getNodeValue("Indication", nl));
-							altTb.setTrialNote(XMLParser.getNodeValue("ClinicalTrialNote", nl));
-							altTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", nl)));
-							List<FmReportAltPropertyTb> apList = parseAltProperty(alteration, date, etl, report, altTb);
-							altTb.setFmReportAltPropertyTbs(apList);
-							List<FmReportRefLkTb> rfList = parseRefLkFromAlteration(nl, date, etl, report, altTb);
-							altTb.setFmReportRefLkTbs(rfList);
-							List<FmReportAltTherapyTb> atList = parseAltTherapy(alteration, date, etl, report, altTb);
-							altTb.setFmReportAltTherapyTbs(atList);
-							List<FmReportAltTrialLkTb> atlList = parseAltTrialLk(alteration, date, etl, report, altTb);
-							altTb.setFmReportAltTrialLkTbs(atlList);
-							altTb.setFmReportGeneTb(geneTb);
-							altList.add(altTb);
-						}
-					}
-					geneTb.setFmReportAltTbs(altList);
-					// ReferenceLinks section
-					List<FmReportRefLkTb> rfList = new ArrayList<FmReportRefLkTb>();
-					if (rlNode != null) {
-						List<Node> reflinks = XMLParser.getNodes("ReferenceLink", rlNode.getChildNodes());
-						if (reflinks != null) {
-							for (Node reflink : reflinks) {
-								FmReportRefLkTb refLk = new FmReportRefLkTb();
-								refLk.setInsertTs(date);
-								refLk.setUpdateTs(date);
-								refLk.setEtlProcId(etl);
-								refLk.setFmReportTb(report);
-								refLk.setReferenceId(XMLParser.getNodeAttr("referenceId", reflink));
-								refLk.setInclude(boolToChar(XMLParser.getNodeValue("Include", reflink.getChildNodes())));
-								refLk.setFmReportGeneTb(geneTb);
-								refLk.setFmReportTb(report);
-								rfList.add(refLk);
-							}
-						}
-					}
-					if (rfList != null) {
-						geneTb.setFmReportRefLkTbs(rfList);
-					}
-					
-					geneList.add(geneTb);
-				}
-			}
-			return geneList;
+	public static List<FmReportGeneTb> parseGenes(List<Node> genes, Date date, BigDecimal etl, FmReportTb report, int update) {
+		List<FmReportGeneTb> geneList = null;
+		if (update == 1) {
+			geneList = report.getFmReportGeneTbs();
+		} else {
+			geneList = new ArrayList<FmReportGeneTb>();
 		}
+		for (Node gene : genes) {
+			NodeList geneNodes = gene.getChildNodes();
+			Node altNode = XMLParser.getNode("Alterations", geneNodes);
+			Node rlNode = XMLParser.getNode("ReferenceLinks", geneNodes);
+			String name = XMLParser.getNodeValue("Name", geneNodes);
+			List<String> geneNames = parseGeneName(name);
+			for (String geneName : geneNames) {
+				FmReportGeneTb geneTb = new FmReportGeneTb();
+				geneTb.setInsertTs(date);
+				geneTb.setUpdateTs(date);
+				geneTb.setEtlProcId(etl);
+				geneTb.setFmReportTb(report);
+				geneTb.setName(geneName);
+				geneTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", geneNodes)));
+				
+				// Alterations section
+				List<FmReportAltTb> altList = new ArrayList<FmReportAltTb>();
+				if (altNode != null) {
+					List<Node> alterations = XMLParser.getNodes("Alteration", altNode.getChildNodes());
+					for (Node alteration : alterations) {
+						NodeList nl = alteration.getChildNodes();
+						FmReportAltTb altTb = new FmReportAltTb();
+						altTb.setInsertTs(date);
+						altTb.setUpdateTs(date);
+						altTb.setEtlProcId(etl);
+						altTb.setFmReportTb(report);
+						altTb.setName(XMLParser.getNodeValue("Name", nl));
+						altTb.setRelavance(XMLParser.getNodeValue("Relavance", nl));
+						altTb.setInterpretation(XMLParser.getNodeValue("Interpretation", nl));
+						altTb.setIndication(XMLParser.getNodeValue("Indication", nl));
+						altTb.setTrialNote(XMLParser.getNodeValue("ClinicalTrialNote", nl));
+						altTb.setInclude(boolToChar(XMLParser.getNodeValue("Include", nl)));
+						List<FmReportAltPropertyTb> apList = parseAltProperty(alteration, date, etl, report, altTb);
+						altTb.setFmReportAltPropertyTbs(apList);
+						List<FmReportRefLkTb> rfList = parseRefLkFromAlteration(nl, date, etl, report, altTb);
+						altTb.setFmReportRefLkTbs(rfList);
+						List<FmReportAltTherapyTb> atList = parseAltTherapy(alteration, date, etl, report, altTb);
+						altTb.setFmReportAltTherapyTbs(atList);
+						List<FmReportAltTrialLkTb> atlList = parseAltTrialLk(alteration, date, etl, report, altTb);
+						altTb.setFmReportAltTrialLkTbs(atlList);
+						altTb.setFmReportGeneTb(geneTb);
+						altList.add(altTb);
+					}
+				}
+				geneTb.setFmReportAltTbs(altList);
+				// ReferenceLinks section
+				List<FmReportRefLkTb> rfList = new ArrayList<FmReportRefLkTb>();
+				if (rlNode != null) {
+					List<Node> reflinks = XMLParser.getNodes("ReferenceLink", rlNode.getChildNodes());
+					if (reflinks != null) {
+						for (Node reflink : reflinks) {
+							FmReportRefLkTb refLk = new FmReportRefLkTb();
+							refLk.setInsertTs(date);
+							refLk.setUpdateTs(date);
+							refLk.setEtlProcId(etl);
+							refLk.setFmReportTb(report);
+							refLk.setReferenceId(XMLParser.getNodeAttr("referenceId", reflink));
+							refLk.setInclude(boolToChar(XMLParser.getNodeValue("Include", reflink.getChildNodes())));
+							refLk.setFmReportGeneTb(geneTb);
+							refLk.setFmReportTb(report);
+							rfList.add(refLk);
+						}
+					}
+				}
+				if (rfList != null) {
+					geneTb.setFmReportRefLkTbs(rfList);
+				}
+				
+				geneList.add(geneTb);
+			}
+		}
+		return geneList;
+	}
 		
 	private static List<String> parseGeneName(String name) {
 		List<String> gNames = new ArrayList<String>();
@@ -338,10 +359,15 @@ public class FmParseUtils {
 	}
 	
 	// XML Path: /FinalReport/Trials
-	public static List<FmReportTrialTb> parseTrials(Node node, Date date, BigDecimal etl, FmReportTb report) {
+	public static List<FmReportTrialTb> parseTrials(Node node, Date date, BigDecimal etl, FmReportTb report, int update) {
+		List<FmReportTrialTb> reportTrialList = null;
+		if (update == 1) {
+			reportTrialList = report.getFmReportTrialTbs();
+		} else {
+			reportTrialList = new ArrayList<FmReportTrialTb>();
+		}
 		NodeList nodes = node.getChildNodes();
 		List<Node> trials = XMLParser.getNodes("Trial", nodes);
-		List<FmReportTrialTb> reportTrialList = new ArrayList<FmReportTrialTb>();
 		for (Node trial : trials) {
 			NodeList trialNodes = trial.getChildNodes();
 			FmReportTrialTb reportTrial = new FmReportTrialTb();
@@ -368,8 +394,13 @@ public class FmParseUtils {
 	}
 		
 	// XML Path: /FinalReport/References
-	public static List<FmReportReferenceTb> parseReference(Node node, Date date, BigDecimal etl, FmReportTb report) {
-		List<FmReportReferenceTb> reportReferenceList = new ArrayList<FmReportReferenceTb>();
+	public static List<FmReportReferenceTb> parseReference(Node node, Date date, BigDecimal etl, FmReportTb report, int update) {
+		List<FmReportReferenceTb> reportReferenceList = null;
+		if (update == 1) {
+			reportReferenceList = report.getFmReportReferenceTbs();
+		} else {
+			reportReferenceList = new ArrayList<FmReportReferenceTb>();
+		}
 		NodeList nodes = node.getChildNodes();
 		List<Node> references = XMLParser.getNodes("Reference", nodes);
 		for (Node ref : references) {
@@ -389,8 +420,13 @@ public class FmParseUtils {
 	}
 	
 	// XML Path: /FinalReport/Signatures/Signature
-	public static List<FmReportSignatureTb> parseSignature(Node node, Date date, BigDecimal etl, FmReportTb report) {
-		List<FmReportSignatureTb> reportSignatureList = new ArrayList<FmReportSignatureTb>();
+	public static List<FmReportSignatureTb> parseSignature(Node node, Date date, BigDecimal etl, FmReportTb report, int update) {
+		List<FmReportSignatureTb> reportSignatureList = null;
+		if (update == 1) {
+			reportSignatureList = report.getFmReportSignatureTbs();
+		} else {
+			reportSignatureList = new ArrayList<FmReportSignatureTb>();
+		}
 		NodeList nodes = node.getChildNodes();
 		List<Node> signatures = XMLParser.getNodes("Signature", nodes);
 		for (Node signature : signatures) {
@@ -420,8 +456,13 @@ public class FmParseUtils {
 	 * parse "Amendmends" section into fm_report_amendmend_tb
 	 * @param node - /FinalReport/AAC/Amendmends
 	 */
-	public static List<FmReportAmendmendTb> parseAmendmend(Node node, Date date, BigDecimal etl, FmReportTb report) {
-		List<FmReportAmendmendTb> reportAmendList = new ArrayList<FmReportAmendmendTb>();
+	public static List<FmReportAmendmendTb> parseAmendmend(Node node, Date date, BigDecimal etl, FmReportTb report, int update) {
+		List<FmReportAmendmendTb> reportAmendList = null;
+		if (update == 1) {
+			reportAmendList = report.getFmReportAmendmendTbs();
+		} else {
+			reportAmendList = new ArrayList<FmReportAmendmendTb>();
+		}
 		NodeList nodes = node.getChildNodes();
 		List<Node> amendmends = XMLParser.getNodes("Amendmend", nodes);
 		for (Node amendmend : amendmends) {
@@ -448,8 +489,13 @@ public class FmParseUtils {
 	}
 
 	// XML Path: /variant-report/samples/sample
-	public static List<FmReportSampleTb> parseSample(Node node, Date date, BigDecimal etl, FmReportTb report) {
-		List<FmReportSampleTb> sampleList = new ArrayList<FmReportSampleTb>();
+	public static List<FmReportSampleTb> parseSample(Node node, Date date, BigDecimal etl, FmReportTb report, int update) {
+		List<FmReportSampleTb> sampleList = null;
+		if (update == 1) {
+			sampleList = report.getFmReportSampleTbs();
+		} else {
+			sampleList = new ArrayList<FmReportSampleTb>();
+		}
 		NodeList nodes = node.getChildNodes();
 		List<Node> samples = XMLParser.getNodes("sample", nodes);
 		for (Node sample : samples) {
@@ -470,8 +516,13 @@ public class FmParseUtils {
 	}
 	
 	// XML Path: /variant-report/[short-variant|copy-number-alterations|rearrangements|non-human-content]
-	public static List<FmReportVarTb> parseVar(NodeList nodes, Date date, BigDecimal etl, FmReportTb report) {
-		List<FmReportVarTb> varList = new ArrayList<FmReportVarTb>();
+	public static List<FmReportVarTb> parseVar(NodeList nodes, Date date, BigDecimal etl, FmReportTb report, int update) {
+		List<FmReportVarTb> varList = null;
+		if (update == 1) {
+			varList = report.getFmReportVarTbs();
+		} else {
+			varList = new ArrayList<FmReportVarTb>();
+		}
 		//short-variant section
 		Node shortVariants = XMLParser.getNode("short-variants", nodes);
 		List<Node> svNodes = XMLParser.getNodes("short-variant", shortVariants.getChildNodes());

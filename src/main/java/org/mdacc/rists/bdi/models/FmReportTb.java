@@ -191,72 +191,72 @@ public class FmReportTb implements Serializable {
 	private BigDecimal fileLoadId;
 
 	//bi-directional many-to-one association to FmReportAltPropertyTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAltPropertyTb> fmReportAltPropertyTbs;
 
 	//bi-directional many-to-one association to FmReportAltTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAltTb> fmReportAltTbs;
 
 	//bi-directional many-to-one association to FmReportAltTherapyTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAltTherapyTb> fmReportAltTherapyTbs;
 
 	//bi-directional many-to-one association to FmReportAltTrialLkTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAltTrialLkTb> fmReportAltTrialLkTbs;
 
 	//bi-directional many-to-one association to FmReportAppTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAppTb> fmReportAppTbs;
 
 	//bi-directional many-to-one association to FmReportGeneTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportGeneTb> fmReportGeneTbs;
 
 	//bi-directional many-to-one association to FmReportPertNegTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportPertNegTb> fmReportPertNegTbs;
 
 	//bi-directional many-to-one association to FmReportReferenceTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportReferenceTb> fmReportReferenceTbs;
 
 	//bi-directional many-to-one association to FmReportRefLkTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportRefLkTb> fmReportRefLkTbs;
 
 	//bi-directional many-to-one association to FmReportSampleTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportSampleTb> fmReportSampleTbs;
 
 	//bi-directional many-to-one association to FmReportSignatureTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportSignatureTb> fmReportSignatureTbs;
 
 	//bi-directional many-to-one association to SpecimenTb
-	@ManyToOne
+	@OneToOne
 	@JoinColumn(name="SPECIMEN_ID")
 	private SpecimenTb specimenTb;
 
 	//bi-directional many-to-one association to FmReportTrialTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportTrialTb> fmReportTrialTbs;
 
 	//bi-directional many-to-one association to FmReportVarPropetyTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportVarPropetyTb> fmReportVarPropetyTbs;
 
 	//bi-directional many-to-one association to FmReportVarSampleTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportVarSampleTb> fmReportVarSampleTbs;
 
 	//bi-directional many-to-one association to FmReportVarTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportVarTb> fmReportVarTbs;
 
 	//bi-directional many-to-one association to FmReportAmendmendTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAmendmendTb> fmReportAmendmendTbs;
 	
 	@Column(name="FR_STAGING_ID")
@@ -269,6 +269,25 @@ public class FmReportTb implements Serializable {
 	private String frPerformanceDataId;
 
 	public FmReportTb() {
+	}
+	
+	public void removeAllChildren() {
+		fmReportAltPropertyTbs.clear();
+		fmReportAltTbs.clear();
+		fmReportAltTherapyTbs.clear();
+		fmReportAltTrialLkTbs.clear();
+		fmReportAppTbs.clear();
+		fmReportGeneTbs.clear();
+		fmReportPertNegTbs.clear();
+		fmReportReferenceTbs.clear();
+		fmReportRefLkTbs.clear();
+		fmReportSampleTbs.clear();
+		fmReportSignatureTbs.clear();
+		fmReportTrialTbs.clear();
+		fmReportVarPropetyTbs.clear();
+		fmReportVarSampleTbs.clear();
+		fmReportVarTbs.clear();
+		fmReportAmendmendTbs.clear();
 	}
 
 	public long getRowId() {

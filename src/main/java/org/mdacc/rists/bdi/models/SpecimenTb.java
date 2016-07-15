@@ -124,8 +124,8 @@ public class SpecimenTb implements Serializable {
 	private String vcfFile;
 
 	//bi-directional many-to-one association to FmReportTb
-	@OneToMany(mappedBy="specimenTb", cascade=CascadeType.ALL)
-	private List<FmReportTb> fmReportTbs;
+	@OneToOne(mappedBy="specimenTb", cascade=CascadeType.ALL)
+	private FmReportTb fmReportTb;
 	
 	public SpecimenTb() {
 	}
@@ -402,26 +402,13 @@ public class SpecimenTb implements Serializable {
 		this.vcfFile = vcfFile;
 	}
 
-	public List<FmReportTb> getFmReportTbs() {
-		return this.fmReportTbs;
-	}
-
-	public void setFmReportTbs(List<FmReportTb> fmReportTbs) {
-		this.fmReportTbs = fmReportTbs;
-	}
-
-	public FmReportTb addFmReportTb(FmReportTb fmReportTb) {
-		getFmReportTbs().add(fmReportTb);
-		fmReportTb.setSpecimenTb(this);
-
+	public FmReportTb getFmReportTb() {
 		return fmReportTb;
 	}
 
-	public FmReportTb removeFmReportTb(FmReportTb fmReportTb) {
-		getFmReportTbs().remove(fmReportTb);
-		fmReportTb.setSpecimenTb(null);
-
-		return fmReportTb;
+	public void setFmReportTb(FmReportTb fmReportTb) {
+		this.fmReportTb = fmReportTb;
 	}
+
 
 }

@@ -1,12 +1,11 @@
 package org.mdacc.rists.bdi.fm.dao;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.math.BigDecimal;
+import java.util.Date;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
-import javax.persistence.Query;
 
 import org.mdacc.rists.bdi.models.FmReportTb;
 import org.mdacc.rists.bdi.models.SpecimenTb;
@@ -31,7 +30,7 @@ public class SpecimenDao {
             transaction.commit();
             return true;
         } catch (Exception e) {
-        	String fmId = specimen.getFmReportTbs().get(0).getFrFmId();
+        	String fmId = specimen.getFmReportTb().getFrFmId();
         	System.err.println("Loading " + fmId + " failed");
         	e.printStackTrace();
             transaction.rollback();
@@ -39,13 +38,16 @@ public class SpecimenDao {
         }
 	}
 	
-	public boolean updateSpecimen(SpecimenTb specimen, FmReportTb report) {
-		EntityTransaction transaction = entityManager.getTransaction();
-		List<FmReportTb> reportList = new ArrayList<FmReportTb>();
-		reportList.add(report);
+	public boolean updateSpecimen(SpecimenTb specimen, String blockId, String mrn, Date date, BigDecimal etl, FmReportTb report, BigDecimal flId) {
+		EntityTransaction transaction = entityManager.getTransaction();	
         try {
             transaction.begin();
-            specimen.setFmReportTbs(reportList);
+            specimen.setSpecimenNo(blockId);
+            specimen.setMrn(mrn);
+            specimen.setUpdateTs(date);
+            specimen.setEtlProcId(etl);
+            specimen.setFmReportTb(report);
+            specimen.setFileLoadId(flId);
             transaction.commit();
             return true;
         } catch (Exception e) {

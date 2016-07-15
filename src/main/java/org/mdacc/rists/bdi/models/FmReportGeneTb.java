@@ -49,7 +49,7 @@ public class FmReportGeneTb implements Serializable {
 	private Date updateTs;
 
 	//bi-directional many-to-one association to FmReportAltTb
-	@OneToMany(mappedBy="fmReportGeneTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportGeneTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAltTb> fmReportAltTbs;
 
 	//bi-directional many-to-one association to FmReportTb
@@ -58,7 +58,7 @@ public class FmReportGeneTb implements Serializable {
 	private FmReportTb fmReportTb;
 
 	//bi-directional many-to-one association to FmReportRefLkTb
-	@OneToMany(mappedBy="fmReportGeneTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportGeneTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportRefLkTb> fmReportRefLkTbs;
 
 	public FmReportGeneTb() {

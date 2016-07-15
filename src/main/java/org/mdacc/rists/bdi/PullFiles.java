@@ -270,7 +270,7 @@ public class PullFiles {
 				archive.mkdir();
 			}
 			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-found-xml.sh", dest + "/archive"};
-//			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/test/*.xml " + archive.getAbsolutePath()};
+//			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/*.xml " + archive.getAbsolutePath()};
 			String source = "ftp.mdanderson.org";
 			System.out.println(cmd);
 			

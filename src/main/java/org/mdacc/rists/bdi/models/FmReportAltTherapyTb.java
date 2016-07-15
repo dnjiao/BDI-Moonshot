@@ -76,7 +76,7 @@ public class FmReportAltTherapyTb implements Serializable {
 	private FmReportTb fmReportTb;
 
 	//bi-directional many-to-one association to FmReportRefLkTb
-	@OneToMany(mappedBy="fmReportAltTherapyTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportAltTherapyTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportRefLkTb> fmReportRefLkTbs;
 
 	public FmReportAltTherapyTb() {

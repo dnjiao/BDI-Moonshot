@@ -140,7 +140,7 @@ public class FmReportVarTb implements Serializable {
 	private String variantTranscript;
 
 	//bi-directional many-to-one association to FmReportVarSampleTb
-	@OneToMany(mappedBy="fmReportVarTb", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="fmReportVarTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportVarSampleTb> fmReportVarSampleTbs;
 
 	//bi-directional many-to-one association to FmReportTb

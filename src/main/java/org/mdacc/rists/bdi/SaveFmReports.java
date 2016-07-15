@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.xml.parsers.DocumentBuilder;
@@ -56,7 +57,6 @@ public class SaveFmReports {
 		
 		Connection conn = DBConnection.getConnection();
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(DBNAME);
-		EntityManager em = emf.createEntityManager();
         // call stored procedure to get unsent files by type
 		
 		List<FileQueueVO> fqList = FileQueueUtil.getUnloaded(conn, "fm-xml");
@@ -66,11 +66,8 @@ public class SaveFmReports {
 		}
 		// loop thru results
 		int counter = 0;
-		int index = 0;
 		System.out.println("Total unloaded: " + fqList.size());
 		for (FileQueueVO fq : fqList) {
-			index ++;
-			System.out.println("Index: " + index);
 			int fileQueueId = fq.getRowId();
 			String filepath = fq.getFileUri();
 			File file = new File(filepath);
@@ -87,9 +84,7 @@ public class SaveFmReports {
 					if (flId > 0) {
 						char insertStatus = insertReportTb(emf, file, etl, fileLoadId);
 						if (insertStatus == 'S') {
-							Date now = new Date();
-							SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-							System.out.println(file.getName() + " loaded successful with fileLoadId " + Long.toString(flId) + " at " + df.format(now));
+							System.out.println(file.getName() + " loaded successful with fileLoadId " + Long.toString(flId));
 							counter ++;
 							setFileLoadStatus(conn, "S", fileQueueId, fileLoadId);
 						} else {
@@ -99,9 +94,7 @@ public class SaveFmReports {
 				}
 				else {
 					setFileQueueStatus(conn, "N", fileQueueId);
-					Date now = new Date();
-					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					System.out.println("No variant-report found in " + file.getName() + " at " + df.format(now));
+					System.out.println("No variant-report found in " + file.getName());
 				}
 			}
 		}
@@ -149,26 +142,57 @@ public class SaveFmReports {
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
 		EntityManager em = emf.createEntityManager();
+		EntityTransaction transaction = em.getTransaction();
 		try {
-			
-			SpecimenDao specimenDao = new SpecimenDao(em);
-			
+			int update = 0;
 			// get current datetime for insert_ts and update_ts
 			Date date = new Date();
 			
 			builder = dbFactory.newDocumentBuilder();
 			Document doc;
 			doc = builder.parse(file);
-			SpecimenTb specimenTb = new SpecimenTb();
-			FmReportTb report = new FmReportTb();
+			
+			FmReportTb report = null;
+			
 			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 			NodeList childNodes = doc.getDocumentElement().getChildNodes();
-			//FinalReport begins
 			Node finalReport = XMLParser.getNode("FinalReport", childNodes);
+			NodeList frNodes = finalReport.getChildNodes();
+			Node sample = XMLParser.getNode("Sample", frNodes);
+			NodeList sampNodes = sample.getChildNodes();
+			String blockId = XMLParser.getNodeValue("BlockId", sampNodes);
+			SpecimenDao specimenDao = new SpecimenDao(em);
+			SpecimenTb specimenTb = specimenDao.findSpecimenBySpecno(blockId);
+			if (specimenTb != null) {
+				update = 1;
+				report = specimenTb.getFmReportTb();
+				System.out.println("Updating specimen " + blockId);
+				try {
+					transaction.begin();
+					report.removeAllChildren();
+					transaction.commit();
+				} catch (Exception e) {
+					e.printStackTrace();
+					if (transaction.isActive()) {
+						transaction.rollback();
+					}
+					System.out.println("Updating specimen " + blockId + " failed.");
+					em.close();
+					return 'E';
+				}
+//				em.merge(report);
+			
+			} else {
+				specimenTb = new SpecimenTb();
+				report = new FmReportTb();
+				System.out.println("Inserting specimen " + blockId);
+			}
+			
+			//FinalReport begins
 			report.setFrStagingId(XMLParser.getNodeAttr("StagingId", finalReport));
 			report.setFrClinicalId(XMLParser.getNodeAttr("clinicalId", finalReport));
 			report.setFrPerformanceDataId(XMLParser.getNodeAttr("PerformanceDataId", finalReport));
-			NodeList frNodes = finalReport.getChildNodes();
+			
 			report.setFrReportId(XMLParser.getNodeValue("ReportId", frNodes));
 			report.setFrSampleName(XMLParser.getNodeValue("SampleName", frNodes));
 			String version = XMLParser.getNodeValue("Version", frNodes);
@@ -186,19 +210,12 @@ public class SaveFmReports {
 			}
 			
 			// Sample node
-			Node sample = XMLParser.getNode("Sample", frNodes);
-			NodeList sampNodes = sample.getChildNodes();
+			
+			
 			report.setFrFmId(XMLParser.getNodeValue("FM_Id", sampNodes));
 			report.setFrSampleId(XMLParser.getNodeValue("SampleId", sampNodes));
-			String blockId = XMLParser.getNodeValue("BlockId", sampNodes);
-			if (specimenDao.findSpecimenBySpecno(blockId) != null) {
-
-				return 'D';
-			}
 			
 			report.setFrBlockId(blockId);
-			//block_id as the specimen_no in specimen_tb
-			specimenTb.setSpecimenNo(blockId);
 			report.setFrTfrNumber(XMLParser.getNodeValue("TRFNumber", sampNodes));
 			report.setFrSpecFormat(XMLParser.getNodeValue("SpecFormat", sampNodes));
 			String receivedDate = XMLParser.getNodeValue("ReceivedDate", sampNodes);
@@ -209,9 +226,7 @@ public class SaveFmReports {
 			//PMI node
 			Node pmi = XMLParser.getNode("PMI", frNodes);
 			NodeList pmiNodes = pmi.getChildNodes();
-			// set MRN in specimen_tb
-			specimenTb.setMrn(XMLParser.getNodeValue("MRN", pmiNodes));
-			
+			String mrn = XMLParser.getNodeValue("MRN", pmiNodes);			
 			report.setFrFullName(XMLParser.getNodeValue("FullName", pmiNodes));
 			report.setFrFirstName(XMLParser.getNodeValue("FirstName", pmiNodes));
 			report.setFrLastName(XMLParser.getNodeValue("LastName", pmiNodes));
@@ -287,22 +302,17 @@ public class SaveFmReports {
 			Node reportPdf = XMLParser.getNode("ReportPDF", childNodes);
 			report.setReportPdf(XMLParser.getNodeValue(reportPdf));
 			
-			report.setEtlProcId(etlProcId);
-			specimenTb.setEtlProcId(etlProcId);
-			
-			// set insert_ts and update_ts 
+			report.setEtlProcId(etlProcId);		
 			report.setInsertTs(date);
 			report.setUpdateTs(date);
-			specimenTb.setInsertTs(date);
-			specimenTb.setUpdateTs(date);			
-			specimenTb.setSpecimenSource("FM");
+			report.setFileLoadId(flId);
 			
 ////////////////////////////////////////////////////////
 			//FinalReport/Trials
 			Node trials = XMLParser.getNode("Trials", frNodes);
 			List<FmReportTrialTb> trialList = new ArrayList<FmReportTrialTb>();
 			if (trials != null) {
-				trialList = FmParseUtils.parseTrials(trials, date, etlProcId, report);
+				trialList = FmParseUtils.parseTrials(trials, date, etlProcId, report, update);
 			}
 			report.setFmReportTrialTbs(trialList);
 			
@@ -312,7 +322,7 @@ public class SaveFmReports {
 			if (application != null) {
 				Node appSettings = XMLParser.getNode("ApplicationSettings", application.getChildNodes());
 				if (appSettings != null) {
-					appList = FmParseUtils.parseApplication(appSettings, date, etlProcId, report);
+					appList = FmParseUtils.parseApplication(appSettings, date, etlProcId, report, update);
 				}
 			}
 			report.setFmReportAppTbs(appList);
@@ -321,92 +331,96 @@ public class SaveFmReports {
 			Node pertNegs = XMLParser.getNode("PertinentNegatives", frNodes);
 			List<FmReportPertNegTb> pertList = new ArrayList<FmReportPertNegTb>();
 			if (pertNegs != null) {
-				pertList = FmParseUtils.parsePert(pertNegs, date, etlProcId, report);
+				pertList = FmParseUtils.parsePert(pertNegs, date, etlProcId, report, update);
 			}
 			report.setFmReportPertNegTbs(pertList);
 			
 			//FinalReport/VariantProperties/
 			Node varProp = XMLParser.getNode("VariantProperties", frNodes);
-			List<FmReportVarPropetyTb> vpList = new ArrayList<FmReportVarPropetyTb>();
 			if (varProp != null) {
-				vpList = FmParseUtils.parseVarProperty(varProp, date, etlProcId, report);
+				List<FmReportVarPropetyTb> vpList = FmParseUtils.parseVarProperty(varProp, date, etlProcId, report, update);
+				report.setFmReportVarPropetyTbs(vpList);
 			}
-			report.setFmReportVarPropetyTbs(vpList);
+			
 			
 			//FinalReport/Genes/
 			Node genes = XMLParser.getNode("Genes", frNodes);
-			List<FmReportGeneTb> geneList = new ArrayList<FmReportGeneTb>();
 			if (genes != null) {
 				List<Node> geneNodes = XMLParser.getNodes("Gene", genes.getChildNodes());
 				if (geneNodes != null) {
-					geneList = FmParseUtils.parseGenes(geneNodes, date, etlProcId, report);
+					List<FmReportGeneTb> geneList = FmParseUtils.parseGenes(geneNodes, date, etlProcId, report, update);
+					report.setFmReportGeneTbs(geneList);
 				}
 			}
-			report.setFmReportGeneTbs(geneList);
 			
 			//FinalReport/References/
 			Node refs = XMLParser.getNode("References", frNodes);
-			List<FmReportReferenceTb> refList = new ArrayList<FmReportReferenceTb>();
 			if (refs != null) {
-				refList = FmParseUtils.parseReference(refs, date, etlProcId, report);
+				List<FmReportReferenceTb> refList = FmParseUtils.parseReference(refs, date, etlProcId, report, update);
+				report.setFmReportReferenceTbs(refList);
 			}
-			report.setFmReportReferenceTbs(refList);
 			
 			//FinalReport/Signatures/
 			Node sigs = XMLParser.getNode("Signatures", frNodes);
-			List<FmReportSignatureTb> sigList = new ArrayList<FmReportSignatureTb>();
 			if (sigs != null) {
-				sigList = FmParseUtils.parseSignature(sigs, date, etlProcId, report);
-			}
-			report.setFmReportSignatureTbs(sigList);
+				List<FmReportSignatureTb> sigList = FmParseUtils.parseSignature(sigs, date, etlProcId, report, update);
+				report.setFmReportSignatureTbs(sigList);
+			}			
 			
 			//FinalReport/AAC/Amendmends/
 			Node aac = XMLParser.getNode("AAC", frNodes);
-			List<FmReportAmendmendTb> amendList = new ArrayList<FmReportAmendmendTb>();
 			if (aac != null) {
 				Node amend = XMLParser.getNode("Amendmends", aac.getChildNodes());
 				if (amend != null) {
-					amendList = FmParseUtils.parseAmendmend(amend, date, etlProcId, report);
+					List<FmReportAmendmendTb> amendList = FmParseUtils.parseAmendmend(amend, date, etlProcId, report, update);
+					report.setFmReportAmendmendTbs(amendList);
 				}
 			}
-			report.setFmReportAmendmendTbs(amendList);
 //////////////////////////////////////////////////////////
-			List<FmReportSampleTb> sampList = new ArrayList<FmReportSampleTb>();
-			List<FmReportVarTb> varList = new ArrayList<FmReportVarTb>();
 			if (variantReport != null) {
 				NodeList vrNodes = variantReport.getChildNodes();
 			
 				//variant-report/samples/
 				Node samples = XMLParser.getNode("samples", vrNodes);
-				sampList = FmParseUtils.parseSample(samples, date, etlProcId, report);
+				List<FmReportSampleTb> sampList = FmParseUtils.parseSample(samples, date, etlProcId, report, update);
 	
 				//variant-report/[short-variant|copy-number-alterations|rearrangements|non-human-content]				
-				varList = FmParseUtils.parseVar(vrNodes, date, etlProcId, report);
-			}
-			report.setFmReportSampleTbs(sampList);
-			report.setFmReportVarTbs(varList);
-			
-			
-			// persist begins
+				List<FmReportVarTb> varList = FmParseUtils.parseVar(vrNodes, date, etlProcId, report, update);
+				report.setFmReportSampleTbs(sampList);
+				report.setFmReportVarTbs(varList);
+			}			
+		
+			// persist starts
+			transaction.begin();
+			specimenTb.setSpecimenNo(blockId);
+			specimenTb.setMrn(mrn);
+			specimenTb.setInsertTs(date);
+			specimenTb.setUpdateTs(date);			
+			specimenTb.setSpecimenSource("FM");
+			specimenTb.setEtlProcId(etlProcId);
 			report.setSpecimenTb(specimenTb);
-			report.setFileLoadId(flId);
-			List<FmReportTb> reports = new ArrayList<FmReportTb>();
-			reports.add(report);
-			specimenTb.setFmReportTbs(reports);
-			specimenTb.setFileLoadId(flId);			
-			boolean success = specimenDao.persistSpecimen(specimenTb);
-
-			if (success == true) {
-				em.close();
-				return 'S';
+			specimenTb.setFmReportTb(report);
+			specimenTb.setFileLoadId(flId);
+			report.setSpecimenTb(specimenTb);
+			if (update == 0) {
+				em.persist(specimenTb);	
 			}
+			else {
+				em.merge(specimenTb);
+			}
+			transaction.commit();
+			em.close();
+			return 'S';
 	
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
-		em.close();
-		return 'E';
-		
+			if (transaction.isActive()) {
+				transaction.rollback();
+			}
+			em.close();
+			System.out.println("Loading failed");
+			return 'E';
+		} 		
 	}
 
 	/**
