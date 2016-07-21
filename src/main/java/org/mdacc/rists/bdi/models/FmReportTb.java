@@ -289,6 +289,58 @@ public class FmReportTb implements Serializable {
 		fmReportVarTbs.clear();
 		fmReportAmendmendTbs.clear();
 	}
+	
+	public void setChildrenDeleteTs(Date date) {
+		for (FmReportAltPropertyTb tb : fmReportAltPropertyTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportAltTb tb : fmReportAltTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportAltTherapyTb tb : fmReportAltTherapyTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportAltTrialLkTb tb : fmReportAltTrialLkTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportAppTb tb : fmReportAppTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportGeneTb tb : fmReportGeneTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportPertNegTb tb : fmReportPertNegTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportReferenceTb tb : fmReportReferenceTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportRefLkTb tb : fmReportRefLkTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportSampleTb tb : fmReportSampleTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportSignatureTb tb : fmReportSignatureTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportTrialTb tb : fmReportTrialTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportVarPropetyTb tb : fmReportVarPropetyTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportVarSampleTb tb : fmReportVarSampleTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportVarTb tb : fmReportVarTbs) {
+			tb.setDeleteTs(date);
+		}
+		for (FmReportAmendmendTb tb : fmReportAmendmendTbs) {
+			tb.setDeleteTs(date);
+		}
+		
+	}
 
 	public long getRowId() {
 		return this.rowId;

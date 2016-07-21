@@ -144,7 +144,6 @@ public class SaveFmReports {
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction transaction = em.getTransaction();
 		try {
-			int update = 0;
 			// get current datetime for insert_ts and update_ts
 			Date date = new Date();
 			
@@ -164,29 +163,27 @@ public class SaveFmReports {
 			SpecimenDao specimenDao = new SpecimenDao(em);
 			SpecimenTb specimenTb = specimenDao.findSpecimenBySpecno(blockId);
 			if (specimenTb != null) {
-				update = 1;
 				report = specimenTb.getFmReportTb();
-				System.out.println("Updating specimen " + blockId);
+				System.out.println("Deleting(soft) specimen " + blockId);
 				try {
 					transaction.begin();
-					report.removeAllChildren();
+					specimenTb.setDeleteTs(date);
+					report.setDeleteTs(date);
+					report.setChildrenDeleteTs(date);
 					transaction.commit();
 				} catch (Exception e) {
 					e.printStackTrace();
 					if (transaction.isActive()) {
 						transaction.rollback();
 					}
-					System.out.println("Updating specimen " + blockId + " failed.");
+					System.out.println("Deleting specimen " + blockId + " failed.");
 					em.close();
 					return 'E';
 				}
-//				em.merge(report);
-			
-			} else {
-				specimenTb = new SpecimenTb();
-				report = new FmReportTb();
-				System.out.println("Inserting specimen " + blockId);
-			}
+			} 
+			specimenTb = new SpecimenTb();
+			report = new FmReportTb();
+			System.out.println("Inserting specimen " + blockId);
 			
 			//FinalReport begins
 			report.setFrStagingId(XMLParser.getNodeAttr("StagingId", finalReport));
@@ -312,7 +309,7 @@ public class SaveFmReports {
 			Node trials = XMLParser.getNode("Trials", frNodes);
 			List<FmReportTrialTb> trialList = new ArrayList<FmReportTrialTb>();
 			if (trials != null) {
-				trialList = FmParseUtils.parseTrials(trials, date, etlProcId, report, update);
+				trialList = FmParseUtils.parseTrials(trials, date, etlProcId, report);
 			}
 			report.setFmReportTrialTbs(trialList);
 			
@@ -322,7 +319,7 @@ public class SaveFmReports {
 			if (application != null) {
 				Node appSettings = XMLParser.getNode("ApplicationSettings", application.getChildNodes());
 				if (appSettings != null) {
-					appList = FmParseUtils.parseApplication(appSettings, date, etlProcId, report, update);
+					appList = FmParseUtils.parseApplication(appSettings, date, etlProcId, report);
 				}
 			}
 			report.setFmReportAppTbs(appList);
@@ -331,14 +328,14 @@ public class SaveFmReports {
 			Node pertNegs = XMLParser.getNode("PertinentNegatives", frNodes);
 			List<FmReportPertNegTb> pertList = new ArrayList<FmReportPertNegTb>();
 			if (pertNegs != null) {
-				pertList = FmParseUtils.parsePert(pertNegs, date, etlProcId, report, update);
+				pertList = FmParseUtils.parsePert(pertNegs, date, etlProcId, report);
 			}
 			report.setFmReportPertNegTbs(pertList);
 			
 			//FinalReport/VariantProperties/
 			Node varProp = XMLParser.getNode("VariantProperties", frNodes);
 			if (varProp != null) {
-				List<FmReportVarPropetyTb> vpList = FmParseUtils.parseVarProperty(varProp, date, etlProcId, report, update);
+				List<FmReportVarPropetyTb> vpList = FmParseUtils.parseVarProperty(varProp, date, etlProcId, report);
 				report.setFmReportVarPropetyTbs(vpList);
 			}
 			
@@ -348,7 +345,7 @@ public class SaveFmReports {
 			if (genes != null) {
 				List<Node> geneNodes = XMLParser.getNodes("Gene", genes.getChildNodes());
 				if (geneNodes != null) {
-					List<FmReportGeneTb> geneList = FmParseUtils.parseGenes(geneNodes, date, etlProcId, report, update);
+					List<FmReportGeneTb> geneList = FmParseUtils.parseGenes(geneNodes, date, etlProcId, report);
 					report.setFmReportGeneTbs(geneList);
 				}
 			}
@@ -356,14 +353,14 @@ public class SaveFmReports {
 			//FinalReport/References/
 			Node refs = XMLParser.getNode("References", frNodes);
 			if (refs != null) {
-				List<FmReportReferenceTb> refList = FmParseUtils.parseReference(refs, date, etlProcId, report, update);
+				List<FmReportReferenceTb> refList = FmParseUtils.parseReference(refs, date, etlProcId, report);
 				report.setFmReportReferenceTbs(refList);
 			}
 			
 			//FinalReport/Signatures/
 			Node sigs = XMLParser.getNode("Signatures", frNodes);
 			if (sigs != null) {
-				List<FmReportSignatureTb> sigList = FmParseUtils.parseSignature(sigs, date, etlProcId, report, update);
+				List<FmReportSignatureTb> sigList = FmParseUtils.parseSignature(sigs, date, etlProcId, report);
 				report.setFmReportSignatureTbs(sigList);
 			}			
 			
@@ -372,7 +369,7 @@ public class SaveFmReports {
 			if (aac != null) {
 				Node amend = XMLParser.getNode("Amendmends", aac.getChildNodes());
 				if (amend != null) {
-					List<FmReportAmendmendTb> amendList = FmParseUtils.parseAmendmend(amend, date, etlProcId, report, update);
+					List<FmReportAmendmendTb> amendList = FmParseUtils.parseAmendmend(amend, date, etlProcId, report);
 					report.setFmReportAmendmendTbs(amendList);
 				}
 			}
@@ -382,16 +379,15 @@ public class SaveFmReports {
 			
 				//variant-report/samples/
 				Node samples = XMLParser.getNode("samples", vrNodes);
-				List<FmReportSampleTb> sampList = FmParseUtils.parseSample(samples, date, etlProcId, report, update);
+				List<FmReportSampleTb> sampList = FmParseUtils.parseSample(samples, date, etlProcId, report);
 	
 				//variant-report/[short-variant|copy-number-alterations|rearrangements|non-human-content]				
-				List<FmReportVarTb> varList = FmParseUtils.parseVar(vrNodes, date, etlProcId, report, update);
+				List<FmReportVarTb> varList = FmParseUtils.parseVar(vrNodes, date, etlProcId, report);
 				report.setFmReportSampleTbs(sampList);
 				report.setFmReportVarTbs(varList);
 			}			
 		
 			// persist starts
-			transaction.begin();
 			specimenTb.setSpecimenNo(blockId);
 			specimenTb.setMrn(mrn);
 			specimenTb.setInsertTs(date);
@@ -402,12 +398,8 @@ public class SaveFmReports {
 			specimenTb.setFmReportTb(report);
 			specimenTb.setFileLoadId(flId);
 			report.setSpecimenTb(specimenTb);
-			if (update == 0) {
-				em.persist(specimenTb);	
-			}
-			else {
-				em.merge(specimenTb);
-			}
+			transaction.begin();
+			em.persist(specimenTb);	
 			transaction.commit();
 			em.close();
 			return 'S';
