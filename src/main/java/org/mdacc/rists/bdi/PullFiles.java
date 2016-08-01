@@ -25,7 +25,6 @@ import org.mdacc.rists.bdi.db.utils.DBConnection;
 import org.mdacc.rists.bdi.db.utils.FileLocationUtil;
 import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
 import org.mdacc.rists.bdi.db.utils.FileTransferAuditUtil;
-import org.mdacc.rists.bdi.utils.XMLParser;
 
 public class PullFiles {
 	
@@ -35,15 +34,15 @@ public class PullFiles {
 	// Counter for file converted successfully
 	static int convertCounter = 0;
 	static List<String> dirs = new ArrayList<String>();
-	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction", "mapping", "flowcyto", "immunopath", "fm-val", "fm-xml");
+	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "junction", "mapping", "flowcyto", "immunopath", "fm-xml");
 	final static Connection CONN = DBConnection.getConnection();
 	final static String DESTROOT = "/rsrch1/rists/moonshot/data";
 	final static String ENV = System.getenv("DEV_ENV");
 	
 	public static void main(String[] args) throws Exception {
 
-		if (args.length != 1 && args.length != 2) {
-			System.err.println("Usage: PullFiles [type] (optional: [xml_path])");
+		if (args.length != 1) {
+			System.err.println("Usage: PullFiles [type]");
 			System.exit(1);
 		}
 		
@@ -54,34 +53,20 @@ public class PullFiles {
 		}
 		
 		String dest = DESTROOT + "/" + ENV + "/" + type;
-		// no need for conf xml with sources for the following 3 types
 		if (type.equalsIgnoreCase("mapping")) {
 			PullMappingFiles(dest);
-		}
-		else if (type.equalsIgnoreCase("fm-val")) {
-			dest = DESTROOT + "/" + ENV + "/foundation/validation";
-			PullFMValFiles(dest);
 		}
 		else if (type.equalsIgnoreCase("fm-xml")) {
 			dest = DESTROOT + "/" + ENV + "/foundation/xml";
 			PullFMXmlFiles(dest);
 		}
 		else {
-			if (args.length != 2) {
-				System.err.println("Source xml file is missing.");
-				System.exit(1);
-			}
-			if (!new File(args[1]).exists()) {
-				System.err.println("File " + args[1] + " does not exist.");
-				System.exit(1);
-			}
-			List<String> sourceList = XMLParser.readSourceXML(args[0], args[1]);
+			List<String> sourceList = FileLocationUtil.getSourcesByType(CONN, type);
 			if (sourceList == null) {
-				System.err.println("No sources for " + args[0] + " in " + args[1]);
+				System.err.println("No sources for " + args[0]);
 				System.exit(1);
 			} else {
-				DateTime current = new DateTime();
-			
+				DateTime current = new DateTime();			
 				for (String src : sourceList) {
 					if (!new File(src).isDirectory()) {
 						System.err.println("Source Dir " + src + " is not a directory.");

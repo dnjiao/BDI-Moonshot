@@ -13,7 +13,7 @@ public class FileSendUtil {
 		insertRecord(con, path, sta, 85662, 10, 2);
 	}
 
-	public static void insertRecord(Connection con, String filePath, String status, int fqId, int typeId, int consumerId) {
+	public static void insertRecord(Connection con, String status, String filePath, int fqId, int typeId, int consumerId) {
 		CallableStatement stmt;
 		try {
 			System.out.println("Calling procedure FILE_SEND_UTIL.insert_record for " + filePath);
