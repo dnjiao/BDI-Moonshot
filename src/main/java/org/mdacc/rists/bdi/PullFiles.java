@@ -140,6 +140,7 @@ public class PullFiles {
 		for (File file : files) {
 			if (WorkflowUtils.isMapping(file)) {
 				if (lastTS == null || (lastTS != null && lastTS.isBefore(file.lastModified()))) {
+					System.out.println(file.getAbsolutePath() + " " + file.lastModified());
 					fileList.add(file);
 				}
 				else {

@@ -7,18 +7,18 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the FM_REPORT_VAR_PROPETY_TB database table.
+ * The persistent class for the FM_REPORT_VAR_PROPERTY_TB database table.
  * 
  */
 @Entity
-@Table(name="FM_REPORT_VAR_PROPETY_TB")
-@NamedQuery(name="FmReportVarPropetyTb.findAll", query="SELECT f FROM FmReportVarPropetyTb f")
-public class FmReportVarPropetyTb implements Serializable {
+@Table(name="FM_REPORT_VAR_PROPERTY_TB")
+@NamedQuery(name="FmReportVarPropertyTb.findAll", query="SELECT f FROM FmReportVarPropertyTb f")
+public class FmReportVarPropertyTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@SequenceGenerator(name="FM_REPORT_VAR_PROPETY_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_VAR_PROPETY_TB_SEQ", allocationSize=1)
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_VAR_PROPETY_TB_ROWID_GENERATOR")
+	@SequenceGenerator(name="FM_REPORT_VAR_PROPERTY_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_VAR_PROPERTY_TB_SEQ", allocationSize=1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_VAR_PROPERTY_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
 
@@ -56,7 +56,7 @@ public class FmReportVarPropetyTb implements Serializable {
 	@JoinColumn(name="FM_REPORT_ID")
 	private FmReportTb fmReportTb;
 
-	public FmReportVarPropetyTb() {
+	public FmReportVarPropertyTb() {
 	}
 
 	public long getRowId() {

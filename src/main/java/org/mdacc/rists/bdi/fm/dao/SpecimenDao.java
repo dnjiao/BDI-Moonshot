@@ -33,7 +33,9 @@ public class SpecimenDao {
         	String fmId = specimen.getFmReportTb().getFrFmId();
         	System.err.println("Loading " + fmId + " failed");
         	e.printStackTrace();
-            transaction.rollback();
+        	if (transaction.isActive()) {
+        		transaction.rollback();
+        	}
             return false;
         }
 	}

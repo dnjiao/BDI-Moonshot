@@ -20,7 +20,8 @@ public class FileQueueUtil {
 	
 	public static void main(String[] args) throws SQLException {
 		Connection con = DBConnection.getConnection();
-		List<FileQueueVO> fqList = getUnsent(con, "FM", "TRA");
+		List<FileQueueVO> fqList = getUnsent(con, "VCF", "TRA");
+		System.out.println(fqList.size());
 	}
 	
 	public static List<FileQueueVO> getUnvalidated (Connection con, String type) {
@@ -85,6 +86,7 @@ public class FileQueueUtil {
 		List<FileQueueVO> fqList = null;
 		try {
 			stmt = con.prepareCall("{call FILE_QUEUE_UTIL.get_unsent_by_type_consumer(?,?,?,?,?,?)}");
+			
 //			String t = TransferUtils.convertTypeStr(type);
 			stmt.setString(1, type);
 			stmt.setString(2, consumer);

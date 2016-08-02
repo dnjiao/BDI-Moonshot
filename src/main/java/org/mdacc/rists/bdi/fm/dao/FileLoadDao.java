@@ -27,7 +27,10 @@ public class FileLoadDao {
             return true;
         } catch (Exception e) {
         	e.printStackTrace();
-            transaction.rollback();
+        	if(transaction.isActive()) {
+        		transaction.rollback();
+        	}
+            
             return false;
         }
 	}

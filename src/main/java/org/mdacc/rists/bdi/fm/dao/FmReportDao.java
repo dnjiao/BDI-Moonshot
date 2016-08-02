@@ -25,7 +25,9 @@ public class FmReportDao {
             transaction.commit();
         } catch (Exception e) {
         	e.printStackTrace();
-            transaction.rollback();
+        	if (transaction.isActive()) {
+        		transaction.rollback();
+        	}
         }
 	}
 	

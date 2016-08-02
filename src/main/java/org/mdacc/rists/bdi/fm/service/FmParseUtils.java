@@ -21,7 +21,7 @@ import org.mdacc.rists.bdi.models.FmReportSampleTb;
 import org.mdacc.rists.bdi.models.FmReportSignatureTb;
 import org.mdacc.rists.bdi.models.FmReportTb;
 import org.mdacc.rists.bdi.models.FmReportTrialTb;
-import org.mdacc.rists.bdi.models.FmReportVarPropetyTb;
+import org.mdacc.rists.bdi.models.FmReportVarPropertyTb;
 import org.mdacc.rists.bdi.models.FmReportVarSampleTb;
 import org.mdacc.rists.bdi.models.FmReportVarTb;
 import org.mdacc.rists.bdi.utils.XMLParser;
@@ -85,12 +85,12 @@ public class FmParseUtils {
 	 * Parse "VariantProperties" into fm_report_var_property_tb
 	 * @param node -- /FinalReport/VariantProperties
 	 */
-	public static List<FmReportVarPropetyTb> parseVarProperty(Node node, Date date, BigDecimal etl, FmReportTb report) {
-		List<FmReportVarPropetyTb> varPropList = new ArrayList<FmReportVarPropetyTb>();
+	public static List<FmReportVarPropertyTb> parseVarProperty(Node node, Date date, BigDecimal etl, FmReportTb report) {
+		List<FmReportVarPropertyTb> varPropList = new ArrayList<FmReportVarPropertyTb>();
 		NodeList nodes = node.getChildNodes();
 		List<Node> varProps = XMLParser.getNodes("VariantProperty", nodes);
 		for (Node varProp : varProps) {
-			FmReportVarPropetyTb vpTb = new FmReportVarPropetyTb();
+			FmReportVarPropertyTb vpTb = new FmReportVarPropertyTb();
 			vpTb.setInsertTs(date);
 			vpTb.setUpdateTs(date);
 			vpTb.setEtlProcId(etl);

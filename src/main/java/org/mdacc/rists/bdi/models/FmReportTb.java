@@ -243,9 +243,9 @@ public class FmReportTb implements Serializable {
 	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportTrialTb> fmReportTrialTbs;
 
-	//bi-directional many-to-one association to FmReportVarPropetyTb
+	//bi-directional many-to-one association to FmReportVarPropertyTb
 	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
-	private List<FmReportVarPropetyTb> fmReportVarPropetyTbs;
+	private List<FmReportVarPropertyTb> fmReportVarPropertyTbs;
 
 	//bi-directional many-to-one association to FmReportVarSampleTb
 	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
@@ -284,7 +284,7 @@ public class FmReportTb implements Serializable {
 		fmReportSampleTbs.clear();
 		fmReportSignatureTbs.clear();
 		fmReportTrialTbs.clear();
-		fmReportVarPropetyTbs.clear();
+		fmReportVarPropertyTbs.clear();
 		fmReportVarSampleTbs.clear();
 		fmReportVarTbs.clear();
 		fmReportAmendmendTbs.clear();
@@ -327,7 +327,7 @@ public class FmReportTb implements Serializable {
 		for (FmReportTrialTb tb : fmReportTrialTbs) {
 			tb.setDeleteTs(date);
 		}
-		for (FmReportVarPropetyTb tb : fmReportVarPropetyTbs) {
+		for (FmReportVarPropertyTb tb : fmReportVarPropertyTbs) {
 			tb.setDeleteTs(date);
 		}
 		for (FmReportVarSampleTb tb : fmReportVarSampleTbs) {
@@ -1046,26 +1046,26 @@ public class FmReportTb implements Serializable {
 		return fmReportTrialTb;
 	}
 
-	public List<FmReportVarPropetyTb> getFmReportVarPropetyTbs() {
-		return this.fmReportVarPropetyTbs;
+	public List<FmReportVarPropertyTb> getFmReportVarPropertyTbs() {
+		return this.fmReportVarPropertyTbs;
 	}
 
-	public void setFmReportVarPropetyTbs(List<FmReportVarPropetyTb> fmReportVarPropetyTbs) {
-		this.fmReportVarPropetyTbs = fmReportVarPropetyTbs;
+	public void setFmReportVarPropertyTbs(List<FmReportVarPropertyTb> fmReportVarPropertyTbs) {
+		this.fmReportVarPropertyTbs = fmReportVarPropertyTbs;
 	}
 
-	public FmReportVarPropetyTb addFmReportVarPropetyTb(FmReportVarPropetyTb fmReportVarPropetyTb) {
-		getFmReportVarPropetyTbs().add(fmReportVarPropetyTb);
-		fmReportVarPropetyTb.setFmReportTb(this);
+	public FmReportVarPropertyTb addFmReportVarPropertyTb(FmReportVarPropertyTb fmReportVarPropertyTb) {
+		getFmReportVarPropertyTbs().add(fmReportVarPropertyTb);
+		fmReportVarPropertyTb.setFmReportTb(this);
 
-		return fmReportVarPropetyTb;
+		return fmReportVarPropertyTb;
 	}
 
-	public FmReportVarPropetyTb removeFmReportVarPropetyTb(FmReportVarPropetyTb fmReportVarPropetyTb) {
-		getFmReportVarPropetyTbs().remove(fmReportVarPropetyTb);
-		fmReportVarPropetyTb.setFmReportTb(null);
+	public FmReportVarPropertyTb removeFmReportVarPropertyTb(FmReportVarPropertyTb fmReportVarPropertyTb) {
+		getFmReportVarPropertyTbs().remove(fmReportVarPropertyTb);
+		fmReportVarPropertyTb.setFmReportTb(null);
 
-		return fmReportVarPropetyTb;
+		return fmReportVarPropertyTb;
 	}
 
 	public List<FmReportVarSampleTb> getFmReportVarSampleTbs() {

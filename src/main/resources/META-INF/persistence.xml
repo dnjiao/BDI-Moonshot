@@ -16,7 +16,7 @@
 		<class>org.mdacc.rists.bdi.models.FmReportSignatureTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportTrialTb</class>
-		<class>org.mdacc.rists.bdi.models.FmReportVarPropetyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarPropertyTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportVarSampleTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportVarTb</class>
 		<class>org.mdacc.rists.bdi.models.SpecimenTb</class>
@@ -52,7 +52,7 @@
 		<class>org.mdacc.rists.bdi.models.FmReportSignatureTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportTrialTb</class>
-		<class>org.mdacc.rists.bdi.models.FmReportVarPropetyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarPropertyTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportVarSampleTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportVarTb</class>
 		<class>org.mdacc.rists.bdi.models.SpecimenTb</class>
@@ -85,7 +85,7 @@
 		<class>org.mdacc.rists.bdi.models.FmReportSignatureTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportTrialTb</class>
-		<class>org.mdacc.rists.bdi.models.FmReportVarPropetyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarPropertyTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportVarSampleTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportVarTb</class>
 		<class>org.mdacc.rists.bdi.models.SpecimenTb</class>
@@ -118,7 +118,7 @@
 		<class>org.mdacc.rists.bdi.models.FmReportSignatureTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportTrialTb</class>
-		<class>org.mdacc.rists.bdi.models.FmReportVarPropetyTb</class>
+		<class>org.mdacc.rists.bdi.models.FmReportVarPropertyTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportVarSampleTb</class>
 		<class>org.mdacc.rists.bdi.models.FmReportVarTb</class>
 		<class>org.mdacc.rists.bdi.models.SpecimenTb</class>

@@ -39,7 +39,7 @@ import org.mdacc.rists.bdi.models.FmReportSampleTb;
 import org.mdacc.rists.bdi.models.FmReportSignatureTb;
 import org.mdacc.rists.bdi.models.FmReportTb;
 import org.mdacc.rists.bdi.models.FmReportTrialTb;
-import org.mdacc.rists.bdi.models.FmReportVarPropetyTb;
+import org.mdacc.rists.bdi.models.FmReportVarPropertyTb;
 import org.mdacc.rists.bdi.models.FmReportVarTb;
 import org.mdacc.rists.bdi.models.SpecimenTb;
 import org.mdacc.rists.bdi.utils.XMLParser;
@@ -79,6 +79,7 @@ public class SaveFmReports {
 					BigDecimal etl = getNextValue(emf, "ETL_PROC_SEQ");
 					int seqNum = FileLoadUtil.getFileSeqNum(conn, filepath);
 					int typeId = FileTypeUtil.getFileTypeId(conn, "FM");
+					System.out.println("filetypeid " + typeId);
 					Long flId = insertFileLoadTb(emf, fileQueueId, typeId, filepath, seqNum, etl);
 					BigDecimal fileLoadId = new BigDecimal(flId);
 					if (flId > 0) {
@@ -335,8 +336,8 @@ public class SaveFmReports {
 			//FinalReport/VariantProperties/
 			Node varProp = XMLParser.getNode("VariantProperties", frNodes);
 			if (varProp != null) {
-				List<FmReportVarPropetyTb> vpList = FmParseUtils.parseVarProperty(varProp, date, etlProcId, report);
-				report.setFmReportVarPropetyTbs(vpList);
+				List<FmReportVarPropertyTb> vpList = FmParseUtils.parseVarProperty(varProp, date, etlProcId, report);
+				report.setFmReportVarPropertyTbs(vpList);
 			}
 			
 			
