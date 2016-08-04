@@ -26,7 +26,7 @@ public class PushToTRA {
 	
 	}
 	
-	public static void pushFilesByType(String type, int conId, int typeId) {
+	public static void pushFilesByType(String type, int conId, int typeId, String bool) {
 		
 		try {
 			Connection conn = DBConnection.getConnection();
@@ -45,7 +45,7 @@ public class PushToTRA {
 			for (FileQueueVO fq : fqList) {
 				int fqId = fq.getRowId();
 				String filepath = fq.getFileUri();
-				if (pushSingle(prefix, USERNAME, PASSWORD, filepath, false) == 1) {
+				if (pushSingle(prefix, USERNAME, PASSWORD, filepath, bool) == 1) {
 					FileSendUtil.insertRecord(conn, "S", filepath, fqId, typeId, conId);
 					successCount ++;
 				}
@@ -74,9 +74,9 @@ public class PushToTRA {
 	 * @param filepath - Path of local file to be uploaded
 	 * @param ifReal - boolean flag for real/fake push
 	 */
-	public static int pushSingle(String prefix, String username, String password, String filepath, boolean ifReal) {
+	public static int pushSingle(String prefix, String username, String password, String filepath, String ifReal) {
 		// fake push for testing purpose
-		if (ifReal == false) {
+		if (ifReal.equalsIgnoreCase("fake")) {
 			System.out.println(filepath + " pushed (mock).");
 			return 1;
 		}

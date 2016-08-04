@@ -129,7 +129,7 @@ public class PullFiles {
 	 * 
 	 */
 	private static int iterateMappingFiles(String source, String dest, DateTime current) {
-		DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "mapping", source);
+		DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "mapping", source, "SRC");
 		System.out.print("last_ts for mapping: ");
 		System.out.println(lastTS);
 		File destDir = new File(dest + "/archive");
@@ -255,8 +255,8 @@ public class PullFiles {
 				System.out.println("Creating folder " + archive.getAbsolutePath());
 				archive.mkdir();
 			}
-//			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp_fm_xml", dest + "/archive"};
-			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/*.xml " + archive.getAbsolutePath()};
+			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp_fm_xml.sh", dest + "/archive"};
+//			String[] cmd = new String[]{"/bin/bash", "-c", "rsync -auv /rsrch1/rists/moonshot/data/foundation/FoundationMedicine/*.xml " + archive.getAbsolutePath()};
 			String source = "ftp.mdanderson.org";
 			System.out.println(cmd);
 			
@@ -276,7 +276,7 @@ public class PullFiles {
 			in.close();
 			err.close();
 			// process files and keep only the new ones since last pull
-			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "fm-xml", source);
+			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "fm-xml", source, "SRC");
 			System.out.println("last_ts for foundation xml: " + lastTS);
 			
 			File[] files = archive.listFiles();
@@ -366,7 +366,7 @@ public class PullFiles {
 			
 			// process files and keep only the new ones since last pull
 			String source = "ftp.mdanderson.org";
-			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "fm-val", source);
+			DateTime lastTS = FileLocationUtil.getLastTimeStamp(CONN, "fm-val", source, "SRC");
 			System.out.println("last_ts for foundation validation: " + lastTS);
 			
 			File[] files = archive.listFiles();
@@ -431,7 +431,7 @@ public class PullFiles {
 					   if (WorkflowUtils.isType(fileName, TYPE)) {	
 	//					   System.out.println(fileName + " " + TYPE);
 						   String srcPath = file.getParent();
-						   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath);
+						   DateTime lastDt = FileLocationUtil.getLastTimeStamp(CONN, TYPE, srcPath, "SRC");
 						   if (lastDt == null || (lastDt != null && lastDt.isBefore(file.lastModified()))) {
 							   List<String> files = new ArrayList<String>();
 							   String newName = fileName.substring(0, fileName.lastIndexOf(".")) + "_" + FORMAT.print(CURRENT) + fileName.substring(fileName.lastIndexOf("."));

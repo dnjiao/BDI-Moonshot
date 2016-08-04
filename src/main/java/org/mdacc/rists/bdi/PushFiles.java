@@ -7,10 +7,20 @@ import org.mdacc.rists.bdi.vo.ConsumerFileReqVO;
 
 public class PushFiles {
 	public static void main(String[] args) {
+		if (args[0].equalsIgnoreCase("true")) {
+			System.out.println("Sending files");
+		}
+		else if (args[0].equalsIgnoreCase("fake")){
+			System.out.println("Fake sending files");
+		} else {
+			System.out.println("Not sending files.");
+			return;
+		}
+		String ifPush = args[0];
 		List<ConsumerFileReqVO> consumerList = ConsumerFileReqUtil.getAllConsumer();
 		for (ConsumerFileReqVO consumer : consumerList) {
 			switch (consumer.getConsumer()) {
-				case "TRA": PushToTRA.pushFilesByType(consumer.getFileType(), consumer.getConsumerId(), consumer.getFileTypeId());
+				case "TRA": PushToTRA.pushFilesByType(consumer.getFileType(), consumer.getConsumerId(), consumer.getFileTypeId(), ifPush);
 							break;
 			}		
 		}

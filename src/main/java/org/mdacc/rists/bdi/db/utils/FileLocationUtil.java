@@ -20,8 +20,12 @@ public class FileLocationUtil {
 	final static DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("MMddyyyyHHmmss");
 	
 	public static void main (String[] args) {
-		String type = "flowcyto";
 		Connection con = DBConnection.getConnection();
+		String type = "immunopath";
+		String src = "/rsrch1/immunology/platform/immunotherapy_platform/IHC Immunoprofiling Data";
+		String src2 = "/rsrch1/rists/moonshot/data/Apollo";
+		System.out.println(getLastTimeStamp(con, type, src, "SRC"));
+
 //		String path = "/rsrch1/ipct/krshaw_project/FIRE_Dropbox/Moonshots /rsrch1/rists/moonshot/data/stg";
 //		DateTime dt = null;
 //		dt = getLastTimeStamp(con, type, path);
@@ -40,8 +44,8 @@ public class FileLocationUtil {
 	 * @param path - source directory
 	 * @param dt - timestamp of last pull
 	 */
-	public static void setLastTimeStamp (Connection con, String type, String path, DateTime dt) {
-		String typeStr = WorkflowUtils.convertTypeStr(type);
+	public static void setLastTimeStamp (Connection con, String filetype, String path, DateTime dt) {
+		String typeStr = WorkflowUtils.convertTypeStr(filetype);
 		String dtStr = FORMATTER.print(dt);
 		try {
 			CallableStatement stmt = con.prepareCall("{call FILE_LOCATION_UTIL.upsert_last_copy_ts(?,?,'SRC',?,?,?,?,?)}");
@@ -70,23 +74,24 @@ public class FileLocationUtil {
 		}
 	}
 	
-	public static DateTime getLastTimeStamp (Connection con, String type, String path) {
-		String typeStr = WorkflowUtils.convertTypeStr(type);
+	public static DateTime getLastTimeStamp (Connection con, String filetype, String path, String srctype) {
+		String typeStr = WorkflowUtils.convertTypeStr(filetype);
 		String dtStr;
 		DateTime dt = null;
 		
 		try {
-			CallableStatement stmt = con.prepareCall("{call FILE_LOCATION_UTIL.get_last_copy_ts(?,?,?,?,?,?)}");
+			CallableStatement stmt = con.prepareCall("{call FILE_LOCATION_UTIL.get_last_copy_ts(?,?,?,?,?,?,?)}");
 			stmt.setString(1, typeStr);
 			stmt.setString(2, path);
-			stmt.registerOutParameter(3, Types.VARCHAR);
+			stmt.setString(3, srctype);
 			stmt.registerOutParameter(4, Types.VARCHAR);
 			stmt.registerOutParameter(5, Types.VARCHAR);
 			stmt.registerOutParameter(6, Types.VARCHAR);
+			stmt.registerOutParameter(7, Types.VARCHAR);
 			stmt.executeUpdate();
 			
-			dtStr = stmt.getString(3);
-			System.out.println("Last timestamp for " + type + " from " + path + ": " + dtStr);
+			dtStr = stmt.getString(4);
+			System.out.println("Last timestamp for " + filetype + " from " + path + ": " + dtStr);
 			if (dtStr != null) {
 				dt = FORMATTER.parseDateTime(dtStr);
 			}

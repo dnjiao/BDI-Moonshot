@@ -21,6 +21,6 @@ public class PushSingleToTRA {
 			System.err.println("File does not exist, " + args[1]);
 			System.exit(1);
 		}
-		PushToTRA.pushSingle(prefix, USERNAME, PASSWORD, args[1], true);
+		PushToTRA.pushSingle(prefix, USERNAME, PASSWORD, args[1], "true");
 	}
 }

@@ -160,7 +160,7 @@ public class SaveFmReports {
 			NodeList frNodes = finalReport.getChildNodes();
 			Node sample = XMLParser.getNode("Sample", frNodes);
 			NodeList sampNodes = sample.getChildNodes();
-			String blockId = XMLParser.getNodeValue("BlockId", sampNodes);
+			String blockId = XMLParser.getNodeValue("BlockId", sampNodes).trim();
 			SpecimenDao specimenDao = new SpecimenDao(em);
 			SpecimenTb specimenTb = specimenDao.findSpecimenBySpecno(blockId);
 			if (specimenTb != null) {
