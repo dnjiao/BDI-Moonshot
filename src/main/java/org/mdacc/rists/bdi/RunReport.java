@@ -1,25 +1,21 @@
 package org.mdacc.rists.bdi;
 
-import java.sql.CallableStatement;
+
 import java.sql.Connection;
-import java.sql.SQLException;
 
 import org.mdacc.rists.bdi.db.utils.DBConnection;
+import org.mdacc.rists.bdi.db.utils.ReportUtil;
 
 public class RunReport {
 	
-	public static void main(String[] args) {
-		Connection con = DBConnection.getConnection();
-		generateReport(con);
-	}
-	
-	public static void generateReport (Connection con) {
-		try {
-			CallableStatement stmt = con.prepareCall("{call generate_report_pi()}");
-			stmt.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
+	public static void main(String[] args) throws Exception {
+		if (args.length != 2) {
+			System.err.println("Usage: RunReport [email_to] [dir_path]");
 			System.exit(1);
 		}
+		Connection con = DBConnection.getConnection();
+		ReportUtil.generateReport(con);
+		String csvPath = ReportUtil.createCSV(con, args[1]);
+		SendEmail.sendReportEmail(args[0], csvPath);
 	}
 }

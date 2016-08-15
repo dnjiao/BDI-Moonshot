@@ -16,7 +16,7 @@ public class EmailNotificationClient {
 	private static final Logger LOGGER = Logger
 			.getLogger(EmailNotificationClient.class.getName());
 	
-	private String NOTIFICATION_URL="http://stage-researchstation/RISNotificationManager-RISNotificationManagerEJB/RISNotificationManagerService?wsdl";
+	private String NOTIFICATION_URL="http://researchstation/RISNotificationManager-RISNotificationManagerEJB/RISNotificationManagerService?wsdl";
 
 	public boolean sendEmailNotification(EmailVO emailVO) throws Exception {
 		if (emailVO.getAttachmentData() == null) {
