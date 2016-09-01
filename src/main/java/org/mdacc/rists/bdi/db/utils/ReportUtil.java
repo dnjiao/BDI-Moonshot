@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.text.SimpleDateFormat;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -96,13 +97,16 @@ public class ReportUtil {
 		
 		// query report tb and get results for last report date
 		String day = truncateDate(getLastReportTime(con));
-		String query = "select * from report_pi_tb where TRUNC(\"Report Date\") = TO_DATE(?, 'MMDDYYYY')";
+		String query = "select \"Data Domain\", PI, \"Protocol Count(RIStore)\", \"Protocol Count(TRA)\", \"Protocol Count(NonProtocol)\", "
+				+ "\"Sample Count(RIStore)\", \"Sample Count(TRA)\", \"File Count(RIStore)\", \"File Count(Loaded)\", \"File Count(TRA)\", "
+				+ "\"Report Date\", \"From Date\", \"To Date\" "
+				+ "from report_pi_tb where TRUNC(\"Report Date\") = TO_DATE(?, 'MMDDYYYY') order by row_id asc";
 		PreparedStatement stmt = con.prepareStatement(query);
 		stmt.setString(1, day);
 		ResultSet rs = stmt.executeQuery();
 		
 		ResultSetMetaData rsmd = rs.getMetaData();
-	    int numOfCols = rsmd.getColumnCount();
+	    int numOfCols = rsmd.getColumnCount() - 2;
 	    //print col names
 	    String row = rsmd.getColumnName(1);
 	    for (int i = 2; i <= numOfCols; i++) {
@@ -117,7 +121,10 @@ public class ReportUtil {
 	        	} else {
 	        		String val = rs.getString(i);
 	        		if (val != null) {
-	        			row += "," + rs.getString(i);
+	        			if (rsmd.getColumnClassName(i).equalsIgnoreCase("java.sql.Timestamp")) {
+		        			val = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(rs.getTimestamp(i));
+	        			}
+	        			row += "," + val;
 	        		} else {
 	        			row += ",";
 	        		}

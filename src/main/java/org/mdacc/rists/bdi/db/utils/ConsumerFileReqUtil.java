@@ -14,10 +14,13 @@ import oracle.jdbc.OracleTypes;
 
 public class ConsumerFileReqUtil {
 	public static void main(String[] args) {
-
+		List<ConsumerFileReqVO> conList = getAllConsumers();
+		for (ConsumerFileReqVO con : conList) {
+			System.out.println(con.getFileType() + con.getApiUri() + con.getApiUsername() + con.getApiPassword());
+		}
 	}
 	
-	public static List<ConsumerFileReqVO> getAllConsumer() {
+	public static List<ConsumerFileReqVO> getAllConsumers() {
 		Connection con = DBConnection.getConnection();
 		CallableStatement stmt;
 		ResultSet rs = null;
@@ -61,10 +64,13 @@ public class ConsumerFileReqUtil {
 				ConsumerFileReqVO vo;
 				int id = rs.getInt("ROW_ID");
 				int ftId = rs.getInt("FILE_TYPE_ID");
+				String uri = rs.getString("API_URI");
+				String user = rs.getString("API_USERNAME");
+				String pass = rs.getString("API_PASSWORD");
 				int cId = rs.getInt("CONSUMER_ID");
 				String fileType = rs.getString("FILE_TYPE");
 				String consumer = rs.getString("CONSUMER");
-				vo = new ConsumerFileReqVO(id, ftId, fileType, cId, consumer);
+				vo = new ConsumerFileReqVO(id, ftId, fileType, uri, user, pass, cId, consumer);
 				cfList.add(vo);
 			}
 			

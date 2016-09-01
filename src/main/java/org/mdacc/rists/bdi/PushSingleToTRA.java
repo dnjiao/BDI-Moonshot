@@ -8,7 +8,7 @@ public class PushSingleToTRA {
 	final static String URL_STRING = "http://10.113.241.55:8099/bdi/serviceingestion?domain=";
 	final static String USERNAME = "ristsvc";
 	final static String PASSWORD = "CH!M@321";
-	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "splice");
+	static List <String> TYPES = Arrays.asList("vcf", "cnv", "exon", "gene", "splice", "fmd");
 	
 	public static void main(String[] args) {
 		if (args.length != 2) {

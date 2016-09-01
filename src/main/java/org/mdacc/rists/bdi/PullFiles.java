@@ -93,7 +93,7 @@ public class PullFiles {
 				System.out.println("Creating folder " + archive.getAbsolutePath());
 				archive.mkdir();
 			}
-			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp.sh", dest + "/archive"};
+			String[] cmd = new String[]{"/bin/bash", "/rsrch1/rists/moonshot/apps/sh/sftp-mapping.sh", dest + "/archive"};
 			String source = "prodinformat";
 			
 			Process p = Runtime.getRuntime().exec(cmd);

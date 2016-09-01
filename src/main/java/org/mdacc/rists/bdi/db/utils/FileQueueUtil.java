@@ -99,7 +99,9 @@ public class FileQueueUtil {
 			
 			// get cursor and cast it to ResultSet
 			rs = (ResultSet) stmt.getObject(3);
+			System.out.println("Resultset returned.");
 			fqList = ResultSetToList(rs);
+			System.out.println("Total of " + fqList.size() + " files unsent.");
 			rs.close();
 			
 //			//DEBUG: print out ResultSet content.

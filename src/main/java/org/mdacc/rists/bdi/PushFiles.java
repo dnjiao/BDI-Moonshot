@@ -17,10 +17,11 @@ public class PushFiles {
 			return;
 		}
 		String ifPush = args[0];
-		List<ConsumerFileReqVO> consumerList = ConsumerFileReqUtil.getAllConsumer();
+		List<ConsumerFileReqVO> consumerList = ConsumerFileReqUtil.getAllConsumers();
 		for (ConsumerFileReqVO consumer : consumerList) {
 			switch (consumer.getConsumer()) {
-				case "TRA": PushToTRA.pushFilesByType(consumer.getFileType(), consumer.getConsumerId(), consumer.getFileTypeId(), ifPush);
+				case "TRA": PushToTRA.pushFilesByType(consumer.getFileType(), consumer.getApiUri(),
+						consumer.getApiUsername(), consumer.getApiPassword(), consumer.getConsumerId(), consumer.getFileTypeId(), ifPush);
 							break;
 			}		
 		}

@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Entity
 @Table(name="FM_REPORT_TB")
-@NamedQuery(name="FmReportTb.findAll", query="SELECT f FROM FmReportTb f")
+
 public class FmReportTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 

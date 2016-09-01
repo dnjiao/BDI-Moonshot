@@ -4,6 +4,9 @@ public class ConsumerFileReqVO {
 	int rowId;
 	int fileTypeId;
 	String fileType;
+	String apiUri;
+	String apiUsername;
+	String apiPassword;
 	int consumerId;
 	String consumer;
 	
@@ -11,11 +14,15 @@ public class ConsumerFileReqVO {
 		super();
 	}
 
-	public ConsumerFileReqVO(int rowId, int fileTypeId, String fileType, int consumerId, String consumer) {
+	public ConsumerFileReqVO(int rowId, int fileTypeId, String fileType, String uri, 
+			String username, String password, int consumerId, String consumer) {
 		super();
 		this.rowId = rowId;
 		this.fileTypeId = fileTypeId;
 		this.fileType = fileType;
+		this.apiUri = uri;
+		this.apiUsername = username;
+		this.apiPassword = password;
 		this.consumerId = consumerId;
 		this.consumer = consumer;
 	}
@@ -32,6 +39,31 @@ public class ConsumerFileReqVO {
 	public void setFileTypeId(int fileTypeId) {
 		this.fileTypeId = fileTypeId;
 	}
+	
+	public String getApiUri() {
+		return apiUri;
+	}
+
+	public void setApiUri(String apiUri) {
+		this.apiUri = apiUri;
+	}
+
+	public String getApiUsername() {
+		return apiUsername;
+	}
+
+	public void setApiUsername(String apiUsername) {
+		this.apiUsername = apiUsername;
+	}
+
+	public String getApiPassword() {
+		return apiPassword;
+	}
+
+	public void setApiPassword(String apiPassword) {
+		this.apiPassword = apiPassword;
+	}
+
 	public int getConsumerId() {
 		return consumerId;
 	}
