@@ -101,12 +101,13 @@ public class ReportUtil {
 				+ "\"Sample Count(RIStore)\", \"Sample Count(TRA)\", \"File Count(RIStore)\", \"File Count(Loaded)\", \"File Count(TRA)\", "
 				+ "\"Report Date\", \"From Date\", \"To Date\" "
 				+ "from report_pi_tb where TRUNC(\"Report Date\") = TO_DATE(?, 'MMDDYYYY') order by row_id asc";
+		System.out.println(query);
 		PreparedStatement stmt = con.prepareStatement(query);
 		stmt.setString(1, day);
 		ResultSet rs = stmt.executeQuery();
 		
 		ResultSetMetaData rsmd = rs.getMetaData();
-	    int numOfCols = rsmd.getColumnCount() - 2;
+	    int numOfCols = rsmd.getColumnCount();
 	    //print col names
 	    String row = rsmd.getColumnName(1);
 	    for (int i = 2; i <= numOfCols; i++) {
