@@ -13,8 +13,17 @@ import java.util.List;
  * 
  */
 @Entity
+@NamedEntityGraph(
+		name = "FmReportGraph", 
+		attributeNodes = { 
+		  @NamedAttributeNode("fileLoadId"),
+		  @NamedAttributeNode("frBlockId"),
+		  @NamedAttributeNode("frCollectionDate"),
+		  @NamedAttributeNode("frDiagnosis"),
+		  @NamedAttributeNode("frFullName"),
+		  @NamedAttributeNode("frReportId"),
+		  @NamedAttributeNode("specimenTb")})
 @Table(name="FM_REPORT_TB")
-
 public class FmReportTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
@@ -191,47 +200,47 @@ public class FmReportTb implements Serializable {
 	private BigDecimal fileLoadId;
 
 	//bi-directional many-to-one association to FmReportAltPropertyTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAltPropertyTb> fmReportAltPropertyTbs;
 
 	//bi-directional many-to-one association to FmReportAltTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAltTb> fmReportAltTbs;
 
 	//bi-directional many-to-one association to FmReportAltTherapyTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAltTherapyTb> fmReportAltTherapyTbs;
 
 	//bi-directional many-to-one association to FmReportAltTrialLkTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAltTrialLkTb> fmReportAltTrialLkTbs;
 
 	//bi-directional many-to-one association to FmReportAppTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportAppTb> fmReportAppTbs;
 
 	//bi-directional many-to-one association to FmReportGeneTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportGeneTb> fmReportGeneTbs;
 
 	//bi-directional many-to-one association to FmReportPertNegTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportPertNegTb> fmReportPertNegTbs;
 
 	//bi-directional many-to-one association to FmReportReferenceTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportReferenceTb> fmReportReferenceTbs;
 
 	//bi-directional many-to-one association to FmReportRefLkTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportRefLkTb> fmReportRefLkTbs;
 
 	//bi-directional many-to-one association to FmReportSampleTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportSampleTb> fmReportSampleTbs;
 
 	//bi-directional many-to-one association to FmReportSignatureTb
-	@OneToMany(mappedBy="fmReportTb", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToMany(mappedBy="fmReportTb", fetch = FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
 	private List<FmReportSignatureTb> fmReportSignatureTbs;
 
 	//bi-directional many-to-one association to SpecimenTb
