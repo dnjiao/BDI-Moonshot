@@ -177,16 +177,32 @@ public class WorkflowUtils {
 	 * @param newfile - new file
 	 */
 	public static void fixMappingFile(File oldfile, File newfile) {
+		int rowIndex = 0;
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(oldfile));
 			PrintWriter writer = new PrintWriter(newfile);
 			String line;
+			List<String> lines = new ArrayList<String>();
 			while ((line = reader.readLine()) != null) {
+				// convert windows new line character to liux
 				if (line.contains("\r")) {
 					line = line.replaceAll("\r\n", "\n");
 					line = line.replaceAll("\r", "");
 				}
-				writer.println(line);
+				// Sixth column 'collectiondate' can't be string
+				String[] array = line.split("\\|", 7);
+				if (rowIndex > 0 && array[5].length() != 0) {
+					if (Character.isLetter(array[5].charAt(0))) {
+						array[5] = "";
+						line = StringUtils.join(array, "|");
+					}
+				}
+				// dedup
+				if (!lines.contains(line)) {
+					lines.add(line);
+					writer.println(line);
+				}
+				rowIndex++;
 			}
 			writer.close();
 			reader.close();

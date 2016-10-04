@@ -7,7 +7,7 @@
   </parent>
   <groupId>org.mda.rists</groupId>
   <artifactId>RIStore_Flow</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <!-- JBoss repository for Hibernate -->
   <repositories>
 	<repository>
@@ -26,6 +26,7 @@
   <properties>
   	<apache.maven.compiler.version>3.1</apache.maven.compiler.version>
   	<apache.maven.shade.version>2.3</apache.maven.shade.version>
+  	<skipTests>true</skipTests>
   </properties>
   <dependencies>
  	<dependency>
@@ -110,6 +111,14 @@
         <configuration>
           <source>1.7</source>
           <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+        <configuration>
+          <skipTests>${skipTests}</skipTests>
         </configuration>
       </plugin>
       <plugin>
