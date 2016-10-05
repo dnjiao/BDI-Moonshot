@@ -1,5 +1,6 @@
 package org.mdacc.rists.bdi.db.utils;
 
+import java.sql.Array;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -9,8 +10,7 @@ import java.util.List;
 
 import org.mdacc.rists.bdi.WorkflowUtils;
 
-import oracle.sql.ARRAY;
-import oracle.sql.ArrayDescriptor;
+import oracle.jdbc.OracleConnection;
 
 public class FileTransferAuditUtil {
 	public static void main(String[] args) {
@@ -61,12 +61,14 @@ public class FileTransferAuditUtil {
 		return ret;
 	}
 	
-	public static void updateFileQueueId (Connection con, List<String> fileList, int fileQueueId) {
+	
+	public static String updateFileQueueId (Connection con, List<String> fileList, int fileQueueId) {
 		String[] fileArray = fileList.toArray(new String[fileList.size()]);
+		String error = null;
 		try{
 			System.out.println("Calling procedure FILE_TRANSFER_AUDIT_UTIL.update_file_queue_id with queueID " + fileQueueId);
-			ArrayDescriptor des = ArrayDescriptor.createDescriptor("VARCHAR2_TABLE", con);
-			ARRAY array = new ARRAY(des, con, fileArray);
+			OracleConnection oraCon = con.unwrap(OracleConnection.class);
+			Array array = oraCon.createARRAY("VARCHAR2_TAB_T", fileArray);
 			CallableStatement stmt = con.prepareCall("{call FILE_TRANSFER_AUDIT_UTIL.update_file_queue_id(?,?,?,?,?,?)}");
 			stmt.setArray(1, array);
 			stmt.setInt(2, fileQueueId);
@@ -76,11 +78,13 @@ public class FileTransferAuditUtil {
 			stmt.registerOutParameter(6, Types.VARCHAR);
 			
 			stmt.execute();
+			error = stmt.getString(4);
 			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
+		return error; 
 		
 	}
 	
