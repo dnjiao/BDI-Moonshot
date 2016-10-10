@@ -91,7 +91,7 @@ public class FileLocationUtil {
 			stmt.executeUpdate();
 			
 			dtStr = stmt.getString(4);
-			System.out.println("Last timestamp for " + filetype + " from " + path + ": " + dtStr);
+//			System.out.println("Last timestamp for " + filetype + " from " + path + ": " + dtStr);
 			if (dtStr != null) {
 				dt = FORMATTER.parseDateTime(dtStr);
 			}

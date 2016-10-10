@@ -28,7 +28,7 @@ public class FmReportTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@SequenceGenerator(name="FM_REPORT_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_TB_SEQ", allocationSize=1)
+	@SequenceGenerator(name="FM_REPORT_TB_ROWID_GENERATOR", sequenceName="FM_REPORT_SEQ", allocationSize=1)
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FM_REPORT_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;

@@ -145,7 +145,6 @@ public class PullFiles {
 				}
 				else {
 					file.delete();
-					System.out.println(file.getAbsolutePath() + " is old.");
 				}
 			}
 			else {

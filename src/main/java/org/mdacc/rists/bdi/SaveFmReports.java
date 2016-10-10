@@ -120,7 +120,7 @@ public class SaveFmReports {
 	
 	private static long insertFileLoadTb(EntityManagerFactory emf, int fileQueueId, int fileTypeId, String filepath, int num, BigDecimal etl) {
 		EntityManager em = emf.createEntityManager();
-		long rowId = getNextValue(emf, "FILE_LOAD_TB_SEQ").longValue();
+		long rowId = getNextValue(emf, "FILE_LOAD_SEQ").longValue();
 		BigDecimal fqId = new BigDecimal(String.valueOf(fileQueueId));
 		BigDecimal ftId = new BigDecimal(String.valueOf(fileTypeId));
 		BigDecimal seqNum = new BigDecimal(String.valueOf(num));

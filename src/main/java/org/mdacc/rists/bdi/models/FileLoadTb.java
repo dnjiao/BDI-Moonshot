@@ -17,7 +17,7 @@ public class FileLoadTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-//	@SequenceGenerator(name="FILE_LOAD_TB_ROWID_GENERATOR", sequenceName="FILE_LOAD_TB_SEQ")
+//	@SequenceGenerator(name="FILE_LOAD_TB_ROWID_GENERATOR", sequenceName="FILE_LOAD_SEQ")
 //	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FILE_LOAD_TB_ROWID_GENERATOR")
 	@Column(name="ROW_ID")
 	private long rowId;
