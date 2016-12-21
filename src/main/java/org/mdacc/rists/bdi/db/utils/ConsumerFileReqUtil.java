@@ -13,15 +13,16 @@ import org.mdacc.rists.bdi.vo.ConsumerFileReqVO;
 import oracle.jdbc.OracleTypes;
 
 public class ConsumerFileReqUtil {
-	public static void main(String[] args) {
-		List<ConsumerFileReqVO> conList = getAllConsumers();
+	public static void main(String[] args) throws SQLException {
+		Connection conn = DBConnection.getConnection();
+		List<ConsumerFileReqVO> conList = getAllConsumers(conn);
 		for (ConsumerFileReqVO con : conList) {
 			System.out.println(con.getFileType() + con.getApiUri() + con.getApiUsername() + con.getApiPassword());
 		}
+		conn.close();
 	}
 	
-	public static List<ConsumerFileReqVO> getAllConsumers() {
-		Connection con = DBConnection.getConnection();
+	public static List<ConsumerFileReqVO> getAllConsumers(Connection con) {
 		CallableStatement stmt;
 		ResultSet rs = null;
 		List<ConsumerFileReqVO> consumerList = null;
@@ -48,7 +49,6 @@ public class ConsumerFileReqUtil {
 			consumerList = ResultSetToList(rs);
 			rs.close();
 			stmt.close();
-			con.close();
 			
 		} catch (SQLException e) {
 			e.printStackTrace();

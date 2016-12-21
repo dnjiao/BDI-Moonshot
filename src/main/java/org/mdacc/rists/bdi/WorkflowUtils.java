@@ -40,7 +40,8 @@ public class WorkflowUtils {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			String firstline = reader.readLine();
-			if (firstline.startsWith("Project|Subproject")) {
+
+			if (firstline.startsWith("Project|Subproject|Specimen_ID|MRN|Sample_Type|Collection_Date|Disease_Site|S_number|TID|Tissue_Station_Seq_ID|NGS_Platform|VCF|CNV")) {
 				bool = true;
 			}
 			else

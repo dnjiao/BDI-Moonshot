@@ -22,13 +22,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.mdacc.rists.bdi.db.utils.DBConnection;
-import org.mdacc.rists.bdi.db.utils.FileLoadUtil;
-import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
-import org.mdacc.rists.bdi.db.utils.FileTypeUtil;
-import org.mdacc.rists.bdi.fm.dao.FileLoadDao;
-import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
-import org.mdacc.rists.bdi.fm.service.FmParseUtils;
 import org.mdacc.rists.bdi.models.FileLoadTb;
 import org.mdacc.rists.bdi.models.FmReportAmendmendTb;
 import org.mdacc.rists.bdi.models.FmReportAppTb;
@@ -42,6 +35,13 @@ import org.mdacc.rists.bdi.models.FmReportTrialTb;
 import org.mdacc.rists.bdi.models.FmReportVarPropertyTb;
 import org.mdacc.rists.bdi.models.FmReportVarTb;
 import org.mdacc.rists.bdi.models.SpecimenTb;
+import org.mdacc.rists.bdi.db.utils.DBConnection;
+import org.mdacc.rists.bdi.db.utils.FileLoadUtil;
+import org.mdacc.rists.bdi.db.utils.FileQueueUtil;
+import org.mdacc.rists.bdi.db.utils.FileTypeUtil;
+import org.mdacc.rists.bdi.fm.dao.FileLoadDao;
+import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
+import org.mdacc.rists.bdi.fm.service.FmParseUtils;
 import org.mdacc.rists.bdi.utils.XMLParser;
 import org.mdacc.rists.bdi.vo.FileQueueVO;
 import org.w3c.dom.Document;
@@ -214,7 +214,7 @@ public class SaveFmReports {
 			report.setFrSampleId(XMLParser.getNodeValue("SampleId", sampNodes));
 			
 			report.setFrBlockId(blockId);
-			report.setFrTfrNumber(XMLParser.getNodeValue("TRFNumber", sampNodes));
+			report.setFrTrfNumber(XMLParser.getNodeValue("TRFNumber", sampNodes));
 			report.setFrSpecFormat(XMLParser.getNodeValue("SpecFormat", sampNodes));
 			String receivedDate = XMLParser.getNodeValue("ReceivedDate", sampNodes);
 			if (receivedDate != "") {

@@ -2,12 +2,13 @@ package org.mdacc.rists.bdi.fm.dao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.PersistenceContext;
 
 import org.mdacc.rists.bdi.models.FileLoadTb;
 
 public class FileLoadDao {
 
-	EntityManager entityManager;
+	private EntityManager entityManager;
 
 	public FileLoadDao() {
 		super();

@@ -39,6 +39,7 @@ public class SendEmail {
 		EmailVO email = new EmailVO();
 		email.setFromAddress(fromAddress);
 		email.setToAddresses(toAddress);
+		email.setCcAddresses(fromAddress);
 		email.setSubject(subject);
 		email.setMessageBody(messageBody);
 		File file = new File(path);

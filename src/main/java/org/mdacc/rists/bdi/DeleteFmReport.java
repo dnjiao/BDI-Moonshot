@@ -8,9 +8,9 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
-import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
 import org.mdacc.rists.bdi.models.FmReportTb;
 import org.mdacc.rists.bdi.models.SpecimenTb;
+import org.mdacc.rists.bdi.fm.dao.SpecimenDao;
 
 public class DeleteFmReport {
 	

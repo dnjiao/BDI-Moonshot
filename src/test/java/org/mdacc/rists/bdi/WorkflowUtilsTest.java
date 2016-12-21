@@ -18,5 +18,11 @@ public class WorkflowUtilsTest {
 		WorkflowUtils.fixMappingFile(in, out);
 		assertTrue(out.exists());
 	}
+	
+	@Test
+	public void testIsMapping() {
+		File file = new File("/Users/djiao/Work/moonshot/mapping/MSBIO_SPCMN_20160106_01072016050004.txt");
+		assertTrue(WorkflowUtils.isMapping(file));
+	}
 
 }

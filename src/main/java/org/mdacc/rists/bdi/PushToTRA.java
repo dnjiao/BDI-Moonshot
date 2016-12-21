@@ -92,7 +92,7 @@ public class PushToTRA {
 			post = new HttpPost(url);
 			// set username/password and content-type for posting
 			post.setHeader("username", username);
-			post.setHeader("password", password);
+			post.setHeader("authcred", password);
 		
 			FileEntity entity = new FileEntity(file, "application/octet-stream");   
 			post.setEntity(entity);
